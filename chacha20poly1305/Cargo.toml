@@ -1,0 +1,13 @@
+[package]
+name = "chacha20poly1305"
+version = "0.0.0"
+authors = ["RustCrypto Developers"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "CTR block mode of operation"
+documentation = "chacha20poly1305"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["crypto", "cipher", "aead"]
+categories = ["cryptography", "no-std"]
+
+[dependencies]

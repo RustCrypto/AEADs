@@ -1,0 +1,4 @@
+[workspace]
+members = [
+    "chacha20poly1305",
+]

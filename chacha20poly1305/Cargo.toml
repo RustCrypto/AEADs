@@ -4,10 +4,16 @@ version = "0.0.0"
 authors = ["RustCrypto Developers"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
-description = "CTR block mode of operation"
+description = """
+ChaCha20Poly1305 Authenticated Encryption with Additional Data Algorithm (RFC 8439)
+"""
 documentation = "chacha20poly1305"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["crypto", "cipher", "aead"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
+aead = "0.1"
+chacha20 = { version = "0.2.1", features = ["zeroize"] }
+poly1305 = "0.2"
+zeroize = { version = "0.9", default-features = false }

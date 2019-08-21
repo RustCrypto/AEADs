@@ -1,4 +1,4 @@
-# RustCrypto: stream ciphers
+# RustCrypto: Authenticated Encryption with Associated Data
 [![Build Status](https://travis-ci.org/RustCrypto/AEADs.svg?branch=master)](https://travis-ci.org/RustCrypto/AEADs) [![dependency status](https://deps.rs/repo/github/RustCrypto/AEADs/status.svg)](https://deps.rs/repo/github/AEADs/stream-ciphers)
 
 Collection of [Authenticated Encryption with Associated Data (AEAD)][1]

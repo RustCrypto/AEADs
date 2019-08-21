@@ -13,7 +13,7 @@ keywords = ["crypto", "cipher", "aead"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = "0.1"
+aead = { version = "0.1", git = "https://github.com/RustCrypto/traits" }
 chacha20 = { version = "0.2.1", features = ["zeroize"] }
 poly1305 = "0.2"
 zeroize = { version = "0.9", default-features = false }

@@ -8,7 +8,7 @@ extern crate alloc;
 pub use aead;
 
 use aead::generic_array::typenum::{U0, U12, U16, U32};
-use aead::{generic_array::GenericArray, Aead, Error, NewAead};
+use aead::{generic_array::GenericArray, StatelessAead, Error, NewAead};
 use alloc::vec::Vec;
 use chacha20::stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use chacha20::ChaCha20;
@@ -31,13 +31,13 @@ impl NewAead for ChaCha20Poly1305 {
     }
 }
 
-impl Aead for ChaCha20Poly1305 {
+impl StatelessAead for ChaCha20Poly1305 {
     type NonceSize = U12;
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
     fn encrypt(
-        &mut self,
+        &self,
         associated_data: &[u8],
         nonce: &GenericArray<u8, Self::NonceSize>,
         plaintext: &[u8],
@@ -46,7 +46,7 @@ impl Aead for ChaCha20Poly1305 {
     }
 
     fn decrypt(
-        &mut self,
+        &self,
         associated_data: &[u8],
         nonce: &GenericArray<u8, Self::NonceSize>,
         ciphertext: &[u8],

@@ -2,6 +2,3 @@
 members = [
     "chacha20poly1305",
 ]
-
-[patch.crates-io]
-aead = { git = "https://github.com/RustCrypto/traits" }

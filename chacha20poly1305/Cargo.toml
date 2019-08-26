@@ -9,7 +9,7 @@ ChaCha20Poly1305 Authenticated Encryption with Additional Data Algorithm (RFC 84
 """
 documentation = "chacha20poly1305"
 repository = "https://github.com/RustCrypto/AEADs"
-keywords = ["crypto", "cipher", "aead"]
+keywords = ["crypto", "cipher", "aead", "xchacha20", "xchacha20poly1305"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
@@ -17,3 +17,7 @@ aead = { version = "0.1", git = "https://github.com/RustCrypto/traits" }
 chacha20 = { version = "0.2.1", features = ["zeroize"] }
 poly1305 = "0.2"
 zeroize = { version = "0.9", default-features = false }
+
+[features]
+default = ["xchacha20poly1305"]
+xchacha20poly1305 = ["chacha20/xchacha20"]

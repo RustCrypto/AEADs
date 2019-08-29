@@ -5,7 +5,7 @@ use aead::generic_array::{
     typenum::{U0, U16, U24, U32},
     GenericArray,
 };
-use aead::{Error, NewAead, StatelessAead};
+use aead::{Aead, Error, NewAead, Payload};
 use alloc::vec::Vec;
 use chacha20::{stream_cipher::NewStreamCipher, XChaCha20};
 use zeroize::Zeroize;
@@ -43,27 +43,25 @@ impl NewAead for XChaCha20Poly1305 {
     }
 }
 
-impl StatelessAead for XChaCha20Poly1305 {
+impl Aead for XChaCha20Poly1305 {
     type NonceSize = U24;
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
-    fn encrypt(
+    fn encrypt<'msg, 'aad>(
         &self,
-        associated_data: &[u8],
         nonce: &GenericArray<u8, Self::NonceSize>,
-        plaintext: &[u8],
+        plaintext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
-        Cipher::new(XChaCha20::new(&self.key, nonce)).encrypt(associated_data, plaintext)
+        Cipher::new(XChaCha20::new(&self.key, nonce)).encrypt(plaintext.into())
     }
 
-    fn decrypt(
+    fn decrypt<'msg, 'aad>(
         &self,
-        associated_data: &[u8],
         nonce: &GenericArray<u8, Self::NonceSize>,
-        ciphertext: &[u8],
+        ciphertext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
-        Cipher::new(XChaCha20::new(&self.key, nonce)).decrypt(associated_data, ciphertext)
+        Cipher::new(XChaCha20::new(&self.key, nonce)).decrypt(ciphertext.into())
     }
 }
 

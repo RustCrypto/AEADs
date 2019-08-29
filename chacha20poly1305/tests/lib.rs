@@ -6,9 +6,13 @@ macro_rules! impl_tests {
         fn encrypt() {
             let key = GenericArray::from_slice($key);
             let nonce = GenericArray::from_slice($nonce);
+            let payload = chacha20poly1305::aead::Payload {
+                msg: $plaintext,
+                aad: $aad,
+            };
 
-            let mut cipher = <$cipher>::new(*key);
-            let ciphertext = cipher.encrypt($aad, nonce, $plaintext).unwrap();
+            let cipher = <$cipher>::new(*key);
+            let ciphertext = cipher.encrypt(nonce, payload).unwrap();
 
             let tag_begins = ciphertext.len() - 16;
             assert_eq!($ciphertext, &ciphertext[..tag_begins]);
@@ -22,9 +26,13 @@ macro_rules! impl_tests {
 
             let mut ciphertext = Vec::from($ciphertext);
             ciphertext.extend_from_slice($tag);
+            let payload = chacha20poly1305::aead::Payload {
+                msg: &ciphertext,
+                aad: $aad,
+            };
 
-            let mut cipher = <$cipher>::new(*key);
-            let plaintext = cipher.decrypt($aad, nonce, &ciphertext).unwrap();
+            let cipher = <$cipher>::new(*key);
+            let plaintext = cipher.decrypt(nonce, payload).unwrap();
 
             assert_eq!($plaintext, plaintext.as_slice());
         }
@@ -40,8 +48,13 @@ macro_rules! impl_tests {
             // Tweak the first byte
             ciphertext[0] ^= 0xaa;
 
-            let mut cipher = <$cipher>::new(*key);
-            assert!(cipher.decrypt($aad, nonce, &ciphertext).is_err());
+            let payload = chacha20poly1305::aead::Payload {
+                msg: &ciphertext,
+                aad: $aad,
+            };
+
+            let cipher = <$cipher>::new(*key);
+            assert!(cipher.decrypt(nonce, payload).is_err());
         }
     };
 }

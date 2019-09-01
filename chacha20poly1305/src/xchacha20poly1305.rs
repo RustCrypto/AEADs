@@ -27,6 +27,10 @@ use zeroize::Zeroize;
 ///
 /// <https://tools.ietf.org/html/draft-arciszewski-xchacha-03>
 ///
+/// It is worth noting that libsodium's default "secretbox" algorithm is
+/// XSalsa20Poly1305, not XChaCha20Poly1305, and thus not compatible with
+/// this library.
+///
 /// The `xchacha20poly1305` Cargo feature must be enabled in order to use this
 /// (which it is by default).
 #[derive(Clone)]

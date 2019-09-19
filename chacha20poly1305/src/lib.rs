@@ -1,5 +1,15 @@
-//! ChaCha20Poly1305 Authenticated Encryption with Additional Data Algorithm
-//! (RFC 8439)
+//! **Chacha20Poly1305** ([RFC 8439][1]) is an
+//! [Authenticated Encryption with Associated Data (AEAD)][2]
+//! cipher amenable to fast, constant-time implementations in software, based on
+//! the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
+//!
+//! This crate also contains an implementation of **XChaCha20Poly1305**: a variant
+//! of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
+//!
+//! [1]: https://tools.ietf.org/html/rfc8439
+//! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
+//! [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
+//! [4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
 
 #![no_std]
 

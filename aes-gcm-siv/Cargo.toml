@@ -1,0 +1,19 @@
+[package]
+name = "aes-gcm-siv"
+version = "0.0.0"
+authors = ["RustCrypto Developers"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)"
+readme = "README.md"
+documentation = "https://docs.rs/aes-gcm-siv"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["aead", "aes", "aes-gcm", "encryption", "siv"]
+categories = ["cryptography", "no-std"]
+
+[dependencies]
+aead = "0.1"
+aes = "0.3"
+ctr = "0.3"
+polyval = "0.1"
+subtle = { version = "2", default-features = false }

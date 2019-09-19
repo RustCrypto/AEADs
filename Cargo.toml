@@ -1,4 +1,5 @@
 [workspace]
 members = [
+    "aes-gcm-siv",
     "chacha20poly1305",
 ]

@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 description = """
 ChaCha20Poly1305 Authenticated Encryption with Additional Data Algorithm (RFC 8439)
 """
+readme = "README.md"
 documentation = "https://docs.rs/chacha20poly1305"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["crypto", "cipher", "aead", "xchacha20", "xchacha20poly1305"]

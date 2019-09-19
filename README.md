@@ -1,5 +1,5 @@
 # RustCrypto: Authenticated Encryption with Associated Data
-[![Build Status](https://travis-ci.org/RustCrypto/AEADs.svg?branch=master)](https://travis-ci.org/RustCrypto/AEADs) [![dependency status](https://deps.rs/repo/github/RustCrypto/AEADs/status.svg)](https://deps.rs/repo/github/AEADs/stream-ciphers)
+[![Build Status](https://travis-ci.org/RustCrypto/AEADs.svg?branch=master)](https://travis-ci.org/RustCrypto/AEADs) [![dependency status](https://deps.rs/repo/github/RustCrypto/AEADs/status.svg)](https://deps.rs/repo/github/RustCrypto/AEADs)
 
 Collection of [Authenticated Encryption with Associated Data (AEAD)][1]
 algorithms written in pure Rust.

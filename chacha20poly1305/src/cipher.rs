@@ -7,8 +7,15 @@ use aead::{Error, Payload};
 use alloc::vec::Vec;
 use chacha20::stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
 use core::convert::TryInto;
-use poly1305::{Poly1305, Tag};
+use poly1305::{
+    universal_hash::{Output, UniversalHash},
+    Poly1305,
+};
 use zeroize::Zeroizing;
+
+/// Poly1305 tag
+// TODO(tarcieri): move this into the Poly1305 crate
+type Tag = Output<<Poly1305 as UniversalHash>::OutputSize>;
 
 /// ChaCha20Poly1305 instantiated with a particular nonce
 pub(crate) struct Cipher<C>
@@ -26,9 +33,9 @@ where
     /// Instantiate the underlying cipher with a particular nonce
     pub(crate) fn new(mut cipher: C) -> Self {
         // Derive Poly1305 key from the first 32-bytes of the ChaCha20 keystream
-        let mut mac_key = Zeroizing::new([0u8; poly1305::KEY_SIZE]);
+        let mut mac_key = Zeroizing::new(poly1305::Key::default());
         cipher.apply_keystream(&mut *mac_key);
-        let mac = Poly1305::new(&mac_key);
+        let mac = Poly1305::new(GenericArray::from_slice(&*mac_key));
 
         // Set ChaCha20 counter to 1
         cipher.seek(chacha20::BLOCK_SIZE as u64);
@@ -42,7 +49,7 @@ where
         buffer.extend_from_slice(payload.msg);
 
         let tag = self.encrypt_in_place(&mut buffer, payload.aad)?;
-        buffer.extend_from_slice(tag.code().as_slice());
+        buffer.extend_from_slice(tag.into_bytes().as_slice());
         Ok(buffer)
     }
 
@@ -56,9 +63,9 @@ where
             return Err(Error);
         }
 
-        self.mac.input_padded(associated_data);
+        self.mac.update_padded(associated_data);
         self.cipher.apply_keystream(buffer);
-        self.mac.input_padded(buffer);
+        self.mac.update_padded(buffer);
         self.authenticate_lengths(associated_data, buffer)?;
         Ok(self.mac.result())
     }
@@ -89,12 +96,12 @@ where
             return Err(Error);
         }
 
-        self.mac.input_padded(associated_data);
-        self.mac.input_padded(buffer);
+        self.mac.update_padded(associated_data);
+        self.mac.update_padded(buffer);
         self.authenticate_lengths(associated_data, buffer)?;
 
         // This performs a constant-time comparison using the `subtle` crate
-        if self.mac.result() == Tag::new(*GenericArray::from_slice(tag)) {
+        if self.mac.verify(GenericArray::from_slice(tag)).is_ok() {
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {
@@ -106,8 +113,8 @@ where
     fn authenticate_lengths(&mut self, associated_data: &[u8], buffer: &[u8]) -> Result<(), Error> {
         let associated_data_len: u64 = associated_data.len().try_into().map_err(|_| Error)?;
         let buffer_len: u64 = buffer.len().try_into().map_err(|_| Error)?;
-        self.mac.input(&associated_data_len.to_le_bytes());
-        self.mac.input(&buffer_len.to_le_bytes());
+        self.mac.update(&associated_data_len.to_le_bytes());
+        self.mac.update(&buffer_len.to_le_bytes());
         Ok(())
     }
 }

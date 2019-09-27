@@ -47,5 +47,25 @@ macro_rules! tests {
                 assert_eq!(vector.plaintext, plaintext.as_slice());
             }
         }
+
+        #[test]
+        fn decrypt_modified() {
+            let vector = &$vectors[1];
+            let key = GenericArray::from_slice(vector.key);
+            let nonce = GenericArray::from_slice(vector.nonce);
+
+            let mut ciphertext = Vec::from(vector.ciphertext);
+
+            // Tweak the first byte
+            ciphertext[0] ^= 0xaa;
+
+            let payload = Payload {
+                msg: &ciphertext,
+                aad: vector.aad,
+            };
+
+            let cipher = <$aead>::new(*key);
+            assert!(cipher.decrypt(nonce, payload).is_err());
+        }
     };
 }

@@ -175,7 +175,7 @@ where
         }
 
         let tag = self.compute_tag(buffer, associated_data);
-        self.ctr32le(&tag, buffer);
+        self.ctr32le(tag, buffer);
         Ok(tag)
     }
 
@@ -190,7 +190,7 @@ where
         let tag_start = payload.msg.len() - tag_size;
         let mut buffer = Vec::from(&payload.msg[..tag_start]);
         let tag = GenericArray::from_slice(&payload.msg[tag_start..]);
-        self.decrypt_in_place(&mut buffer, payload.aad, &tag)?;
+        self.decrypt_in_place(&mut buffer, payload.aad, *tag)?;
 
         Ok(buffer)
     }
@@ -201,7 +201,7 @@ where
         mut self,
         buffer: &mut [u8],
         associated_data: &[u8],
-        tag: &Tag,
+        tag: Tag,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -211,7 +211,7 @@ where
         let expected_tag = self.compute_tag(buffer, associated_data);
 
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
             Ok(())
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
@@ -248,13 +248,11 @@ where
     }
 
     /// CTR mode with a 32-bit little endian counter
-    fn ctr32le(&self, counter_block: &GenericArray<u8, U16>, buffer: &mut [u8]) {
-        let mut counter_block = *counter_block;
+    fn ctr32le(&self, mut counter_block: GenericArray<u8, U16>, buffer: &mut [u8]) {
         counter_block[15] |= 0x80;
 
-        let mut keystream_block = counter_block;
-
         for chunk in buffer.chunks_mut(C::BlockSize::to_usize()) {
+            let mut keystream_block = counter_block;
             self.enc_cipher.encrypt_block(&mut keystream_block);
 
             // Increment counter

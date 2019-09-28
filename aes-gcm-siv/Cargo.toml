@@ -11,9 +11,8 @@ repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "aes", "aes-gcm", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
 
-[[bench]]
-name = "aes-gcm-siv"
-harness = false
+[badges]
+maintenance = { status = "experimental" }
 
 [dependencies]
 aead = "0.1"
@@ -25,3 +24,7 @@ subtle = { version = "2", default-features = false }
 [dev-dependencies]
 criterion = "0.3.0"
 criterion-cycles-per-byte = "0.1.1"
+
+[[bench]]
+name = "aes-gcm-siv"
+harness = false

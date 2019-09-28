@@ -14,7 +14,8 @@ security reviews.
 ## Crates
 | Name | Crates.io | Documentation |
 | ---- | :--------:| :------------:|
-| `chacha20poly1305` | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) |
+| [AES-GCM-SIV](https://en.wikipedia.org/wiki/AES-GCM-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) |
+| [ChaCha20Poly1305](https://tools.ietf.org/html/rfc8439) | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) |
 
 ### Minimum Supported Rust Version
 All crates in this repository support Rust 1.36 or higher. In future minimum

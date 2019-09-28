@@ -20,7 +20,7 @@ use aead::generic_array::{
 use aead::{Aead, Error, NewAead, Payload};
 use aes::{block_cipher_trait::BlockCipher, Aes128, Aes256};
 use alloc::vec::Vec;
-use core::{convert::TryInto, marker::PhantomData};
+use core::convert::TryInto;
 use polyval::{universal_hash::UniversalHash, Polyval};
 
 /// Maximum length of associated data (from RFC 8452 Section 6)
@@ -46,9 +46,6 @@ pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 pub struct AesGcmSiv<C: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
     /// Secret key
     key: GenericArray<u8, C::KeySize>,
-
-    /// AES block cipher
-    block_cipher: PhantomData<C>,
 }
 
 impl<C> NewAead for AesGcmSiv<C>
@@ -58,10 +55,7 @@ where
     type KeySize = C::KeySize;
 
     fn new(key: GenericArray<u8, C::KeySize>) -> Self {
-        Self {
-            key,
-            block_cipher: PhantomData,
-        }
+        Self { key }
     }
 }
 

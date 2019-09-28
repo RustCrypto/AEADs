@@ -2,10 +2,50 @@
 //! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
 //! provides [nonce reuse misuse resistance][4].
 //!
+//! Suitable as a general purpose symmetric encryption cipher, AES-GCM-SIV also
+//! removes many of the "sharp edges" of AES-GCM, providing significantly better
+//! security bounds while simultaneously eliminating the most catastrophic risks
+//! of nonce reuse that exist in AES-GCM.
+//!
+//! Decryption performance is equivalent to AES-GCM.
+//! Encryption is marginally slower.
+//!
+//! See also:
+//!
+//! - [Adam Langley: AES-GCM-SIV][5]
+//! - [Coda Hale: Towards A Safer Footgun][6]
+//!
+//! ## Security Warning
+//!
+//! No security audits of this crate have ever been performed, and it has not been
+//! thoroughly assessed to ensure its operation is constant-time on common CPU
+//! architectures.
+//!
+//! Where possible the implementation uses constant-time hardware intrinsics,
+//! or otherwise falls back to an implementation which contains no secret-dependent
+//! branches or table lookups, however it's possible LLVM may insert such
+//! operations in certain scenarios.
+//!
+//! # Usage
+//!
+//! ```
+//! use aes_gcm_siv::Aes256GcmSiv; // Or `Aes128GcmSiv`
+//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//!
+//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let aead = Aes256GcmSiv::new(key);
+//!
+//! let nonce = GenericArray::from_slice(b"secret nonce"); // 96-bytes; unique per message
+//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
+//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! ```
+//!
 //! [1]: https://en.wikipedia.org/wiki/AES-GCM-SIV
 //! [2]: https://tools.ietf.org/html/rfc8452
 //! [3]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
+//! [5]: https://www.imperialviolet.org/2017/05/14/aesgcmsiv.html
+//! [6]: https://codahale.com/towards-a-safer-footgun/
 
 #![no_std]
 

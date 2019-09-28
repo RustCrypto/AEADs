@@ -48,6 +48,8 @@
 //! [6]: https://codahale.com/towards-a-safer-footgun/
 
 #![no_std]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
+#![warn(missing_docs, rust_2018_idioms)]
 
 extern crate alloc;
 
@@ -189,7 +191,7 @@ where
     }
 
     /// Encrypt the given message, allocating a vector for the resulting ciphertext
-    pub(crate) fn encrypt(self, payload: Payload) -> Result<Vec<u8>, Error> {
+    pub(crate) fn encrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
         let tag_size = <Polyval as UniversalHash>::OutputSize::to_usize();
 
         let mut buffer = Vec::with_capacity(payload.msg.len() + tag_size);
@@ -216,7 +218,7 @@ where
     }
 
     /// Decrypt the given message, allocating a vector for the resulting plaintext
-    pub(crate) fn decrypt(self, payload: Payload) -> Result<Vec<u8>, Error> {
+    pub(crate) fn decrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
         let tag_size = <Polyval as UniversalHash>::OutputSize::to_usize();
 
         if payload.msg.len() < tag_size {

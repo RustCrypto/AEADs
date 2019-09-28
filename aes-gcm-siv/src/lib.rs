@@ -11,8 +11,11 @@
 
 extern crate alloc;
 
+mod ctr32;
+
 pub use aead;
 
+use self::ctr32::Ctr32;
 use aead::generic_array::{
     typenum::{Unsigned, U0, U12, U16, U8},
     GenericArray,
@@ -20,7 +23,6 @@ use aead::generic_array::{
 use aead::{Aead, Error, NewAead, Payload};
 use aes::{block_cipher_trait::BlockCipher, Aes128, Aes256};
 use alloc::vec::Vec;
-use core::convert::TryInto;
 use polyval::{universal_hash::UniversalHash, Polyval};
 
 /// Maximum length of associated data (from RFC 8452 Section 6)
@@ -241,23 +243,8 @@ where
         tag
     }
 
-    /// CTR mode with a 32-bit little endian counter
-    fn ctr32le(&self, mut counter_block: GenericArray<u8, U16>, buffer: &mut [u8]) {
-        counter_block[15] |= 0x80;
-
-        for chunk in buffer.chunks_mut(C::BlockSize::to_usize()) {
-            let mut keystream_block = counter_block;
-            self.enc_cipher.encrypt_block(&mut keystream_block);
-
-            // Increment counter
-            let counter =
-                u32::from_le_bytes(counter_block[..4].try_into().unwrap()).wrapping_add(1);
-
-            counter_block[..4].copy_from_slice(&counter.to_le_bytes());
-
-            for (i, byte) in chunk.iter_mut().enumerate() {
-                *byte ^= keystream_block[i];
-            }
-        }
+    /// Apply AES-CTR keystream (32-bit little endian counter)
+    fn ctr32le(&self, counter_block: GenericArray<u8, U16>, buffer: &mut [u8]) {
+        Ctr32::new(&self.enc_cipher, counter_block).apply_keystream(buffer);
     }
 }

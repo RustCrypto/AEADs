@@ -15,7 +15,7 @@ mod ctr32;
 
 pub use aead;
 
-use self::ctr32::Ctr32;
+use self::ctr32::{Ctr32, BLOCK8_SIZE};
 use aead::generic_array::{
     typenum::{Unsigned, U0, U12, U16, U8},
     GenericArray,
@@ -170,8 +170,8 @@ where
             return Err(Error);
         }
 
-        let tag = self.compute_tag(buffer, associated_data);
-        self.ctr32le(tag, buffer);
+        let tag = self.compute_tag(associated_data, buffer);
+        Ctr32::new(&self.enc_cipher, tag).apply_keystream(buffer);
         Ok(tag)
     }
 
@@ -203,8 +203,15 @@ where
             return Err(Error);
         }
 
-        self.ctr32le(tag, buffer);
-        let expected_tag = self.compute_tag(buffer, associated_data);
+        self.polyval.update_padded(associated_data);
+        let mut ctr = Ctr32::new(&self.enc_cipher, tag);
+
+        for chunk in buffer.chunks_mut(BLOCK8_SIZE) {
+            ctr.apply_8block_keystream(chunk);
+            self.polyval.update_padded(chunk);
+        }
+
+        let expected_tag = self.finish_tag(associated_data.len(), buffer.len());
 
         use subtle::ConstantTimeEq;
         if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
@@ -212,22 +219,26 @@ where
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
             // prevent accidental exposure.
-            self.ctr32le(tag, buffer);
+            Ctr32::new(&self.enc_cipher, tag).apply_keystream(buffer);
             Err(Error)
         }
     }
 
-    /// Authenticate the given plaintext and associated data
-    fn compute_tag(&mut self, buffer: &mut [u8], associated_data: &[u8]) -> Tag {
+    /// Authenticate the given plaintext and associated data using POLYVAL
+    fn compute_tag(&mut self, associated_data: &[u8], buffer: &mut [u8]) -> Tag {
         self.polyval.update_padded(associated_data);
         self.polyval.update_padded(buffer);
+        self.finish_tag(associated_data.len(), buffer.len())
+    }
 
-        let associated_data_len = (associated_data.len() as u64) * 8;
-        let buffer_len = (buffer.len() as u64) * 8;
+    /// Finish computing POLYVAL tag for AAD and buffer of the given length
+    fn finish_tag(&mut self, associated_data_len: usize, buffer_len: usize) -> Tag {
+        let associated_data_bits = (associated_data_len as u64) * 8;
+        let buffer_bits = (buffer_len as u64) * 8;
 
         let mut block = GenericArray::default();
-        block[..8].copy_from_slice(&associated_data_len.to_le_bytes());
-        block[8..].copy_from_slice(&buffer_len.to_le_bytes());
+        block[..8].copy_from_slice(&associated_data_bits.to_le_bytes());
+        block[8..].copy_from_slice(&buffer_bits.to_le_bytes());
         self.polyval.update_block(&block);
 
         let mut tag = self.polyval.result_reset().into_bytes();
@@ -241,10 +252,5 @@ where
 
         self.enc_cipher.encrypt_block(&mut tag);
         tag
-    }
-
-    /// Apply AES-CTR keystream (32-bit little endian counter)
-    fn ctr32le(&self, counter_block: GenericArray<u8, U16>, buffer: &mut [u8]) {
-        Ctr32::new(&self.enc_cipher, counter_block).apply_keystream(buffer);
     }
 }

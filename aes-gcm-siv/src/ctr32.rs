@@ -14,6 +14,9 @@ type Block128x8 = GenericArray<Block128, U8>;
 /// Size of an AES block in bytes
 const BLOCK_SIZE: usize = 16;
 
+/// Size of an 8-AES block buffer in bytes
+pub(super) const BLOCK8_SIZE: usize = BLOCK_SIZE * 8;
+
 /// CTR mode with a 32-bit little endian counter
 pub(crate) struct Ctr32<'c, C>
 where
@@ -41,14 +44,14 @@ where
 
     /// Apply AES-CTR keystream to the given input buffer
     pub fn apply_keystream(mut self, msg: &mut [u8]) {
-        for chunk in msg.chunks_mut(BLOCK_SIZE * 8) {
+        for chunk in msg.chunks_mut(BLOCK8_SIZE) {
             self.apply_8block_keystream(chunk);
         }
     }
 
     /// Perform AES-CTR (32-bit little endian counter) encryption on up to
     /// 8 AES blocks
-    fn apply_8block_keystream(&mut self, msg: &mut [u8]) {
+    pub fn apply_8block_keystream(&mut self, msg: &mut [u8]) {
         let mut counter = u32::from_le_bytes(self.counter_block[..4].try_into().unwrap());
         let n_blocks = msg.chunks(BLOCK_SIZE).count();
 

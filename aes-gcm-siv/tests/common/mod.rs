@@ -66,6 +66,8 @@ macro_rules! tests {
 
             let cipher = <$aead>::new(*key);
             assert!(cipher.decrypt(nonce, payload).is_err());
+
+            // TODO(tarcieri): test ciphertext is unmodified in in-place API
         }
     };
 }

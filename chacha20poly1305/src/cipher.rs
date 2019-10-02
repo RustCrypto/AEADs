@@ -1,21 +1,12 @@
 //! Core AEAD cipher implementation for (X)ChaCha20Poly1305.
 
-// TODO(tarcieri): make this reusable for (X)Salsa20Poly1305
-
 use aead::generic_array::GenericArray;
 use aead::{Error, Payload};
 use alloc::vec::Vec;
 use chacha20::stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
 use core::convert::TryInto;
-use poly1305::{
-    universal_hash::{Output, UniversalHash},
-    Poly1305,
-};
+use poly1305::{universal_hash::UniversalHash, Poly1305, Tag};
 use zeroize::Zeroizing;
-
-/// Poly1305 tag
-// TODO(tarcieri): move this into the Poly1305 crate
-type Tag = Output<<Poly1305 as UniversalHash>::OutputSize>;
 
 /// ChaCha20Poly1305 instantiated with a particular nonce
 pub(crate) struct Cipher<C>

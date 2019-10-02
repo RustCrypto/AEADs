@@ -1,4 +1,4 @@
-# ChaCha20Poly1305: Authenticated Encryption Cipher
+# XSalsa20Poly1305: Authenticated Encryption Cipher
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
@@ -7,12 +7,15 @@
 ![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
-**ChaCha20Poly1305** ([RFC 8439][1]) is an [Authenticated Encryption with Associated Data (AEAD)][2]
-cipher amenable to fast, constant-time implementations in software, based on
-the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
+**XSalsa20Poly1305** (a.k.a. NaCl `crypto_secretbox`[1]) is an
+[authenticated encryption][2] cipher amenable to fast, constant-time
+implementations in software, based on the [Salsa20][3] stream cipher 
+(with [XSalsa20][4] 192-bit nonce extension) and the [Poly1305][5] universal
+hash function, which acts as a message authentication code.
 
-This crate also contains an implementation of **XChaCha20Poly1305**: a variant
-of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
+This algorithm has largely been replaced by the newer [ChaCha20Poly1305][6]
+(and the associated [XChaCha20Poly1305][7]) AEAD ciphers ([RFC 8439][8]),
+but is useful for interoperability with legacy NaCl-based protocols. 
 
 [Documentation][docs-link]
 
@@ -41,10 +44,10 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://img.shields.io/crates/v/chacha20poly1305.svg
-[crate-link]: https://crates.io/crates/chacha20poly1305
-[docs-image]: https://docs.rs/chacha20poly1305/badge.svg
-[docs-link]: https://docs.rs/chacha20poly1305/
+[crate-image]: https://img.shields.io/crates/v/xsalsa20poly1305.svg
+[crate-link]: https://crates.io/crates/xsalsa20poly1305
+[docs-image]: https://docs.rs/xsalsa20poly1305/badge.svg
+[docs-link]: https://docs.rs/xsalsa20poly1305/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.36+-blue.svg
 [maintenance-image]: https://img.shields.io/badge/maintenance-experimental-blue.svg
@@ -53,7 +56,11 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (general links)
 
-[1]: https://tools.ietf.org/html/rfc8439
+[1]: https://nacl.cr.yp.to/secretbox.html
 [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
-[3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
-[4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
+[3]: https://github.com/RustCrypto/stream-ciphers/tree/master/salsa20
+[4]: https://cr.yp.to/snuffle/xsalsa-20081128.pdf
+[5]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
+[6]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
+[7]: https://docs.rs/chacha20poly1305/latest/chacha20poly1305/struct.XChaCha20Poly1305.html
+[8]: https://tools.ietf.org/html/rfc8439

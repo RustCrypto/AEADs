@@ -1,0 +1,20 @@
+[package]
+name = "xsalsa20poly1305"
+version = "0.0.0"
+authors = ["RustCrypto Developers"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = """
+XSalsa20Poly1305 (a.k.a. NaCl crypto_secretbox) authenticated encryption algorithm
+"""
+readme = "README.md"
+documentation = "https://docs.rs/xsalsa20poly1305"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["aead", "salsa20", "poly1305", "xsalsa20"]
+categories = ["cryptography", "no-std"]
+
+[dependencies]
+aead = "0.1"
+salsa20 = { version = "0.3.0", features = ["xsalsa20", "zeroize"] }
+poly1305 = "0.4"
+zeroize = { version = "1.0.0-pre", default-features = false }

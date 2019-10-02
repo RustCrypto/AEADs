@@ -17,7 +17,7 @@ categories = ["cryptography", "no-std"]
 aead = "0.1"
 chacha20 = { version = "0.2.1", features = ["zeroize"] }
 poly1305 = "0.4"
-zeroize = { version = "0.9", default-features = false }
+zeroize = { version = "1.0.0-pre", default-features = false }
 
 [features]
 default = ["xchacha20poly1305"]

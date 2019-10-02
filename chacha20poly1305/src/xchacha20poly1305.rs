@@ -14,8 +14,8 @@ use zeroize::Zeroize;
 /// 192-bit (24-byte) nonce.
 ///
 /// The construction is an adaptation of the same techniques used by
-/// XSalsa20 as described in the paper "Extending the Salsa20 Nonce",
-/// applied to the 96-bit nonce variant of ChaCha20, and derive a
+/// XSalsa20 as described in the paper "Extending the Salsa20 Nonce"
+/// to the 96-bit nonce variant of ChaCha20, which derive a
 /// separate subkey/nonce for each extended nonce:
 ///
 /// <https://cr.yp.to/snuffle/xsalsa-20081128.pdf>

@@ -1,4 +1,4 @@
-# Chacha20Poly1305: Authenticated Encryption Cipher
+# ChaCha20Poly1305: Authenticated Encryption Cipher
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]

@@ -5,8 +5,10 @@ use aead::{Error, Payload};
 use alloc::vec::Vec;
 use chacha20::stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
 use core::convert::TryInto;
-use poly1305::{universal_hash::UniversalHash, Poly1305, Tag};
+use poly1305::{universal_hash::UniversalHash, Poly1305};
 use zeroize::Zeroizing;
+
+use super::Tag;
 
 /// ChaCha20Poly1305 instantiated with a particular nonce
 pub(crate) struct Cipher<C>
@@ -39,16 +41,16 @@ where
         let mut buffer = Vec::with_capacity(payload.msg.len() + poly1305::BLOCK_SIZE);
         buffer.extend_from_slice(payload.msg);
 
-        let tag = self.encrypt_in_place(&mut buffer, payload.aad)?;
-        buffer.extend_from_slice(tag.into_bytes().as_slice());
+        let tag = self.encrypt_in_place_detached(payload.aad, &mut buffer)?;
+        buffer.extend_from_slice(tag.as_slice());
         Ok(buffer)
     }
 
     /// Encrypt the given message in-place, returning the authentication tag
-    pub(crate) fn encrypt_in_place(
+    pub(crate) fn encrypt_in_place_detached(
         mut self,
-        buffer: &mut [u8],
         associated_data: &[u8],
+        buffer: &mut [u8],
     ) -> Result<Tag, Error> {
         if buffer.len() / chacha20::BLOCK_SIZE >= chacha20::MAX_BLOCKS {
             return Err(Error);
@@ -58,7 +60,7 @@ where
         self.cipher.apply_keystream(buffer);
         self.mac.update_padded(buffer);
         self.authenticate_lengths(associated_data, buffer)?;
-        Ok(self.mac.result())
+        Ok(self.mac.result().into_bytes())
     }
 
     /// Decrypt the given message, allocating a vector for the resulting plaintext
@@ -69,19 +71,19 @@ where
 
         let tag_start = payload.msg.len() - poly1305::BLOCK_SIZE;
         let mut buffer = Vec::from(&payload.msg[..tag_start]);
-        let tag: [u8; poly1305::BLOCK_SIZE] = payload.msg[tag_start..].try_into().unwrap();
-        self.decrypt_in_place(&mut buffer, payload.aad, &tag)?;
+        let tag = Tag::from_slice(&payload.msg[tag_start..]);
+        self.decrypt_in_place_detached(payload.aad, &mut buffer, tag)?;
 
         Ok(buffer)
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity
     /// and returning an error if it's been tampered with.
-    pub(crate) fn decrypt_in_place(
+    pub(crate) fn decrypt_in_place_detached(
         mut self,
-        buffer: &mut [u8],
         associated_data: &[u8],
-        tag: &[u8; poly1305::BLOCK_SIZE],
+        buffer: &mut [u8],
+        tag: &Tag,
     ) -> Result<(), Error> {
         if buffer.len() / chacha20::BLOCK_SIZE >= chacha20::MAX_BLOCKS {
             return Err(Error);
@@ -92,7 +94,7 @@ where
         self.authenticate_lengths(associated_data, buffer)?;
 
         // This performs a constant-time comparison using the `subtle` crate
-        if self.mac.verify(GenericArray::from_slice(tag)).is_ok() {
+        if self.mac.verify(tag).is_ok() {
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {

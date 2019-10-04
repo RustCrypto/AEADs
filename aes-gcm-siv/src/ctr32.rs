@@ -32,7 +32,8 @@ where
     C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
 {
     /// Instantiate a new CTR instance
-    pub fn new(cipher: &'c C, mut counter_block: Block128) -> Self {
+    pub fn new(cipher: &'c C, counter_block: &Block128) -> Self {
+        let mut counter_block = *counter_block;
         counter_block[15] |= 0x80;
 
         Self {

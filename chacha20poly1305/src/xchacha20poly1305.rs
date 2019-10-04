@@ -1,6 +1,6 @@
 //! XChaCha20Poly1305 is an extended nonce variant of ChaCha20Poly1305
 
-use crate::cipher::Cipher;
+use crate::{cipher::Cipher, Tag};
 use aead::generic_array::{
     typenum::{U0, U16, U24, U32},
     GenericArray,
@@ -66,6 +66,36 @@ impl Aead for XChaCha20Poly1305 {
         ciphertext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
         Cipher::new(XChaCha20::new(&self.key, nonce)).decrypt(ciphertext.into())
+    }
+}
+
+impl XChaCha20Poly1305 {
+    /// Encrypt the data in-place, returning the authentication tag
+    pub fn encrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+    ) -> Result<Tag, Error> {
+        Cipher::new(XChaCha20::new(&self.key, nonce))
+            .encrypt_in_place_detached(associated_data, buffer)
+    }
+
+    /// Decrypt the data in-place, returning an error in the event the provided
+    /// authentication tag does not match the given ciphertext (i.e. ciphertext
+    /// is modified/unauthentic)
+    pub fn decrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        Cipher::new(XChaCha20::new(&self.key, nonce)).decrypt_in_place_detached(
+            associated_data,
+            buffer,
+            tag,
+        )
     }
 }
 

@@ -66,6 +66,7 @@ use aead::{Aead, Error, NewAead, Payload};
 use aes::{block_cipher_trait::BlockCipher, Aes128, Aes256};
 use alloc::vec::Vec;
 use polyval::{universal_hash::UniversalHash, Polyval};
+use zeroize::Zeroize;
 
 /// Maximum length of associated data (from RFC 8452 Section 6)
 pub const A_MAX: u64 = 1 << 36;
@@ -77,7 +78,7 @@ pub const P_MAX: u64 = 1 << 36;
 pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// AES-GCM-SIV tags
-type Tag = GenericArray<u8, U16>;
+pub type Tag = GenericArray<u8, U16>;
 
 /// AES-GCM-SIV with a 128-bit key
 pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
@@ -116,7 +117,13 @@ where
         nonce: &GenericArray<u8, Self::NonceSize>,
         plaintext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
-        Cipher::<C>::new(&self.key, nonce).encrypt(plaintext.into())
+        let payload = plaintext.into();
+        let mut buffer = Vec::with_capacity(payload.msg.len() + Self::TagSize::to_usize());
+        buffer.extend_from_slice(payload.msg);
+
+        let tag = self.encrypt_in_place_detached(nonce, payload.aad, &mut buffer)?;
+        buffer.extend_from_slice(tag.as_slice());
+        Ok(buffer)
     }
 
     fn decrypt<'msg, 'aad>(
@@ -124,7 +131,46 @@ where
         nonce: &GenericArray<u8, Self::NonceSize>,
         ciphertext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
-        Cipher::<C>::new(&self.key, nonce).decrypt(ciphertext.into())
+        let payload = ciphertext.into();
+
+        if payload.msg.len() < Self::TagSize::to_usize() {
+            return Err(Error);
+        }
+
+        let tag_start = payload.msg.len() - Self::TagSize::to_usize();
+        let mut buffer = Vec::from(&payload.msg[..tag_start]);
+        let tag = Tag::from_slice(&payload.msg[tag_start..]);
+        self.decrypt_in_place_detached(nonce, payload.aad, &mut buffer, tag)?;
+
+        Ok(buffer)
+    }
+}
+
+impl<C> AesGcmSiv<C>
+where
+    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+{
+    /// Encrypt the data in-place, returning the authentication tag
+    pub fn encrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+    ) -> Result<Tag, Error> {
+        Cipher::<C>::new(&self.key, nonce).encrypt_in_place_detached(associated_data, buffer)
+    }
+
+    /// Decrypt the data in-place, returning an error in the event the provided
+    /// authentication tag does not match the given ciphertext (i.e. ciphertext
+    /// is modified/unauthentic)
+    pub fn decrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        Cipher::<C>::new(&self.key, nonce).decrypt_in_place_detached(associated_data, buffer, tag)
     }
 }
 
@@ -149,7 +195,6 @@ where
     pub(crate) fn new(key: &GenericArray<u8, C::KeySize>, nonce: &GenericArray<u8, U12>) -> Self {
         let key_generating_key = C::new(key);
 
-        // TODO(tarcieri): zeroize all of these buffers!
         let mut mac_key = GenericArray::default();
         let mut enc_key = GenericArray::default();
         let mut block = GenericArray::default();
@@ -183,63 +228,43 @@ where
             }
         }
 
-        Self {
+        let result = Self {
             enc_cipher: C::new(&enc_key),
             polyval: Polyval::new(&mac_key),
             nonce: *nonce,
-        }
-    }
+        };
 
-    /// Encrypt the given message, allocating a vector for the resulting ciphertext
-    pub(crate) fn encrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
-        let tag_size = <Polyval as UniversalHash>::BlockSize::to_usize();
+        // Zeroize all intermediate buffers
+        // TODO(tarcieri): use `Zeroizing` when const generics land
+        mac_key.as_mut_slice().zeroize();
+        enc_key.as_mut_slice().zeroize();
+        block.as_mut_slice().zeroize();
 
-        let mut buffer = Vec::with_capacity(payload.msg.len() + tag_size);
-        buffer.extend_from_slice(payload.msg);
-
-        let tag = self.encrypt_in_place(&mut buffer, payload.aad)?;
-        buffer.extend_from_slice(tag.as_slice());
-        Ok(buffer)
+        result
     }
 
     /// Encrypt the given message in-place, returning the authentication tag
-    pub(crate) fn encrypt_in_place(
+    pub(crate) fn encrypt_in_place_detached(
         mut self,
-        buffer: &mut [u8],
         associated_data: &[u8],
+        buffer: &mut [u8],
     ) -> Result<Tag, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 
         let tag = self.compute_tag(associated_data, buffer);
-        Ctr32::new(&self.enc_cipher, tag).apply_keystream(buffer);
+        Ctr32::new(&self.enc_cipher, &tag).apply_keystream(buffer);
         Ok(tag)
-    }
-
-    /// Decrypt the given message, allocating a vector for the resulting plaintext
-    pub(crate) fn decrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
-        let tag_size = <Polyval as UniversalHash>::BlockSize::to_usize();
-
-        if payload.msg.len() < tag_size {
-            return Err(Error);
-        }
-
-        let tag_start = payload.msg.len() - tag_size;
-        let mut buffer = Vec::from(&payload.msg[..tag_start]);
-        let tag = GenericArray::from_slice(&payload.msg[tag_start..]);
-        self.decrypt_in_place(&mut buffer, payload.aad, *tag)?;
-
-        Ok(buffer)
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity
     /// and returning an error if it's been tampered with.
-    pub(crate) fn decrypt_in_place(
+    pub(crate) fn decrypt_in_place_detached(
         mut self,
-        buffer: &mut [u8],
         associated_data: &[u8],
-        tag: Tag,
+        buffer: &mut [u8],
+        tag: &Tag,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -290,9 +315,19 @@ where
             *byte ^= self.nonce[i];
         }
 
+        // Clear the highest bit
         tag[15] &= 0x7f;
 
         self.enc_cipher.encrypt_block(&mut tag);
         tag
+    }
+}
+
+impl<C> Drop for AesGcmSiv<C>
+where
+    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+{
+    fn drop(&mut self) {
+        self.key.as_mut_slice().zeroize();
     }
 }

@@ -29,11 +29,13 @@ use aead::generic_array::{
 };
 use aead::{Aead, Error, NewAead, Payload};
 use alloc::vec::Vec;
-use core::convert::TryInto;
-use poly1305::{universal_hash::UniversalHash, Poly1305, Tag};
+use poly1305::{universal_hash::UniversalHash, Poly1305};
 use salsa20::stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use salsa20::XSalsa20;
 use zeroize::{Zeroize, Zeroizing};
+
+/// Poly1305 tags
+pub type Tag = GenericArray<u8, U16>;
 
 /// **XSalsa20Poly1305** (a.k.a. NaCl `crypto_secretbox`) authenticated
 /// encryption cipher.
@@ -61,7 +63,18 @@ impl Aead for XSalsa20Poly1305 {
         nonce: &GenericArray<u8, Self::NonceSize>,
         plaintext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
-        Cipher::new(XSalsa20::new(&self.key, nonce)).encrypt(plaintext.into())
+        let payload = plaintext.into();
+        let mut buffer = Vec::with_capacity(payload.msg.len() + poly1305::BLOCK_SIZE);
+        buffer.extend_from_slice(&[0u8; poly1305::BLOCK_SIZE]);
+        buffer.extend_from_slice(payload.msg);
+
+        let tag = self.encrypt_in_place_detached(
+            nonce,
+            payload.aad,
+            &mut buffer[poly1305::BLOCK_SIZE..],
+        )?;
+        buffer[..poly1305::BLOCK_SIZE].copy_from_slice(tag.as_slice());
+        Ok(buffer)
     }
 
     fn decrypt<'msg, 'aad>(
@@ -69,7 +82,47 @@ impl Aead for XSalsa20Poly1305 {
         nonce: &GenericArray<u8, Self::NonceSize>,
         ciphertext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
-        Cipher::new(XSalsa20::new(&self.key, nonce)).decrypt(ciphertext.into())
+        let payload = ciphertext.into();
+
+        if payload.msg.len() < poly1305::BLOCK_SIZE {
+            return Err(Error);
+        }
+
+        let mut buffer = Vec::from(&payload.msg[poly1305::BLOCK_SIZE..]);
+        let tag = Tag::from_slice(&payload.msg[..poly1305::BLOCK_SIZE]);
+        self.decrypt_in_place_detached(nonce, payload.aad, &mut buffer, &tag)?;
+
+        Ok(buffer)
+    }
+}
+
+impl XSalsa20Poly1305 {
+    /// Encrypt the data in-place, returning the authentication tag
+    pub fn encrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+    ) -> Result<Tag, Error> {
+        Cipher::new(XSalsa20::new(&self.key, nonce))
+            .encrypt_in_place_detached(associated_data, buffer)
+    }
+
+    /// Decrypt the data in-place, returning an error in the event the provided
+    /// authentication tag does not match the given ciphertext (i.e. ciphertext
+    /// is modified/unauthentic)
+    pub fn decrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        Cipher::new(XSalsa20::new(&self.key, nonce)).decrypt_in_place_detached(
+            associated_data,
+            buffer,
+            tag,
+        )
     }
 }
 
@@ -102,22 +155,11 @@ where
         Self { cipher, mac }
     }
 
-    /// Encrypt the given message, allocating a vector for the resulting ciphertext
-    pub(crate) fn encrypt(self, payload: Payload) -> Result<Vec<u8>, Error> {
-        let mut buffer = Vec::with_capacity(payload.msg.len() + poly1305::BLOCK_SIZE);
-        buffer.extend_from_slice(&[0u8; poly1305::BLOCK_SIZE]);
-        buffer.extend_from_slice(payload.msg);
-
-        let tag = self.encrypt_in_place(&mut buffer[poly1305::BLOCK_SIZE..], payload.aad)?;
-        buffer[..poly1305::BLOCK_SIZE].copy_from_slice(tag.into_bytes().as_slice());
-        Ok(buffer)
-    }
-
     /// Encrypt the given message in-place, returning the authentication tag
-    pub(crate) fn encrypt_in_place(
+    pub(crate) fn encrypt_in_place_detached(
         mut self,
-        buffer: &mut [u8],
         associated_data: &[u8],
+        buffer: &mut [u8],
     ) -> Result<Tag, Error> {
         // XSalsa20Poly1305 doesn't support AAD
         if !associated_data.is_empty() {
@@ -126,30 +168,16 @@ where
 
         self.cipher.apply_keystream(buffer);
         self.mac.update(buffer);
-        Ok(self.mac.result())
-    }
-
-    /// Decrypt the given message, allocating a vector for the resulting plaintext
-    pub(crate) fn decrypt(self, payload: Payload) -> Result<Vec<u8>, Error> {
-        if payload.msg.len() < poly1305::BLOCK_SIZE {
-            return Err(Error);
-        }
-
-        let mut buffer = Vec::from(&payload.msg[poly1305::BLOCK_SIZE..]);
-        let tag: [u8; poly1305::BLOCK_SIZE] =
-            payload.msg[..poly1305::BLOCK_SIZE].try_into().unwrap();
-        self.decrypt_in_place(&mut buffer, payload.aad, &tag)?;
-
-        Ok(buffer)
+        Ok(self.mac.result().into_bytes())
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity
     /// and returning an error if it's been tampered with.
-    pub(crate) fn decrypt_in_place(
+    pub(crate) fn decrypt_in_place_detached(
         mut self,
-        buffer: &mut [u8],
         associated_data: &[u8],
-        tag: &[u8; poly1305::BLOCK_SIZE],
+        buffer: &mut [u8],
+        tag: &Tag,
     ) -> Result<(), Error> {
         // XSalsa20Poly1305 doesn't support AAD
         if !associated_data.is_empty() {
@@ -159,7 +187,7 @@ where
         self.mac.update(buffer);
 
         // This performs a constant-time comparison using the `subtle` crate
-        if self.mac.verify(GenericArray::from_slice(tag)).is_ok() {
+        if self.mac.verify(tag).is_ok() {
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {

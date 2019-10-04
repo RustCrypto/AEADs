@@ -20,6 +20,7 @@ aes = "0.3"
 ctr = "0.3"
 polyval = "0.2"
 subtle = { version = "2", default-features = false }
+zeroize = { version = "1.0.0-pre", default-features = false }
 
 [dev-dependencies]
 criterion = "0.3.0"

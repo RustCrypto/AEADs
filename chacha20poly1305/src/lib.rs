@@ -34,6 +34,9 @@ use alloc::vec::Vec;
 use chacha20::{stream_cipher::NewStreamCipher, ChaCha20};
 use zeroize::Zeroize;
 
+/// Poly1305 tags
+pub type Tag = GenericArray<u8, U16>;
+
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD)
 #[derive(Clone)]
 pub struct ChaCha20Poly1305 {
@@ -68,6 +71,36 @@ impl Aead for ChaCha20Poly1305 {
         ciphertext: impl Into<Payload<'msg, 'aad>>,
     ) -> Result<Vec<u8>, Error> {
         Cipher::new(ChaCha20::new(&self.key, nonce)).decrypt(ciphertext.into())
+    }
+}
+
+impl ChaCha20Poly1305 {
+    /// Encrypt the data in-place, returning the authentication tag
+    pub fn encrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+    ) -> Result<Tag, Error> {
+        Cipher::new(ChaCha20::new(&self.key, nonce))
+            .encrypt_in_place_detached(associated_data, buffer)
+    }
+
+    /// Decrypt the data in-place, returning an error in the event the provided
+    /// authentication tag does not match the given ciphertext (i.e. ciphertext
+    /// is modified/unauthentic)
+    pub fn decrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        Cipher::new(ChaCha20::new(&self.key, nonce)).decrypt_in_place_detached(
+            associated_data,
+            buffer,
+            tag,
+        )
     }
 }
 

@@ -18,7 +18,7 @@ maintenance = { status = "experimental" }
 aead = "0.1"
 aes = "0.3"
 ctr = "0.3"
-polyval = "0.1"
+polyval = "0.2"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]

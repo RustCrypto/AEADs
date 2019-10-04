@@ -16,5 +16,5 @@ categories = ["cryptography", "no-std"]
 [dependencies]
 aead = "0.1"
 salsa20 = { version = "0.3.0", features = ["xsalsa20", "zeroize"] }
-poly1305 = "0.4"
+poly1305 = "0.5"
 zeroize = { version = "1.0.0-pre", default-features = false }

@@ -192,7 +192,7 @@ where
 
     /// Encrypt the given message, allocating a vector for the resulting ciphertext
     pub(crate) fn encrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
-        let tag_size = <Polyval as UniversalHash>::OutputSize::to_usize();
+        let tag_size = <Polyval as UniversalHash>::BlockSize::to_usize();
 
         let mut buffer = Vec::with_capacity(payload.msg.len() + tag_size);
         buffer.extend_from_slice(payload.msg);
@@ -219,7 +219,7 @@ where
 
     /// Decrypt the given message, allocating a vector for the resulting plaintext
     pub(crate) fn decrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
-        let tag_size = <Polyval as UniversalHash>::OutputSize::to_usize();
+        let tag_size = <Polyval as UniversalHash>::BlockSize::to_usize();
 
         if payload.msg.len() < tag_size {
             return Err(Error);

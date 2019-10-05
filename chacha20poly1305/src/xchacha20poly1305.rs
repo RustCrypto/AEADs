@@ -1,4 +1,6 @@
-//! XChaCha20Poly1305 is an extended nonce variant of ChaCha20Poly1305
+//! XChaCha20Poly1305 is an extended nonce variant of ChaCha20Poly1305.
+//!
+//! See [`XChaCha20Poly1305`] documentation for usage.
 
 use crate::{cipher::Cipher, Tag};
 use aead::generic_array::{
@@ -33,6 +35,20 @@ use zeroize::Zeroize;
 ///
 /// The `xchacha20poly1305` Cargo feature must be enabled in order to use this
 /// (which it is by default).
+///
+/// # Usage
+///
+/// ```
+/// use chacha20poly1305::XChaCha20Poly1305;
+/// use aead::{Aead, NewAead, generic_array::GenericArray};
+///
+/// let key = GenericArray::clone_from_slice(b"an example very very secret key."); // 32-bytes
+/// let aead = XChaCha20Poly1305::new(key);
+///
+/// let nonce = GenericArray::from_slice(b"extra long secret nonce!"); // 24-bytes; unique
+/// let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
+/// let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+/// ```
 #[derive(Clone)]
 pub struct XChaCha20Poly1305 {
     /// Secret key

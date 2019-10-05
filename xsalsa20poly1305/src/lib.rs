@@ -8,6 +8,32 @@
 //! (and the associated [XChaCha20Poly1305][7]) AEAD ciphers ([RFC 8439][8]),
 //! but is useful for interoperability with legacy NaCl-based protocols.
 //!
+//! ## Security Warning
+//!
+//! No security audits of this crate have ever been performed, and it has not been
+//! thoroughly assessed to ensure its operation is constant-time on common CPU
+//! architectures.
+//!
+//! Where possible the implementation uses constant-time hardware intrinsics,
+//! or otherwise falls back to an implementation which contains no secret-dependent
+//! branches or table lookups, however it's possible LLVM may insert such
+//! operations in certain scenarios.
+//!
+//! # Usage
+//!
+//! ```
+//! use xsalsa20poly1305::XSalsa20Poly1305;
+//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//!
+//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let aead = XSalsa20Poly1305::new(key);
+//!
+//! let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
+//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
+//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! assert_eq!(&plaintext, b"plaintext message");
+//! ```
+//!
 //! [1]: https://nacl.cr.yp.to/secretbox.html
 //! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/salsa20

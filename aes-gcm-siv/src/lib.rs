@@ -35,9 +35,10 @@
 //! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
 //! let aead = Aes256GcmSiv::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"secret nonce"); // 96-bytes; unique per message
+//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bytes; unique per message
 //! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
 //! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! assert_eq!(&plaintext, b"plaintext message");
 //! ```
 //!
 //! [1]: https://en.wikipedia.org/wiki/AES-GCM-SIV

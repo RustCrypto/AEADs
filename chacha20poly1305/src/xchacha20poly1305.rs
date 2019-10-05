@@ -45,9 +45,10 @@ use zeroize::Zeroize;
 /// let key = GenericArray::clone_from_slice(b"an example very very secret key."); // 32-bytes
 /// let aead = XChaCha20Poly1305::new(key);
 ///
-/// let nonce = GenericArray::from_slice(b"extra long secret nonce!"); // 24-bytes; unique
+/// let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
 /// let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
 /// let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+/// assert_eq!(&plaintext, b"plaintext message");
 /// ```
 #[derive(Clone)]
 pub struct XChaCha20Poly1305 {

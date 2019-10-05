@@ -27,9 +27,10 @@
 //! let key = GenericArray::clone_from_slice(b"an example very very secret key."); // 32-bytes
 //! let aead = ChaCha20Poly1305::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"secret nonce"); // 12-bytes; unique per message
+//! let nonce = GenericArray::from_slice(b"unique nonce"); // 12-bytes; unique per message
 //! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
 //! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! assert_eq!(&plaintext, b"plaintext message");
 //! ```
 //!
 //! [1]: https://tools.ietf.org/html/rfc8439

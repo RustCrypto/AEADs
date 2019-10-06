@@ -1,6 +1,6 @@
 [package]
 name = "aes-gcm"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["RustCrypto Developers"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -8,7 +8,7 @@ description = "AES-GCM"
 readme = "README.md"
 documentation = "https://docs.rs/aes-gcm"
 repository = "https://github.com/RustCrypto/AEADs"
-keywords = ["aead", "aes", "encryption"]
+keywords = ["aead", "aes", "encryption", "gcm", "ghash"]
 categories = ["cryptography", "no-std"]
 
 [badges]
@@ -17,7 +17,6 @@ maintenance = { status = "experimental" }
 [dependencies]
 aead = "0.1"
 aes = "0.3"
-ctr = "0.3"
 ghash = "0.2.2"
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1.0.0-pre", default-features = false }

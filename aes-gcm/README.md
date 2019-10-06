@@ -7,6 +7,9 @@
 ![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
+AES-GCM: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
+based on AES in [Galois/Counter Mode][2].
+
 [Documentation][docs-link]
 
 ## Security Warning
@@ -43,3 +46,8 @@ dual licensed as above, without any additional terms or conditions.
 [maintenance-image]: https://img.shields.io/badge/maintenance-experimental-blue.svg
 [build-image]: https://travis-ci.com/RustCrypto/AEADs.svg?branch=master
 [build-link]: https://travis-ci.com/RustCrypto/AEADs
+
+[//]: # (general links)
+
+[1]: https://en.wikipedia.org/wiki/Authenticated_encryption
+[2]: https://en.wikipedia.org/wiki/Galois/Counter_Mode

@@ -1,4 +1,46 @@
-//! AES-GCM
+//! AES-GCM: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
+//! based on AES in [Galois/Counter Mode][2].
+//!
+//! ## Performance Notes
+//!
+//! By default this crate will use software implementations of both AES and
+//! the POLYVAL universal hash function.
+//!
+//! When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
+//! take advantage of high performance AES-NI and CLMUL CPU intrinsics:
+//!
+//! ```text
+//! RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
+//! ```
+//!
+//! ## Security Warning
+//!
+//! No security audits of this crate have ever been performed, and it has not been
+//! thoroughly assessed to ensure its operation is constant-time on common CPU
+//! architectures.
+//!
+//! Where possible the implementation uses constant-time hardware intrinsics,
+//! or otherwise falls back to an implementation which contains no secret-dependent
+//! branches or table lookups, however it's possible LLVM may insert such
+//! operations in certain scenarios.
+//!
+//! # Usage
+//!
+//! ```
+//! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
+//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//!
+//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let aead = Aes256Gcm::new(key);
+//!
+//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
+//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
+//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! assert_eq!(&plaintext, b"plaintext message");
+//! ```
+//!
+//! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
+//! [2]: https://en.wikipedia.org/wiki/Galois/Counter_Mode
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]

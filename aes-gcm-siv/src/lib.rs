@@ -15,6 +15,18 @@
 //! - [Adam Langley: AES-GCM-SIV][5]
 //! - [Coda Hale: Towards A Safer Footgun][6]
 //!
+//! ## Performance Notes
+//!
+//! By default this crate will use software implementations of both AES and
+//! the POLYVAL universal hash function.
+//!
+//! When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
+//! take advantage of high performance AES-NI and CLMUL CPU intrinsics:
+//!
+//! ```text
+//! RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
+//! ```
+//!
 //! ## Security Warning
 //!
 //! No security audits of this crate have ever been performed, and it has not been
@@ -35,7 +47,7 @@
 //! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
 //! let aead = Aes256GcmSiv::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bytes; unique per message
+//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
 //! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
 //! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
 //! assert_eq!(&plaintext, b"plaintext message");

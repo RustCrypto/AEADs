@@ -8,6 +8,7 @@ pub struct TestVector<K: 'static> {
     pub aad: &'static [u8],
     pub plaintext: &'static [u8],
     pub ciphertext: &'static [u8],
+    pub tag: &'static [u8; 16],
 }
 
 #[macro_export]
@@ -25,8 +26,9 @@ macro_rules! tests {
 
                 let cipher = <$aead>::new(*key);
                 let ciphertext = cipher.encrypt(nonce, payload).unwrap();
-
-                assert_eq!(vector.ciphertext, ciphertext.as_slice());
+                let (ct, tag) = ciphertext.split_at(ciphertext.len() - 16);
+                assert_eq!(vector.ciphertext, ct);
+                assert_eq!(vector.tag, tag);
             }
         }
 
@@ -35,9 +37,11 @@ macro_rules! tests {
             for vector in $vectors {
                 let key = GenericArray::from_slice(vector.key);
                 let nonce = GenericArray::from_slice(vector.nonce);
+                let mut ciphertext = Vec::from(vector.ciphertext);
+                ciphertext.extend_from_slice(vector.tag);
 
                 let payload = Payload {
-                    msg: vector.ciphertext,
+                    msg: &ciphertext,
                     aad: vector.aad,
                 };
 
@@ -55,6 +59,7 @@ macro_rules! tests {
             let nonce = GenericArray::from_slice(vector.nonce);
 
             let mut ciphertext = Vec::from(vector.ciphertext);
+            ciphertext.extend_from_slice(vector.tag);
 
             // Tweak the first byte
             ciphertext[0] ^= 0xaa;

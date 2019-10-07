@@ -13,6 +13,9 @@ repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "salsa20", "poly1305", "xsalsa20"]
 categories = ["cryptography", "no-std"]
 
+[badges]
+maintenance = { status = "experimental" }
+
 [dependencies]
 aead = "0.1"
 salsa20 = { version = "0.3.0", features = ["xsalsa20", "zeroize"] }

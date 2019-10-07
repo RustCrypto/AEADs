@@ -16,6 +16,7 @@ security reviews.
 | ---- | :--------:| :------------:|
 | [AES-GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode) | [![crates.io](https://img.shields.io/crates/v/aes-gcm.svg)](https://crates.io/crates/aes-gcm) | [![Documentation](https://docs.rs/aes-gcm/badge.svg)](https://docs.rs/aes-gcm) |
 | [AES-GCM-SIV](https://en.wikipedia.org/wiki/AES-GCM-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) |
+| [AES-SIV](https://github.com/miscreant/meta/wiki/AES-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-siv.svg)](https://crates.io/crates/aes-siv) | [![Documentation](https://docs.rs/aes-siv/badge.svg)](https://docs.rs/aes-siv) |
 | [ChaCha20Poly1305](https://tools.ietf.org/html/rfc8439) | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) |
 | [XSalsa20Poly1305](https://nacl.cr.yp.to/secretbox.html) | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) |
 

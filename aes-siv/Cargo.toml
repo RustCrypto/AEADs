@@ -26,8 +26,7 @@ stream-cipher = { version = "0.3", default-features = false }
 zeroize = { version = "1.0.0-pre", default-features = false }
 
 [dev-dependencies]
-subtle-encoding = "0.3"
-serde_json = "1"
+hex-literal = "0.2"
 
 [features]
 default = ["alloc"]

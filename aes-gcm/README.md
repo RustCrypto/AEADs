@@ -7,8 +7,8 @@
 ![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
-AES-GCM: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
-based on AES in [Galois/Counter Mode][2].
+Pure Rust implementation of the AES-GCM
+[Authenticated Encryption with Associated Data (AEAD)][1] cipher.
 
 [Documentation][docs-link]
 
@@ -50,4 +50,3 @@ dual licensed as above, without any additional terms or conditions.
 [//]: # (general links)
 
 [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-[2]: https://en.wikipedia.org/wiki/Galois/Counter_Mode

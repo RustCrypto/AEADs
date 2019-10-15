@@ -37,7 +37,7 @@ where
     }
 
     /// Encrypt the given message, allocating a vector for the resulting ciphertext
-    pub(crate) fn encrypt(self, payload: Payload) -> Result<Vec<u8>, Error> {
+    pub(crate) fn encrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
         let mut buffer = Vec::with_capacity(payload.msg.len() + poly1305::BLOCK_SIZE);
         buffer.extend_from_slice(payload.msg);
 
@@ -64,7 +64,7 @@ where
     }
 
     /// Decrypt the given message, allocating a vector for the resulting plaintext
-    pub(crate) fn decrypt(self, payload: Payload) -> Result<Vec<u8>, Error> {
+    pub(crate) fn decrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
         if payload.msg.len() < poly1305::BLOCK_SIZE {
             return Err(Error);
         }

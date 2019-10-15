@@ -12,7 +12,7 @@ use alloc::vec::Vec;
 use chacha20::{stream_cipher::NewStreamCipher, XChaCha20};
 use zeroize::Zeroize;
 
-/// XChaCha20Poly1305 is a ChaCha20Poly1305 variant with an extended
+/// **XChaCha20Poly1305** is a [`ChaCha20Poly1305`] variant with an extended
 /// 192-bit (24-byte) nonce. The `xchacha20poly1305` Cargo feature
 /// must be enabled in order to use this (which it is by default).
 ///
@@ -26,7 +26,9 @@ use zeroize::Zeroize;
 /// No authoritative specification exists for XChaCha20Poly1305, however the
 /// construction has "rough consensus and running code" in the form of
 /// several interoperable libraries and protocols (e.g. libsodium, WireGuard)
-/// and is documented in an (expired) IETF draft:
+/// and is documented in an (expired) IETF draft, which also applies the
+/// proof from the XSalsa20 paper to the construction in order to demonstrate
+/// that XChaCha20 is secure if ChaCha20 is secure (see Section 3.1):
 ///
 /// <https://tools.ietf.org/html/draft-arciszewski-xchacha-03>
 ///

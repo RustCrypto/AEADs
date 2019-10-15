@@ -38,7 +38,11 @@
 //! [4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
 
 #![no_std]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
+#![warn(missing_docs, rust_2018_idioms, intra_doc_link_resolution_failure)]
 
+// TODO: heapless `no_std` support. See this PR:
+// https://github.com/RustCrypto/traits/pull/59
 extern crate alloc;
 
 mod cipher;
@@ -62,7 +66,13 @@ use zeroize::Zeroize;
 /// Poly1305 tags
 pub type Tag = GenericArray<u8, U16>;
 
-/// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD)
+/// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
+///
+/// The [`Aead`] and [`NewAead`] traits provide the primary API for using this
+/// construction.
+///
+/// See the [toplevel documentation](https://docs.rs/chacha20poly1305) for
+/// a usage example.
 #[derive(Clone)]
 pub struct ChaCha20Poly1305 {
     /// Secret key

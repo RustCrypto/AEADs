@@ -1,11 +1,10 @@
-//! **ChaCha20Poly1305** ([RFC 8439][1]) is an
+//! [`ChaCha20Poly1305`] ([RFC 8439][1]) is an
 //! [Authenticated Encryption with Associated Data (AEAD)][2]
 //! cipher amenable to fast, constant-time implementations in software, based on
 //! the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
 //!
-//! This crate also contains an implementation of **XSalsa20Poly1305**
-//! (a.k.a. NaCl `crypto_secretbox`[4]): a variant of Salsa20Poly1305 with an
-//! extended 192-bit (24-byte) nonce.
+//! This crate also contains an implementation of [`XChaCha20Poly1305`] -
+//! a variant of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
 //!
 //! ## Security Warning
 //!

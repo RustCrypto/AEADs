@@ -1,10 +1,14 @@
 [package]
 name = "aes-siv"
 version = "0.1.1"
+description = """
+Pure Rust implementation of the AES-SIV Misuse-Resistant Authenticated
+Encryption Cipher (RFC 5297) with optional architecture-specific
+hardware acceleration
+"""
 authors = ["RustCrypto Developers"]
 edition = "2018"
-license = "MIT OR Apache-2.0"
-description = "AES-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 5297)"
+license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/aes-siv"
 repository = "https://github.com/RustCrypto/AEADs"
@@ -23,7 +27,7 @@ ctr = "0.3"
 dbl = { version = "0.2", default-features = false }
 pmac = { version = "0.2", optional = true }
 stream-cipher = { version = "0.3", default-features = false }
-zeroize = { version = "1.0.0-pre", default-features = false }
+zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
 hex-literal = "0.2"

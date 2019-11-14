@@ -1,12 +1,14 @@
 [package]
 name = "chacha20poly1305"
 version = "0.2.1"
+description = """
+Pure Rust implementation of the ChaCha20Poly1305 Authenticated Encryption
+with Additional Data Cipher (RFC 8439) with optional architecture-specific
+hardware acceleration
+"""
 authors = ["RustCrypto Developers"]
 edition = "2018"
-license = "MIT OR Apache-2.0"
-description = """
-ChaCha20Poly1305 Authenticated Encryption with Additional Data Algorithm (RFC 8439)
-"""
+license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/chacha20poly1305"
 repository = "https://github.com/RustCrypto/AEADs"

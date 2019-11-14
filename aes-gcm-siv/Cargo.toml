@@ -1,10 +1,14 @@
 [package]
 name = "aes-gcm-siv"
 version = "0.2.0"
+description = """
+Pure Rust implementation of the AES-GCM-SIV Misuse-Resistant Authenticated
+Encryption Cipher (RFC 8452) with optional architecture-specific
+hardware acceleration
+"""
 authors = ["RustCrypto Developers"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
-description = "AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)"
 readme = "README.md"
 documentation = "https://docs.rs/aes-gcm-siv"
 repository = "https://github.com/RustCrypto/AEADs"
@@ -19,7 +23,7 @@ aead = "0.1"
 aes = "0.3"
 polyval = "0.3"
 subtle = { version = "2", default-features = false }
-zeroize = { version = "1.0.0-pre", default-features = false }
+zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
 criterion = "0.3.0"

@@ -12,7 +12,7 @@ use alloc::vec::Vec;
 use chacha20::{stream_cipher::NewStreamCipher, XChaCha20};
 use zeroize::Zeroize;
 
-/// **XChaCha20Poly1305** is a [`ChaCha20Poly1305`] variant with an extended
+/// **XChaCha20Poly1305** is a ChaCha20Poly1305 variant with an extended
 /// 192-bit (24-byte) nonce. The `xchacha20poly1305` Cargo feature
 /// must be enabled in order to use this (which it is by default).
 ///

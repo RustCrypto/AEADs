@@ -7,7 +7,7 @@
 ![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
-[AES-GCM-SIV][1] ([RFC 8452][2]) is a high-performance
+[AES-GCM-SIV][1] ([RFC 8452][2]) is a state-of-the-art high-performance
 [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
 provides [nonce reuse misuse resistance][4].
 

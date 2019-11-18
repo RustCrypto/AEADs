@@ -1,8 +1,7 @@
 //! Core AEAD cipher implementation for (X)ChaCha20Poly1305.
 
 use aead::generic_array::GenericArray;
-use aead::{Error, Payload};
-use alloc::vec::Vec;
+use aead::Error;
 use chacha20::stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
 use core::convert::TryInto;
 use poly1305::{universal_hash::UniversalHash, Poly1305};
@@ -36,16 +35,6 @@ where
         Self { cipher, mac }
     }
 
-    /// Encrypt the given message, allocating a vector for the resulting ciphertext
-    pub(crate) fn encrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
-        let mut buffer = Vec::with_capacity(payload.msg.len() + poly1305::BLOCK_SIZE);
-        buffer.extend_from_slice(payload.msg);
-
-        let tag = self.encrypt_in_place_detached(payload.aad, &mut buffer)?;
-        buffer.extend_from_slice(tag.as_slice());
-        Ok(buffer)
-    }
-
     /// Encrypt the given message in-place, returning the authentication tag
     pub(crate) fn encrypt_in_place_detached(
         mut self,
@@ -61,20 +50,6 @@ where
         self.mac.update_padded(buffer);
         self.authenticate_lengths(associated_data, buffer)?;
         Ok(self.mac.result().into_bytes())
-    }
-
-    /// Decrypt the given message, allocating a vector for the resulting plaintext
-    pub(crate) fn decrypt(self, payload: Payload<'_, '_>) -> Result<Vec<u8>, Error> {
-        if payload.msg.len() < poly1305::BLOCK_SIZE {
-            return Err(Error);
-        }
-
-        let tag_start = payload.msg.len() - poly1305::BLOCK_SIZE;
-        let mut buffer = Vec::from(&payload.msg[..tag_start]);
-        let tag = Tag::from_slice(&payload.msg[tag_start..]);
-        self.decrypt_in_place_detached(payload.aad, &mut buffer, tag)?;
-
-        Ok(buffer)
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity

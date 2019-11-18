@@ -19,7 +19,7 @@ categories = ["cryptography", "no-std"]
 maintenance = { status = "experimental" }
 
 [dependencies]
-aead = "0.1"
+aead = "0.2"
 aes = "0.3"
 ghash = "0.2.2"
 subtle = { version = "2", default-features = false }

@@ -41,10 +41,6 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
 #![warn(missing_docs, rust_2018_idioms, intra_doc_link_resolution_failure)]
 
-// TODO: heapless `no_std` support. See this PR:
-// https://github.com/RustCrypto/traits/pull/59
-extern crate alloc;
-
 mod cipher;
 #[cfg(feature = "xchacha20poly1305")]
 mod xchacha20poly1305;
@@ -58,8 +54,7 @@ use aead::generic_array::{
     typenum::{U0, U12, U16, U32},
     GenericArray,
 };
-use aead::{Aead, Error, NewAead, Payload};
-use alloc::vec::Vec;
+use aead::{Aead, Error, NewAead};
 use chacha20::{stream_cipher::NewStreamCipher, ChaCha20};
 use zeroize::Zeroize;
 
@@ -92,28 +87,9 @@ impl Aead for ChaCha20Poly1305 {
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
-    fn encrypt<'msg, 'aad>(
+    fn encrypt_in_place_detached(
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
-        plaintext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        Cipher::new(ChaCha20::new(&self.key, nonce)).encrypt(plaintext.into())
-    }
-
-    fn decrypt<'msg, 'aad>(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        ciphertext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        Cipher::new(ChaCha20::new(&self.key, nonce)).decrypt(ciphertext.into())
-    }
-}
-
-impl ChaCha20Poly1305 {
-    /// Encrypt the data in-place, returning the authentication tag
-    pub fn encrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -121,12 +97,9 @@ impl ChaCha20Poly1305 {
             .encrypt_in_place_detached(associated_data, buffer)
     }
 
-    /// Decrypt the data in-place, returning an error in the event the provided
-    /// authentication tag does not match the given ciphertext (i.e. ciphertext
-    /// is modified/unauthentic)
-    pub fn decrypt_in_place_detached(
+    fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

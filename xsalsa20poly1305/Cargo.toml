@@ -18,7 +18,7 @@ categories = ["cryptography", "no-std"]
 maintenance = { status = "experimental" }
 
 [dependencies]
-aead = "0.1"
+aead = "0.2"
 salsa20 = { version = "0.3.0", features = ["xsalsa20", "zeroize"] }
 poly1305 = "0.5"
 zeroize = { version = "1", default-features = false }

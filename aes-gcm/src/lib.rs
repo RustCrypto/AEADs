@@ -46,20 +46,17 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
 #![warn(missing_docs, rust_2018_idioms)]
 
-extern crate alloc;
-
 mod ctr32;
 
 pub use aead;
 
 use self::ctr32::Ctr32;
 use aead::generic_array::{
-    typenum::{Unsigned, U0, U12, U16, U8},
+    typenum::{U0, U12, U16, U8},
     GenericArray,
 };
-use aead::{Aead, Error, NewAead, Payload};
+use aead::{Aead, Error, NewAead};
 use aes::{block_cipher_trait::BlockCipher, Aes128, Aes256};
-use alloc::vec::Vec;
 use ghash::{universal_hash::UniversalHash, GHash};
 use zeroize::Zeroize;
 
@@ -119,48 +116,9 @@ where
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
-    fn encrypt<'msg, 'aad>(
+    fn encrypt_in_place_detached(
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
-        plaintext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        let payload = plaintext.into();
-        let mut buffer = Vec::with_capacity(payload.msg.len() + Self::TagSize::to_usize());
-        buffer.extend_from_slice(payload.msg);
-
-        let tag = self.encrypt_in_place_detached(nonce, payload.aad, &mut buffer)?;
-        buffer.extend_from_slice(tag.as_slice());
-        Ok(buffer)
-    }
-
-    fn decrypt<'msg, 'aad>(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        ciphertext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        let payload = ciphertext.into();
-
-        if payload.msg.len() < Self::TagSize::to_usize() {
-            return Err(Error);
-        }
-
-        let tag_start = payload.msg.len() - Self::TagSize::to_usize();
-        let mut buffer = Vec::from(&payload.msg[..tag_start]);
-        let tag = Tag::from_slice(&payload.msg[tag_start..]);
-        self.decrypt_in_place_detached(nonce, payload.aad, &mut buffer, tag)?;
-
-        Ok(buffer)
-    }
-}
-
-impl<C> AesGcm<C>
-where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
-{
-    /// Encrypt the given message in-place, returning the authentication tag
-    pub fn encrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -180,11 +138,9 @@ where
         Ok(tag)
     }
 
-    /// Decrypt the given message, first authenticating ciphertext integrity
-    /// and returning an error if it's been tampered with.
-    pub fn decrypt_in_place_detached(
+    fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

@@ -84,6 +84,30 @@ impl Aead for XSalsa20Poly1305 {
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
+    fn encrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+    ) -> Result<Tag, Error> {
+        Cipher::new(XSalsa20::new(&self.key, nonce))
+            .encrypt_in_place_detached(associated_data, buffer)
+    }
+
+    fn decrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        Cipher::new(XSalsa20::new(&self.key, nonce)).decrypt_in_place_detached(
+            associated_data,
+            buffer,
+            tag,
+        )
+    }
+
     fn encrypt<'msg, 'aad>(
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
@@ -119,36 +143,6 @@ impl Aead for XSalsa20Poly1305 {
         self.decrypt_in_place_detached(nonce, payload.aad, &mut buffer, &tag)?;
 
         Ok(buffer)
-    }
-}
-
-impl XSalsa20Poly1305 {
-    /// Encrypt the data in-place, returning the authentication tag
-    pub fn encrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-    ) -> Result<Tag, Error> {
-        Cipher::new(XSalsa20::new(&self.key, nonce))
-            .encrypt_in_place_detached(associated_data, buffer)
-    }
-
-    /// Decrypt the data in-place, returning an error in the event the provided
-    /// authentication tag does not match the given ciphertext (i.e. ciphertext
-    /// is modified/unauthentic)
-    pub fn decrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-        tag: &Tag,
-    ) -> Result<(), Error> {
-        Cipher::new(XSalsa20::new(&self.key, nonce)).decrypt_in_place_detached(
-            associated_data,
-            buffer,
-            tag,
-        )
     }
 }
 

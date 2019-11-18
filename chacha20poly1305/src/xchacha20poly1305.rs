@@ -7,8 +7,7 @@ use aead::generic_array::{
     typenum::{U0, U16, U24, U32},
     GenericArray,
 };
-use aead::{Aead, Error, NewAead, Payload};
-use alloc::vec::Vec;
+use aead::{Aead, Error, NewAead};
 use chacha20::{stream_cipher::NewStreamCipher, XChaCha20};
 use zeroize::Zeroize;
 
@@ -72,28 +71,9 @@ impl Aead for XChaCha20Poly1305 {
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
-    fn encrypt<'msg, 'aad>(
+    fn encrypt_in_place_detached(
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
-        plaintext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        Cipher::new(XChaCha20::new(&self.key, nonce)).encrypt(plaintext.into())
-    }
-
-    fn decrypt<'msg, 'aad>(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        ciphertext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        Cipher::new(XChaCha20::new(&self.key, nonce)).decrypt(ciphertext.into())
-    }
-}
-
-impl XChaCha20Poly1305 {
-    /// Encrypt the data in-place, returning the authentication tag
-    pub fn encrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -101,12 +81,9 @@ impl XChaCha20Poly1305 {
             .encrypt_in_place_detached(associated_data, buffer)
     }
 
-    /// Decrypt the data in-place, returning an error in the event the provided
-    /// authentication tag does not match the given ciphertext (i.e. ciphertext
-    /// is modified/unauthentic)
-    pub fn decrypt_in_place_detached(
+    fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, <Self as Aead>::NonceSize>,
+        nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

@@ -74,9 +74,7 @@ where
     type KeySize = U32;
 
     fn new(key: GenericArray<u8, Self::KeySize>) -> Self {
-        Self {
-            siv: Siv::new(key.as_slice()),
-        }
+        Self { siv: Siv::new(key) }
     }
 }
 
@@ -87,9 +85,7 @@ where
     type KeySize = U64;
 
     fn new(key: GenericArray<u8, Self::KeySize>) -> Self {
-        Self {
-            siv: Siv::new(key.as_slice()),
-        }
+        Self { siv: Siv::new(key) }
     }
 }
 

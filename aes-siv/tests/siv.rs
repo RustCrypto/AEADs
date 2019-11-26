@@ -1,5 +1,9 @@
+//! AES-SIV tests for the raw SIV interface
+
 #[macro_use]
 extern crate hex_literal;
+
+use aes_siv::aead::generic_array::GenericArray;
 
 /// Test vectors
 #[derive(Debug)]
@@ -15,7 +19,7 @@ macro_rules! tests {
         #[test]
         fn encrypt() {
             for vector in $vectors {
-                let mut cipher = <$siv>::new(vector.key);
+                let mut cipher = <$siv>::new(GenericArray::clone_from_slice(vector.key));
                 let ciphertext = cipher.encrypt(vector.aad, vector.plaintext).unwrap();
                 assert_eq!(vector.ciphertext, ciphertext.as_slice());
             }
@@ -24,7 +28,7 @@ macro_rules! tests {
         #[test]
         fn decrypt() {
             for vector in $vectors {
-                let mut cipher = <$siv>::new(vector.key);
+                let mut cipher = <$siv>::new(GenericArray::clone_from_slice(vector.key));
                 let plaintext = cipher.decrypt(vector.aad, vector.ciphertext).unwrap();
                 assert_eq!(vector.plaintext, plaintext.as_slice());
             }
@@ -38,7 +42,7 @@ macro_rules! tests {
             // Tweak the first byte
             ciphertext[0] ^= 0xaa;
 
-            let mut cipher = <$siv>::new(vector.key);
+            let mut cipher = <$siv>::new(GenericArray::clone_from_slice(vector.key));
             assert!(cipher.decrypt(vector.aad, &ciphertext).is_err());
 
             // TODO(tarcieri): test ciphertext is unmodified in in-place API
@@ -47,7 +51,7 @@ macro_rules! tests {
 }
 
 mod aes128cmacsiv {
-    use super::TestVector;
+    use super::{GenericArray, TestVector};
     use aes_siv::siv::Aes128Siv;
 
     /// AES-128-CMAC-SIV test vectors
@@ -86,7 +90,7 @@ mod aes128cmacsiv {
 }
 
 mod aes256cmacsiv {
-    use super::TestVector;
+    use super::{GenericArray, TestVector};
     use aes_siv::siv::Aes256Siv;
 
     /// AES-256-CMAC-SIV test vectors
@@ -114,7 +118,7 @@ mod aes256cmacsiv {
 
 #[cfg(feature = "pmac")]
 mod aes128pmaccsiv {
-    use super::TestVector;
+    use super::{GenericArray, TestVector};
     use aes_siv::siv::Aes128PmacSiv;
 
     /// AES-128-PMAC-SIV test vectors
@@ -154,7 +158,7 @@ mod aes128pmaccsiv {
 
 #[cfg(feature = "pmac")]
 mod aes256pmaccsiv {
-    use super::TestVector;
+    use super::{GenericArray, TestVector};
     use aes_siv::siv::Aes256PmacSiv;
 
     /// AES-256-PMAC-SIV test vectors

@@ -3,7 +3,7 @@
 //!
 //! [1]: https://tools.ietf.org/html/rfc5297
 
-use crate::Tag;
+use crate::{KeySize, Tag};
 use aead::generic_array::{
     typenum::{Unsigned, U16},
     ArrayLength, GenericArray,
@@ -59,9 +59,6 @@ pub type Aes128PmacSiv = PmacSiv<Aes128>;
 /// AES-PMAC-SIV with a 256-bit key
 #[cfg(feature = "pmac")]
 pub type Aes256PmacSiv = PmacSiv<Aes256>;
-
-/// Size of an AES-SIV key given a particular cipher
-pub type KeySize<C> = <<C as NewStreamCipher>::KeySize as Add>::Output;
 
 impl<C, M> Siv<C, M>
 where

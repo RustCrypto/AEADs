@@ -21,16 +21,21 @@ pub mod siv;
 use crate::siv::Siv;
 use aead::generic_array::{
     typenum::{U0, U16, U32, U64},
-    GenericArray,
+    ArrayLength, GenericArray,
 };
-use aead::{AeadMut, Buffer, Error, NewAead};
+use aead::{Aead, Buffer, Error, NewAead};
 use aes::{Aes128, Aes256};
 use cmac::Cmac;
+use core::marker::PhantomData;
+use core::ops::Add;
 use crypto_mac::Mac;
 use ctr::Ctr128;
 #[cfg(feature = "pmac")]
 use pmac::Pmac;
 use stream_cipher::{NewStreamCipher, SyncStreamCipher};
+
+/// Size of an AES-SIV key given a particular cipher
+pub type KeySize<C> = <<C as NewStreamCipher>::KeySize as Add>::Output;
 
 /// AES-SIV tags (i.e. the Synthetic Initialization Vector value)
 pub type Tag = GenericArray<u8, U16>;
@@ -42,8 +47,11 @@ pub struct SivAead<C, M>
 where
     C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
     M: Mac<OutputSize = U16>,
+    <C as NewStreamCipher>::KeySize: Add,
+    KeySize<C>: ArrayLength<u8>,
 {
-    siv: Siv<C, M>,
+    key: GenericArray<u8, KeySize<C>>,
+    mac: PhantomData<M>, // TODO(tarcieri): include `M` in `KeySize` calculation
 }
 
 /// SIV AEAD modes based on CMAC
@@ -74,7 +82,10 @@ where
     type KeySize = U32;
 
     fn new(key: GenericArray<u8, Self::KeySize>) -> Self {
-        Self { siv: Siv::new(key) }
+        Self {
+            key,
+            mac: PhantomData,
+        }
     }
 }
 
@@ -85,14 +96,19 @@ where
     type KeySize = U64;
 
     fn new(key: GenericArray<u8, Self::KeySize>) -> Self {
-        Self { siv: Siv::new(key) }
+        Self {
+            key,
+            mac: PhantomData,
+        }
     }
 }
 
-impl<C, M> AeadMut for SivAead<C, M>
+impl<C, M> Aead for SivAead<C, M>
 where
     C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
     M: Mac<OutputSize = U16>,
+    <C as NewStreamCipher>::KeySize: Add,
+    KeySize<C>: ArrayLength<u8>,
 {
     // "If the nonce is random, it SHOULD be at least 128 bits in length"
     // https://tools.ietf.org/html/rfc5297#section-3
@@ -101,7 +117,7 @@ where
     type CiphertextOverhead = U0;
 
     fn encrypt_in_place(
-        &mut self,
+        &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut impl Buffer,
@@ -111,38 +127,41 @@ where
         // final component -- i.e., the string immediately preceding the
         // plaintext in the vector input to S2V -- is used for the nonce."
         // https://tools.ietf.org/html/rfc5297#section-3
-        self.siv
+        Siv::<C, M>::new(self.key.clone())
             .encrypt_in_place(&[associated_data, nonce.as_slice()], buffer)
     }
 
     fn encrypt_in_place_detached(
-        &mut self,
+        &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<GenericArray<u8, Self::TagSize>, Error> {
-        self.siv
+        Siv::<C, M>::new(self.key.clone())
             .encrypt_in_place_detached(&[associated_data, nonce.as_slice()], buffer)
     }
 
     fn decrypt_in_place(
-        &mut self,
+        &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut impl Buffer,
     ) -> Result<(), Error> {
-        self.siv
+        Siv::<C, M>::new(self.key.clone())
             .decrypt_in_place(&[associated_data, nonce.as_slice()], buffer)
     }
 
     fn decrypt_in_place_detached(
-        &mut self,
+        &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &GenericArray<u8, Self::TagSize>,
     ) -> Result<(), Error> {
-        self.siv
-            .decrypt_in_place_detached(&[associated_data, nonce.as_slice()], buffer, tag)
+        Siv::<C, M>::new(self.key.clone()).decrypt_in_place_detached(
+            &[associated_data, nonce.as_slice()],
+            buffer,
+            tag,
+        )
     }
 }

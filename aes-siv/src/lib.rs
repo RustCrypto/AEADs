@@ -2,10 +2,42 @@
 //! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
 //! provides [nonce reuse misuse resistance][4].
 //!
+//!
+//! ## In-place Usage (eliminates `alloc` requirement)
+//!
+//! This crate has an optional `alloc` feature which can be disabled in e.g.
+//! microcontroller environments that don't have a heap.
+//!
+//! The [`Aead::encrypt_in_place`][5] and [`Aead::decrypt_in_place`][6]
+//! methods accept any type that impls the [`aead::Buffer`][7] trait which
+//! contains the plaintext for encryption or ciphertext for decryption.
+//!
+//! Note that if you enable the `heapless` feature of the `aead` crate,
+//! you will receive an impl of `aead::Buffer` for the [`heapless::Vec`][8]
+//! type, which can then be passed as the `buffer` parameter to the
+//! in-place encrypt and decrypt methods.
+//!
+//! In `Cargo.toml`, add:
+//!
+//! ```toml
+//! [dependencies.aead]
+//! version = "0.2"
+//! default-features = false
+//! features = ["heapless"]
+//!
+//! [dependencies.aes-siv]
+//! version = "0.2"
+//! default-features = false
+//! ```
+//!
 //! [1]: https://github.com/miscreant/meta/wiki/AES-SIV
 //! [2]: https://tools.ietf.org/html/rfc5297
 //! [3]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
+//! [5]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [6]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [7]: https://docs.rs/aead/latest/aead/trait.Buffer.html
+//! [8]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]

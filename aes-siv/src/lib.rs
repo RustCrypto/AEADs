@@ -9,32 +9,31 @@
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
-#![recursion_limit = "1024"]
 #![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
 #[cfg(feature = "alloc")]
-#[macro_use]
 extern crate alloc;
 
 pub use aead;
 
 pub mod siv;
 
-use crate::siv::{Siv, IV_SIZE};
+use crate::siv::Siv;
 use aead::generic_array::{
     typenum::{U0, U16, U32, U64},
     GenericArray,
 };
-use aead::{AeadMut, Error, NewAead, Payload};
+use aead::{AeadMut, Buffer, Error, NewAead};
 use aes::{Aes128, Aes256};
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
 use cmac::Cmac;
 use crypto_mac::Mac;
 use ctr::Ctr128;
 #[cfg(feature = "pmac")]
 use pmac::Pmac;
 use stream_cipher::{NewStreamCipher, SyncStreamCipher};
+
+/// AES-SIV tags (i.e. the Synthetic Initialization Vector value)
+pub type Tag = GenericArray<u8, U16>;
 
 /// The `SivAead` type wraps the more powerful `Siv` interface in a more
 /// commonly used Authenticated Encryption with Associated Data (AEAD) API,
@@ -68,7 +67,6 @@ pub type Aes128PmacSivAead = PmacSivAead<Aes128>;
 #[cfg(feature = "pmac")]
 pub type Aes256PmacSivAead = PmacSivAead<Aes256>;
 
-#[cfg(feature = "alloc")]
 impl<M> NewAead for SivAead<Ctr128<Aes128>, M>
 where
     M: Mac<OutputSize = U16>,
@@ -82,7 +80,6 @@ where
     }
 }
 
-#[cfg(feature = "alloc")]
 impl<M> NewAead for SivAead<Ctr128<Aes256>, M>
 where
     M: Mac<OutputSize = U16>,
@@ -96,7 +93,6 @@ where
     }
 }
 
-#[cfg(feature = "alloc")]
 impl<C, M> AeadMut for SivAead<C, M>
 where
     C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
@@ -108,44 +104,12 @@ where
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
-    fn encrypt<'msg, 'aad>(
+    fn encrypt_in_place(
         &mut self,
         nonce: &GenericArray<u8, Self::NonceSize>,
-        plaintext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        let payload = plaintext.into();
-        let mut buffer = vec![0; IV_SIZE + payload.msg.len()];
-        buffer[IV_SIZE..].copy_from_slice(payload.msg);
-        self.encrypt_in_place(nonce, payload.aad, &mut buffer);
-        Ok(buffer)
-    }
-
-    fn decrypt<'msg, 'aad>(
-        &mut self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        ciphertext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        let payload = ciphertext.into();
-        let mut buffer = Vec::from(payload.msg);
-        self.decrypt_in_place(nonce, payload.aad, &mut buffer)?;
-        buffer.drain(..IV_SIZE);
-        Ok(buffer)
-    }
-}
-
-#[cfg(feature = "alloc")]
-impl<C, M> SivAead<C, M>
-where
-    C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
-    M: Mac<OutputSize = U16>,
-{
-    /// Encrypt the given message in-place
-    pub fn encrypt_in_place(
-        &mut self,
-        nonce: &GenericArray<u8, <Self as AeadMut>::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
-    ) {
+        buffer: &mut impl Buffer,
+    ) -> Result<(), Error> {
         // "SIV performs nonce-based authenticated encryption when a component of
         // the associated data is a nonce.  For purposes of interoperability the
         // final component -- i.e., the string immediately preceding the
@@ -155,14 +119,34 @@ where
             .encrypt_in_place(&[associated_data, nonce.as_slice()], buffer)
     }
 
-    /// Decrypt the given message in-place
-    pub fn decrypt_in_place<'a>(
+    fn encrypt_in_place_detached(
         &mut self,
-        nonce: &GenericArray<u8, <Self as AeadMut>::NonceSize>,
+        nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &'a mut [u8],
-    ) -> Result<&'a [u8], Error> {
+        buffer: &mut [u8],
+    ) -> Result<GenericArray<u8, Self::TagSize>, Error> {
+        self.siv
+            .encrypt_in_place_detached(&[associated_data, nonce.as_slice()], buffer)
+    }
+
+    fn decrypt_in_place(
+        &mut self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut impl Buffer,
+    ) -> Result<(), Error> {
         self.siv
             .decrypt_in_place(&[associated_data, nonce.as_slice()], buffer)
+    }
+
+    fn decrypt_in_place_detached(
+        &mut self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+        tag: &GenericArray<u8, Self::TagSize>,
+    ) -> Result<(), Error> {
+        self.siv
+            .decrypt_in_place_detached(&[associated_data, nonce.as_slice()], buffer, tag)
     }
 }

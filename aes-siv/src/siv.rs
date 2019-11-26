@@ -3,11 +3,14 @@
 //!
 //! [1]: https://tools.ietf.org/html/rfc5297
 
-use aead::generic_array::{
-    typenum::{Unsigned, U16},
-    GenericArray,
+use crate::Tag;
+use aead::{
+    generic_array::{
+        typenum::{Unsigned, U16},
+        GenericArray,
+    },
+    Buffer, Error,
 };
-use aead::Error;
 use aes::{Aes128, Aes256};
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -25,9 +28,6 @@ pub const IV_SIZE: usize = 16;
 
 /// Maximum number of header items on the encrypted message
 pub const MAX_HEADERS: usize = 126;
-
-/// GenericArray of bytes which is the size of a synthetic IV
-type SivArray = GenericArray<u8, U16>;
 
 /// Synthetic Initialization Vector (SIV) mode, providing misuse-resistant
 /// authenticated encryption (MRAE).
@@ -93,116 +93,160 @@ where
         }
     }
 
-    /// Encrypt the given plaintext in-place, replacing it with the SIV tag and
-    /// ciphertext. Requires a buffer with 16-bytes additional space.
+    /// Encrypt the given plaintext, allocating and returning a `Vec<u8>` for
+    /// the ciphertext.
     ///
-    /// # Usage
+    /// # Errors
     ///
-    /// It's important to note that only the *end* of the buffer will be
-    /// treated as the input plaintext:
-    ///
-    /// ```rust
-    /// let buffer = [0u8; 21];
-    /// let plaintext = &buffer[..buffer.len() - 16];
-    /// ```
-    ///
-    /// In this case, only the *last* 5 bytes are treated as the plaintext,
-    /// since `21 - 16 = 5` (the AES block size is 16-bytes).
-    ///
-    /// The buffer must include an additional 16-bytes of space in which to
-    /// write the SIV tag (at the beginning of the buffer).
-    /// Failure to account for this will leave you with plaintext messages that
-    /// are missing their first 16-bytes!
-    ///
-    /// # Panics
-    ///
-    /// Panics if `plaintext.len()` is less than `M::OutputSize`.
-    /// Panics if `headers.len()` is greater than `MAX_ASSOCIATED_DATA`.
-    pub fn encrypt_in_place<I, T>(&mut self, headers: I, plaintext: &mut [u8])
+    /// Returns `Error` if `plaintext.len()` is less than `M::OutputSize`.
+    /// Returns `Error` if `headers.len()` is greater than `MAX_ASSOCIATED_DATA`.
+    #[cfg(feature = "alloc")]
+    pub fn encrypt<I, T>(&mut self, headers: I, plaintext: &[u8]) -> Result<Vec<u8>, Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
-        if plaintext.len() < IV_SIZE {
-            panic!("plaintext buffer too small to hold MAC tag!");
-        }
-
-        let (siv_tag, msg) = plaintext.split_at_mut(IV_SIZE);
-
-        // Compute the synthetic IV for this plaintext
-        siv_tag.copy_from_slice(s2v(&mut self.mac, headers, msg).code().as_slice());
-        self.xor_with_keystream(siv_tag, msg);
+        let mut buffer = Vec::with_capacity(plaintext.len() + IV_SIZE);
+        buffer.extend_from_slice(plaintext);
+        self.encrypt_in_place(headers, &mut buffer)?;
+        Ok(buffer)
     }
 
-    /// Decrypt the given ciphertext in-place, authenticating it against the
-    /// synthetic IV included in the message.
+    /// Encrypt the given buffer containing a plaintext message in-place.
     ///
-    /// Returns a slice containing a decrypted message on success.
-    pub fn decrypt_in_place<'a, I, T>(
+    /// # Errors
+    ///
+    /// Returns `Error` if `plaintext.len()` is less than `M::OutputSize`.
+    /// Returns `Error` if `headers.len()` is greater than `MAX_ASSOCIATED_DATA`.
+    pub fn encrypt_in_place<I, T>(
         &mut self,
         headers: I,
-        ciphertext: &'a mut [u8],
-    ) -> Result<&'a [u8], Error>
+        buffer: &mut impl Buffer,
+    ) -> Result<(), Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
-        if ciphertext.len() < IV_SIZE {
-            return Err(Error);
+        let pt_len = buffer.len();
+
+        // Make room in the buffer for the SIV tag. It needs to be prepended.
+        buffer.extend_from_slice(Tag::default().as_slice())?;
+
+        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        for i in (0..pt_len).rev() {
+            let byte = buffer.as_ref()[i];
+            buffer.as_mut()[i + IV_SIZE] = byte;
         }
 
-        let (siv_tag, msg) = ciphertext.split_at_mut(IV_SIZE);
-        self.xor_with_keystream(siv_tag, msg);
-
-        let computed_siv_tag = s2v(&mut self.mac, headers, msg);
-
-        // Note: constant-time comparison of `MacResult` values
-        if computed_siv_tag == MacResult::new(*GenericArray::from_slice(siv_tag)) {
-            Ok(msg)
-        } else {
-            // Re-encrypt the decrypted plaintext to avoid revealing it
-            self.xor_with_keystream(siv_tag, msg);
-            Err(Error)
-        }
+        let tag = self.encrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..])?;
+        buffer.as_mut()[..IV_SIZE].copy_from_slice(tag.as_slice());
+        Ok(())
     }
 
-    /// Encrypt the given plaintext, allocating and returning a Vec<u8> for the ciphertext
-    #[cfg(feature = "alloc")]
-    pub fn encrypt<I, T>(&mut self, associated_data: I, plaintext: &[u8]) -> Vec<u8>
+    /// Encrypt the given plaintext in-place, returning the SIV tag on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error` if `plaintext.len()` is less than `M::OutputSize`.
+    /// Returns `Error` if `headers.len()` is greater than `MAX_ASSOCIATED_DATA`.
+    pub fn encrypt_in_place_detached<I, T>(
+        &mut self,
+        headers: I,
+        plaintext: &mut [u8],
+    ) -> Result<Tag, Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
-        let mut buffer = vec![0; IV_SIZE + plaintext.len()];
-        buffer[IV_SIZE..].copy_from_slice(plaintext);
-        self.encrypt_in_place(associated_data, &mut buffer);
-        buffer
+        // Compute the synthetic IV for this plaintext
+        let siv_tag = s2v(&mut self.mac, headers, plaintext)?;
+        self.xor_with_keystream(siv_tag, plaintext);
+        Ok(siv_tag)
     }
 
     /// Decrypt the given ciphertext, allocating and returning a Vec<u8> for the plaintext
     #[cfg(feature = "alloc")]
-    pub fn decrypt<I, T>(&mut self, associated_data: I, ciphertext: &[u8]) -> Result<Vec<u8>, Error>
+    pub fn decrypt<I, T>(&mut self, headers: I, ciphertext: &[u8]) -> Result<Vec<u8>, Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
-        let mut buffer = Vec::from(ciphertext);
-        self.decrypt_in_place(associated_data, &mut buffer)?;
-        buffer.drain(..IV_SIZE);
+        let mut buffer = ciphertext.to_vec();
+        self.decrypt_in_place(headers, &mut buffer)?;
         Ok(buffer)
     }
 
-    /// XOR the given buffer with the keystream for the given IV
-    fn xor_with_keystream(&mut self, iv: &[u8], msg: &mut [u8]) {
-        let mut zeroed_iv = SivArray::clone_from_slice(iv);
+    /// Decrypt the message in-place, returning an error in the event the
+    /// provided authentication tag does not match the given ciphertext.
+    ///
+    /// The buffer will be truncated to the length of the original plaintext
+    /// message upon success.
+    pub fn decrypt_in_place<I, T>(
+        &mut self,
+        headers: I,
+        buffer: &mut impl Buffer,
+    ) -> Result<(), Error>
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<[u8]>,
+    {
+        if buffer.len() < IV_SIZE {
+            return Err(Error);
+        }
 
+        let siv_tag = Tag::clone_from_slice(&buffer.as_ref()[..IV_SIZE]);
+        self.decrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..], &siv_tag)?;
+
+        let pt_len = buffer.len() - IV_SIZE;
+
+        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        for i in 0..pt_len {
+            let byte = buffer.as_ref()[i + IV_SIZE];
+            buffer.as_mut()[i] = byte;
+        }
+
+        buffer.truncate(pt_len);
+        Ok(())
+    }
+
+    /// Decrypt the given ciphertext in-place, authenticating it against the
+    /// provided SIV tag.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error` if the ciphertext is not authentic
+    pub fn decrypt_in_place_detached<I, T>(
+        &mut self,
+        headers: I,
+        ciphertext: &mut [u8],
+        siv_tag: &Tag,
+    ) -> Result<(), Error>
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<[u8]>,
+    {
+        self.xor_with_keystream(*siv_tag, ciphertext);
+        let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext)?;
+
+        // Note: constant-time comparison of `MacResult` values
+        if MacResult::new(computed_siv_tag) == MacResult::new(*siv_tag) {
+            Ok(())
+        } else {
+            // Re-encrypt the decrypted plaintext to avoid revealing it
+            self.xor_with_keystream(*siv_tag, ciphertext);
+            Err(Error)
+        }
+    }
+
+    /// XOR the given buffer with the keystream for the given IV
+    fn xor_with_keystream(&mut self, mut iv: Tag, msg: &mut [u8]) {
         // "We zero-out the top bit in each of the last two 32-bit words
         // of the IV before assigning it to Ctr"
         //  — http://web.cs.ucdavis.edu/~rogaway/papers/siv.pdf
-        zeroed_iv[8] &= 0x7f;
-        zeroed_iv[12] &= 0x7f;
+        iv[8] &= 0x7f;
+        iv[12] &= 0x7f;
 
-        C::new(GenericArray::from_slice(&self.encryption_key), &zeroed_iv).apply_keystream(msg);
+        C::new(GenericArray::from_slice(&self.encryption_key), &iv).apply_keystream(msg);
     }
 }
 
@@ -225,18 +269,18 @@ where
 /// S2V, together with a message authentication key. The output is the
 /// eponymous "synthetic IV" (SIV), which has a dual role as both
 /// initialization vector (for AES-CTR encryption) and MAC.
-fn s2v<M, I, T>(mac: &mut M, headers: I, message: &[u8]) -> MacResult<U16>
+fn s2v<M, I, T>(mac: &mut M, headers: I, message: &[u8]) -> Result<Tag, Error>
 where
     M: Mac<OutputSize = U16>,
     I: IntoIterator<Item = T>,
     T: AsRef<[u8]>,
 {
-    mac.input(&SivArray::default());
+    mac.input(&Tag::default());
     let mut state = mac.result_reset().code();
 
     for (i, header) in headers.into_iter().enumerate() {
         if i >= MAX_HEADERS {
-            panic!("too many associated data items!");
+            return Err(Error);
         }
 
         state = state.dbl();
@@ -257,7 +301,7 @@ where
     };
 
     mac.input(state.as_ref());
-    mac.result_reset()
+    Ok(mac.result_reset().code())
 }
 
 /// XOR the second argument into the first in-place. Slices do not have to be

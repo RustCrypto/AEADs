@@ -18,7 +18,11 @@ categories = ["cryptography", "no-std"]
 maintenance = { status = "experimental" }
 
 [dependencies]
-aead = "0.2"
+aead = { version = "0.2", default-features = false }
 salsa20 = { version = "0.3.0", features = ["xsalsa20", "zeroize"] }
 poly1305 = "0.5"
 zeroize = { version = "1", default-features = false }
+
+[features]
+default = ["alloc"]
+alloc = ["aead/alloc"]

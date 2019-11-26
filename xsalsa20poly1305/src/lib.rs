@@ -45,16 +45,13 @@
 
 #![no_std]
 
-extern crate alloc;
-
 pub use aead;
 
 use aead::generic_array::{
-    typenum::{U0, U16, U24, U32},
+    typenum::{Unsigned, U0, U16, U24, U32},
     GenericArray,
 };
-use aead::{Aead, Error, NewAead, Payload};
-use alloc::vec::Vec;
+use aead::{Aead, Buffer, Error, NewAead};
 use poly1305::{universal_hash::UniversalHash, Poly1305};
 use salsa20::stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use salsa20::XSalsa20;
@@ -84,6 +81,33 @@ impl Aead for XSalsa20Poly1305 {
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
+    fn encrypt_in_place(
+        &self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut impl Buffer,
+    ) -> Result<(), Error> {
+        let pt_len = buffer.len();
+        let tag_len = Self::TagSize::to_usize();
+
+        // Make room in the buffer for the tag. It needs to be prepended.
+        buffer.extend_from_slice(Tag::default().as_slice())?;
+
+        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        for i in (0..pt_len).rev() {
+            let byte = buffer.as_ref()[i];
+            buffer.as_mut()[i + tag_len] = byte;
+        }
+
+        let tag = self.encrypt_in_place_detached(
+            nonce,
+            associated_data,
+            &mut buffer.as_mut()[tag_len..],
+        )?;
+        buffer.as_mut()[..tag_len].copy_from_slice(tag.as_slice());
+        Ok(())
+    }
+
     fn encrypt_in_place_detached(
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
@@ -92,6 +116,38 @@ impl Aead for XSalsa20Poly1305 {
     ) -> Result<Tag, Error> {
         Cipher::new(XSalsa20::new(&self.key, nonce))
             .encrypt_in_place_detached(associated_data, buffer)
+    }
+
+    fn decrypt_in_place(
+        &self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut impl Buffer,
+    ) -> Result<(), Error> {
+        let tag_len = Self::TagSize::to_usize();
+
+        if buffer.len() < tag_len {
+            return Err(Error);
+        }
+
+        let siv_tag = Tag::clone_from_slice(&buffer.as_ref()[..tag_len]);
+        self.decrypt_in_place_detached(
+            nonce,
+            associated_data,
+            &mut buffer.as_mut()[tag_len..],
+            &siv_tag,
+        )?;
+
+        let pt_len = buffer.len() - tag_len;
+
+        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        for i in 0..pt_len {
+            let byte = buffer.as_ref()[i + tag_len];
+            buffer.as_mut()[i] = byte;
+        }
+
+        buffer.truncate(pt_len);
+        Ok(())
     }
 
     fn decrypt_in_place_detached(
@@ -106,43 +162,6 @@ impl Aead for XSalsa20Poly1305 {
             buffer,
             tag,
         )
-    }
-
-    fn encrypt<'msg, 'aad>(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        plaintext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        let payload = plaintext.into();
-        let mut buffer = Vec::with_capacity(payload.msg.len() + poly1305::BLOCK_SIZE);
-        buffer.extend_from_slice(&[0u8; poly1305::BLOCK_SIZE]);
-        buffer.extend_from_slice(payload.msg);
-
-        let tag = self.encrypt_in_place_detached(
-            nonce,
-            payload.aad,
-            &mut buffer[poly1305::BLOCK_SIZE..],
-        )?;
-        buffer[..poly1305::BLOCK_SIZE].copy_from_slice(tag.as_slice());
-        Ok(buffer)
-    }
-
-    fn decrypt<'msg, 'aad>(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        ciphertext: impl Into<Payload<'msg, 'aad>>,
-    ) -> Result<Vec<u8>, Error> {
-        let payload = ciphertext.into();
-
-        if payload.msg.len() < poly1305::BLOCK_SIZE {
-            return Err(Error);
-        }
-
-        let mut buffer = Vec::from(&payload.msg[poly1305::BLOCK_SIZE..]);
-        let tag = Tag::from_slice(&payload.msg[..poly1305::BLOCK_SIZE]);
-        self.decrypt_in_place_detached(nonce, payload.aad, &mut buffer, &tag)?;
-
-        Ok(buffer)
     }
 }
 

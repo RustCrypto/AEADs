@@ -4,17 +4,16 @@
 //! [1]: https://tools.ietf.org/html/rfc5297
 
 use crate::Tag;
-use aead::{
-    generic_array::{
-        typenum::{Unsigned, U16},
-        GenericArray,
-    },
-    Buffer, Error,
+use aead::generic_array::{
+    typenum::{Unsigned, U16},
+    ArrayLength, GenericArray,
 };
+use aead::{Buffer, Error};
 use aes::{Aes128, Aes256};
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 use cmac::Cmac;
+use core::ops::Add;
 use crypto_mac::{Mac, MacResult};
 use ctr::Ctr128;
 use dbl::Dbl;
@@ -61,38 +60,36 @@ pub type Aes128PmacSiv = PmacSiv<Aes128>;
 #[cfg(feature = "pmac")]
 pub type Aes256PmacSiv = PmacSiv<Aes256>;
 
+/// Size of an AES-SIV key given a particular cipher
+pub type KeySize<C> = <<C as NewStreamCipher>::KeySize as Add>::Output;
+
 impl<C, M> Siv<C, M>
 where
     C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
     M: Mac<OutputSize = U16>,
+    <C as NewStreamCipher>::KeySize: Add,
+    KeySize<C>: ArrayLength<u8>,
 {
     /// Create a new AES-SIV instance
-    ///
-    /// Panics if the key is the wrong length
-    // TODO(tarcieri): use `GenericArray` to eliminate panic conditions
-    pub fn new(key: &[u8]) -> Self {
-        let key_size = M::KeySize::to_usize() * 2;
-
-        assert_eq!(
-            key.len(),
-            key_size,
-            "expected {}-byte key, got {}",
-            key_size,
-            key.len()
-        );
-
+    pub fn new(key: GenericArray<u8, KeySize<C>>) -> Self {
         // Use the first half of the key as the encryption key
-        let encryption_key = GenericArray::clone_from_slice(&key[(key_size / 2)..]);
+        let encryption_key = GenericArray::clone_from_slice(&key[M::KeySize::to_usize()..]);
 
         // Use the second half of the key as the MAC key
-        let mac = M::new(GenericArray::from_slice(&key[..(key_size / 2)]));
+        let mac = M::new(GenericArray::from_slice(&key[..M::KeySize::to_usize()]));
 
         Self {
             encryption_key,
             mac,
         }
     }
+}
 
+impl<C, M> Siv<C, M>
+where
+    C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
+    M: Mac<OutputSize = U16>,
+{
     /// Encrypt the given plaintext, allocating and returning a `Vec<u8>` for
     /// the ciphertext.
     ///

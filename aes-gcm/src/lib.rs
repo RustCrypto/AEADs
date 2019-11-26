@@ -39,8 +39,39 @@
 //! assert_eq!(&plaintext, b"plaintext message");
 //! ```
 //!
+//! ## In-place Usage (eliminates `alloc` requirement)
+//!
+//! This crate has an optional `alloc` feature which can be disabled in e.g.
+//! microcontroller environments that don't have a heap.
+//!
+//! The [`Aead::encrypt_in_place`][3] and [`Aead::decrypt_in_place`][4]
+//! methods accept any type that impls the [`aead::Buffer`][5] trait which
+//! contains the plaintext for encryption or ciphertext for decryption.
+//!
+//! Note that if you enable the `heapless` feature of the `aead` crate,
+//! you will receive an impl of `aead::Buffer` for the [`heapless::Vec`][6]
+//! type, which can then be passed as the `buffer` parameter to the
+//! in-place encrypt and decrypt methods.
+//!
+//! In `Cargo.toml`, add:
+//!
+//! ```toml
+//! [dependencies.aead]
+//! version = "0.2"
+//! default-features = false
+//! features = ["heapless"]
+//!
+//! [dependencies.aes-gcm]
+//! version = "0.2"
+//! default-features = false
+//! ```
+//!
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [2]: https://en.wikipedia.org/wiki/Galois/Counter_Mode
+//! [3]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [4]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [5]: https://docs.rs/aead/latest/aead/trait.Buffer.html
+//! [6]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]

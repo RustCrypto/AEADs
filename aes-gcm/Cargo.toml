@@ -1,6 +1,6 @@
 [package]
 name = "aes-gcm"
-version = "0.1.1"
+version = "0.2.0"
 description = """
 Pure Rust implementation of the AES-GCM (Galois/Counter Mode)
 Authenticated Encryption with Associated Data (AEAD) Cipher
@@ -19,9 +19,9 @@ categories = ["cryptography", "no-std"]
 maintenance = { status = "experimental" }
 
 [dependencies]
-aead = "0.2"
+aead = { version = "0.2", default-features = false }
 aes = "0.3"
-ghash = "0.2.2"
+ghash = { version = "0.2.2", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 
@@ -29,6 +29,10 @@ zeroize = { version = "1", default-features = false }
 criterion = "0.3.0"
 criterion-cycles-per-byte = "0.1.1"
 hex-literal = "0.2"
+
+[features]
+default = ["alloc"]
+alloc = ["aead/alloc"]
 
 [[bench]]
 name = "aes-gcm"

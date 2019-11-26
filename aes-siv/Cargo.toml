@@ -19,7 +19,7 @@ categories = ["cryptography", "no-std"]
 maintenance = { status = "passively-maintained" }
 
 [dependencies]
-aead = "0.1"
+aead = { version = "0.2", default-features = false }
 aes = "0.3"
 cmac = "0.2"
 crypto-mac = { version = "0.7", default-features = false }
@@ -34,7 +34,7 @@ hex-literal = "0.2"
 
 [features]
 default = ["alloc"]
-alloc = []
+alloc = ["aead/alloc"]
 
 [package.metadata.docs.rs]
 all-features = true

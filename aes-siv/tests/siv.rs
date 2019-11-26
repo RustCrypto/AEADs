@@ -16,7 +16,7 @@ macro_rules! tests {
         fn encrypt() {
             for vector in $vectors {
                 let mut cipher = <$siv>::new(vector.key);
-                let ciphertext = cipher.encrypt(vector.aad, vector.plaintext);
+                let ciphertext = cipher.encrypt(vector.aad, vector.plaintext).unwrap();
                 assert_eq!(vector.ciphertext, ciphertext.as_slice());
             }
         }

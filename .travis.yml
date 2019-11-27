@@ -6,7 +6,7 @@ rust:
   - nightly
 
 script:
-  - cargo test --all --release
+  - cargo test --all --release --lib
   - cargo test --all --all-features --release
 
 env:

@@ -35,6 +35,7 @@ hex-literal = "0.2"
 [features]
 default = ["alloc"]
 alloc = ["aead/alloc"]
+heapless = ["aead/heapless"]
 
 [package.metadata.docs.rs]
 all-features = true

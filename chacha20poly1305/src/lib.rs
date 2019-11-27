@@ -20,7 +20,7 @@
 //! # Usage
 //!
 //! ```
-//! use chacha20poly1305::ChaCha20Poly1305;
+//! use chacha20poly1305::ChaCha20Poly1305; // Or `XChaCha20Poly1305`
 //! use aead::{Aead, NewAead, generic_array::GenericArray};
 //!
 //! let key = GenericArray::clone_from_slice(b"an example very very secret key."); // 32-bytes
@@ -41,22 +41,35 @@
 //! methods accept any type that impls the [`aead::Buffer`][7] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
-//! Note that if you enable the `heapless` feature of the `aead` crate,
-//! you will receive an impl of `aead::Buffer` for the [`heapless::Vec`][8]
-//! type, which can then be passed as the `buffer` parameter to the
-//! in-place encrypt and decrypt methods.
+//! Note that if you enable the `heapless` feature of this crate,
+//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][8]
+//! (re-exported from the `aead` crate as `aead::heapless::Vec`),
+//! which can then be passed as the `buffer` parameter to the in-place encrypt
+//! and decrypt methods:
 //!
-//! In `Cargo.toml`, add:
+//! ```
+//! use chacha20poly1305::ChaCha20Poly1305; // Or `XChaCha20Poly1305`
+//! use aead::{Aead, NewAead};
+//! use aead::generic_array::{GenericArray, typenum::U128};
+//! use aead::heapless::Vec;
 //!
-//! ```toml
-//! [dependencies.aead]
-//! version = "0.2"
-//! default-features = false
-//! features = ["heapless"]
+//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let aead = ChaCha20Poly1305::new(key);
 //!
-//! [dependencies.chacha20poly1305]
-//! version = "0.2"
-//! default-features = false
+//! let nonce = GenericArray::from_slice(b"unique nonce"); // 128-bits; unique per message
+//!
+//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! buffer.extend_from_slice(b"plaintext message");
+//!
+//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
+//! aead.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//!
+//! // `buffer` now contains the message ciphertext
+//! assert_ne!(&buffer, b"plaintext message");
+//!
+//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
+//! aead.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! assert_eq!(&buffer, b"plaintext message");
 //! ```
 //!
 //! [1]: https://tools.ietf.org/html/rfc8439

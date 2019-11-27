@@ -32,6 +32,10 @@ criterion-cycles-per-byte = "0.1.1"
 [features]
 default = ["alloc"]
 alloc = ["aead/alloc"]
+heapless = ["aead/heapless"]
+
+[package.metadata.docs.rs]
+all-features = true
 
 [[bench]]
 name = "aes-gcm-siv"

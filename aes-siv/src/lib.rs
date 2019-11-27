@@ -2,6 +2,22 @@
 //! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
 //! provides [nonce reuse misuse resistance][4].
 //!
+//! # Usage
+//!
+//! Simple usage (allocating, no associated data):
+//!
+//! ```
+//! use aes_siv::Aes128SivAead; // Or `Aes256Siv`
+//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//!
+//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let aead = Aes128SivAead::new(key);
+//!
+//! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
+//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
+//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! assert_eq!(&plaintext, b"plaintext message");
+//! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
 //!
@@ -12,22 +28,35 @@
 //! methods accept any type that impls the [`aead::Buffer`][7] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
-//! Note that if you enable the `heapless` feature of the `aead` crate,
-//! you will receive an impl of `aead::Buffer` for the [`heapless::Vec`][8]
-//! type, which can then be passed as the `buffer` parameter to the
-//! in-place encrypt and decrypt methods.
+//! Note that if you enable the `heapless` feature of this crate,
+//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][8]
+//! (re-exported from the `aead` crate as `aead::heapless::Vec`),
+//! which can then be passed as the `buffer` parameter to the in-place encrypt
+//! and decrypt methods:
 //!
-//! In `Cargo.toml`, add:
+//! ```
+//! use aes_siv::Aes128SivAead; // Or `Aes256SivAead`
+//! use aead::{Aead, NewAead};
+//! use aead::generic_array::{GenericArray, typenum::U128};
+//! use aead::heapless::Vec;
 //!
-//! ```toml
-//! [dependencies.aead]
-//! version = "0.2"
-//! default-features = false
-//! features = ["heapless"]
+//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let aead = Aes128SivAead::new(key);
 //!
-//! [dependencies.aes-siv]
-//! version = "0.2"
-//! default-features = false
+//! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
+//!
+//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! buffer.extend_from_slice(b"plaintext message");
+//!
+//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
+//! aead.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//!
+//! // `buffer` now contains the message ciphertext
+//! assert_ne!(&buffer, b"plaintext message");
+//!
+//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
+//! aead.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! assert_eq!(&buffer, b"plaintext message");
 //! ```
 //!
 //! [1]: https://github.com/miscreant/meta/wiki/AES-SIV

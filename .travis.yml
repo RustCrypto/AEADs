@@ -19,8 +19,8 @@ matrix:
     - rust: nightly
   fast_finish: true
   include:
-    - name: "Rust: 1.36.0"
-      rust: 1.36.0
+    - name: "Rust: 1.37.0"
+      rust: 1.37.0
       env: {} # clear `-D warnings` above; allow warnings
     - name: "Rust: stable (thumbv7em-none-eabihf)"
       rust: stable

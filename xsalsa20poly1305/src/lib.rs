@@ -134,10 +134,7 @@ impl Aead for XSalsa20Poly1305 {
         buffer.extend_from_slice(Tag::default().as_slice())?;
 
         // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
-        for i in (0..pt_len).rev() {
-            let byte = buffer.as_ref()[i];
-            buffer.as_mut()[i + tag_len] = byte;
-        }
+        buffer.as_mut().copy_within(..pt_len, tag_len);
 
         let tag = self.encrypt_in_place_detached(
             nonce,
@@ -181,11 +178,7 @@ impl Aead for XSalsa20Poly1305 {
         let pt_len = buffer.len() - tag_len;
 
         // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
-        for i in 0..pt_len {
-            let byte = buffer.as_ref()[i + tag_len];
-            buffer.as_mut()[i] = byte;
-        }
-
+        buffer.as_mut().copy_within(tag_len.., 0);
         buffer.truncate(pt_len);
         Ok(())
     }

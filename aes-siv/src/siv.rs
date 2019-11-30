@@ -127,10 +127,7 @@ where
         buffer.extend_from_slice(Tag::default().as_slice())?;
 
         // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
-        for i in (0..pt_len).rev() {
-            let byte = buffer.as_ref()[i];
-            buffer.as_mut()[i + IV_SIZE] = byte;
-        }
+        buffer.as_mut().copy_within(..pt_len, IV_SIZE);
 
         let tag = self.encrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..])?;
         buffer.as_mut()[..IV_SIZE].copy_from_slice(tag.as_slice());
@@ -194,11 +191,7 @@ where
         let pt_len = buffer.len() - IV_SIZE;
 
         // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
-        for i in 0..pt_len {
-            let byte = buffer.as_ref()[i + IV_SIZE];
-            buffer.as_mut()[i] = byte;
-        }
-
+        buffer.as_mut().copy_within(IV_SIZE.., 0);
         buffer.truncate(pt_len);
         Ok(())
     }

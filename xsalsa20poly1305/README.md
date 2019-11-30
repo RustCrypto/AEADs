@@ -7,7 +7,7 @@
 ![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
-**XSalsa20Poly1305** (a.k.a. NaCl `crypto_secretbox`[1]) is an
+**XSalsa20Poly1305** (a.k.a. NaCl [`crypto_secretbox`][1]) is an
 [authenticated encryption][2] cipher amenable to fast, constant-time
 implementations in software, based on the [Salsa20][3] stream cipher 
 (with [XSalsa20][4] 192-bit nonce extension) and the [Poly1305][5] universal
@@ -49,7 +49,7 @@ dual licensed as above, without any additional terms or conditions.
 [docs-image]: https://docs.rs/xsalsa20poly1305/badge.svg
 [docs-link]: https://docs.rs/xsalsa20poly1305/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.36+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.37+-blue.svg
 [maintenance-image]: https://img.shields.io/badge/maintenance-experimental-blue.svg
 [build-image]: https://travis-ci.com/RustCrypto/AEADs.svg?branch=master
 [build-link]: https://travis-ci.com/RustCrypto/AEADs

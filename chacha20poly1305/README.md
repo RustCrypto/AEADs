@@ -46,7 +46,7 @@ dual licensed as above, without any additional terms or conditions.
 [docs-image]: https://docs.rs/chacha20poly1305/badge.svg
 [docs-link]: https://docs.rs/chacha20poly1305/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.36+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.37+-blue.svg
 [maintenance-image]: https://img.shields.io/badge/maintenance-experimental-blue.svg
 [build-image]: https://travis-ci.com/RustCrypto/AEADs.svg?branch=master
 [build-link]: https://travis-ci.com/RustCrypto/AEADs

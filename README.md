@@ -21,7 +21,7 @@ security reviews.
 | [XSalsa20Poly1305](https://nacl.cr.yp.to/secretbox.html) | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) |
 
 ### Minimum Supported Rust Version
-All crates in this repository support Rust 1.36 or higher. In future minimum
+All crates in this repository support Rust 1.37 or higher. In future minimum
 supported Rust version can be changed, but it will be done with the minor
 version bump.
 

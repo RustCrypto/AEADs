@@ -11,6 +11,11 @@ security reviews.
 
 **USE AT YOUR OWN RISK.**
 
+## Usage
+
+Crates functionality is expressed in terms of traits defined in the [`aead`][2]
+crate.
+
 ## Crates
 | Name | Crates.io | Documentation |
 | ---- | :--------:| :------------:|
@@ -20,15 +25,13 @@ security reviews.
 | [ChaCha20Poly1305](https://tools.ietf.org/html/rfc8439) | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) |
 | [XSalsa20Poly1305](https://nacl.cr.yp.to/secretbox.html) | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) |
 
+NOTE: the [`aes-ccm`][3] crate also implements the [`aead`][2] traits
+used by all of the other crates in this repository.
+
 ### Minimum Supported Rust Version
 All crates in this repository support Rust 1.37 or higher. In future minimum
 supported Rust version can be changed, but it will be done with the minor
 version bump.
-
-## Usage
-
-Crates functionality is expressed in terms of traits defined in the [`aead`][2]
-crate.
 
 ## License
 
@@ -47,3 +50,4 @@ dual licensed as above, without any additional terms or conditions.
 
 [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 [2]: https://docs.rs/aead
+[3]: https://crates.io/crates/aes-ccm

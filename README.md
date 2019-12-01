@@ -1,7 +1,7 @@
 # RustCrypto: Authenticated Encryption with Associated Data
 [![Build Status](https://travis-ci.org/RustCrypto/AEADs.svg?branch=master)](https://travis-ci.org/RustCrypto/AEADs) [![dependency status](https://deps.rs/repo/github/RustCrypto/AEADs/status.svg)](https://deps.rs/repo/github/RustCrypto/AEADs)
 
-Collection of [Authenticated Encryption with Associated Data (AEAD)][1]
+Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.
 
 ## Warnings
@@ -13,19 +13,19 @@ security reviews.
 
 ## Usage
 
-Crates functionality is expressed in terms of traits defined in the [`aead`][2]
+Crates functionality is expressed in terms of traits defined in the [`aead`]
 crate.
 
 ## Crates
-| Name | Crates.io | Documentation |
-| ---- | :--------:| :------------:|
-| [AES-GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode) | [![crates.io](https://img.shields.io/crates/v/aes-gcm.svg)](https://crates.io/crates/aes-gcm) | [![Documentation](https://docs.rs/aes-gcm/badge.svg)](https://docs.rs/aes-gcm) |
-| [AES-GCM-SIV](https://en.wikipedia.org/wiki/AES-GCM-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) |
-| [AES-SIV](https://github.com/miscreant/meta/wiki/AES-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-siv.svg)](https://crates.io/crates/aes-siv) | [![Documentation](https://docs.rs/aes-siv/badge.svg)](https://docs.rs/aes-siv) |
-| [ChaCha20Poly1305](https://tools.ietf.org/html/rfc8439) | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) |
-| [XSalsa20Poly1305](https://nacl.cr.yp.to/secretbox.html) | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) |
+| Name                 | Algorithm |Crates.io | Documentation |
+|----------------------|-----------|----------| :------------:|
+| [`aes-gcm`]          | [AES-GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode) | [![crates.io](https://img.shields.io/crates/v/aes-gcm.svg)](https://crates.io/crates/aes-gcm) | [![Documentation](https://docs.rs/aes-gcm/badge.svg)](https://docs.rs/aes-gcm) |
+| [`aes-gcm-siv`]      | [AES-GCM-SIV](https://en.wikipedia.org/wiki/AES-GCM-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) |
+| [`aes-siv`]          |[AES-SIV](https://github.com/miscreant/meta/wiki/AES-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-siv.svg)](https://crates.io/crates/aes-siv) | [![Documentation](https://docs.rs/aes-siv/badge.svg)](https://docs.rs/aes-siv) |
+| [`chacha20poly1305`] | [(X)ChaCha20Poly1305](https://tools.ietf.org/html/rfc8439) | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) |
+| [`xsalsa20poly1305`] | [XSalsa20Poly1305](https://nacl.cr.yp.to/secretbox.html) | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) |
 
-NOTE: the [`aes-ccm`][3] crate also implements the [`aead`][2] traits
+NOTE: the [`aes-ccm`] crate also implements the [`aead`] traits
 used by all of the other crates in this repository.
 
 ### Minimum Supported Rust Version
@@ -48,6 +48,12 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 
-[1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-[2]: https://docs.rs/aead
-[3]: https://crates.io/crates/aes-ccm
+[AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption
+[`aead`]: https://docs.rs/aead
+[`aes-gcm`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm
+[`aes-gcm-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm-siv
+[`aes-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-siv
+[`chacha20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
+[`xsalsa20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/xsalsa20poly1305 
+[`aes-ccm`]: https://crates.io/crates/aes-ccm
+

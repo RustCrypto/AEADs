@@ -1,0 +1,27 @@
+[package]
+name = "ring-aead"
+version = "0.0.0"
+description = """
+Wappers for using the high-performance implementations of AES-GCM and
+ChaCha20Poly1305 from the *ring* crate via traits from the `aead` crate.
+"""
+authors = ["RustCrypto Developers"]
+edition = "2018"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/ring-aead"
+repository = "https://github.com/RustCrypto/AEADs"
+categories = ["cryptography", "no-std"]
+keywords = ["aead", "aes-gcm", "chacha20poly1305", "crypto", "ring"]
+
+[dependencies]
+aead = { version = "0.2", default-features = false }
+ring = "0.16"
+zeroize = "1"
+
+[dev-dependencies]
+hex-literal = "0.2"
+
+[features]
+default = ["alloc"]
+alloc = ["aead/alloc"]

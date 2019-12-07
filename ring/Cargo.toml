@@ -1,6 +1,6 @@
 [package]
 name = "ring-aead"
-version = "0.0.0"
+version = "0.1.0"
 description = """
 Wappers for using the high-performance implementations of AES-GCM and
 ChaCha20Poly1305 from the *ring* crate via traits from the `aead` crate.

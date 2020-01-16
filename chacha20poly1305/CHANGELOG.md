@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.1 (2020-01-16)
+### Added
+- `ChaCha8Poly1305`/`ChaCha12Poly1305` reduced round variants ([#69])
+- `criterion`-based benchmark ([#66])
+
+### Changed
+- Upgrade to `chacha20` v0.3; adds AVX2 backend w\ +60% perf ([#67])
+
+[#66]: https://github.com/RustCrypto/AEADs/pull/66
+[#67]: https://github.com/RustCrypto/AEADs/pull/67
+[#69]: https://github.com/RustCrypto/AEADs/pull/69
+
 ## 0.3.0 (2019-11-26)
 ### Added
 - `heapless` feature ([#51])

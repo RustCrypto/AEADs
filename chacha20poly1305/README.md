@@ -4,7 +4,6 @@
 [![Docs][docs-image]][docs-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
-![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
 **ChaCha20Poly1305** ([RFC 8439][1]) is an [Authenticated Encryption with Associated Data (AEAD)][2]
@@ -47,7 +46,6 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/chacha20poly1305/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.37+-blue.svg
-[maintenance-image]: https://img.shields.io/badge/maintenance-experimental-blue.svg
 [build-image]: https://travis-ci.com/RustCrypto/AEADs.svg?branch=master
 [build-link]: https://travis-ci.com/RustCrypto/AEADs
 

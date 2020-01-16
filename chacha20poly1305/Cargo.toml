@@ -20,7 +20,7 @@ maintenance = { status = "experimental" }
 
 [dependencies]
 aead = { version = "0.2", default-features = false }
-chacha20 = { version = "0.2.1", features = ["zeroize"] }
+chacha20 = { version = "0.3", features = ["zeroize"] }
 poly1305 = "0.5"
 zeroize = { version = "1", default-features = false }
 

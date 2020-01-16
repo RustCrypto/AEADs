@@ -35,9 +35,9 @@ default = ["alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 
-[package.metadata.docs.rs]
-all-features = true
-
 [[bench]]
 name = "aes-gcm"
 harness = false
+
+[package.metadata.docs.rs]
+all-features = true

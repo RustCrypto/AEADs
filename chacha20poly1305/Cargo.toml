@@ -24,11 +24,19 @@ chacha20 = { version = "0.2.1", features = ["zeroize"] }
 poly1305 = "0.5"
 zeroize = { version = "1", default-features = false }
 
+[dev-dependencies]
+criterion = "0.3.0"
+criterion-cycles-per-byte = "0.1.1"
+
 [features]
 default = ["alloc", "xchacha20poly1305"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 xchacha20poly1305 = ["chacha20/xchacha20"]
+
+[[bench]]
+name = "aes-gcm"
+harness = false
 
 [package.metadata.docs.rs]
 all-features = true

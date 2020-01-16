@@ -35,7 +35,7 @@ heapless = ["aead/heapless"]
 xchacha20poly1305 = ["chacha20/xchacha20"]
 
 [[bench]]
-name = "aes-gcm"
+name = "chacha20poly1305"
 harness = false
 
 [package.metadata.docs.rs]

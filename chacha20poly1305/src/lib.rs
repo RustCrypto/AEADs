@@ -6,6 +6,24 @@
 //! This crate also contains an implementation of [`XChaCha20Poly1305`] -
 //! a variant of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
 //!
+//! ## Performance Notes
+//!
+//! By default this crate will use portable software implementations of the
+//! underlying ChaCha20 and Poly1305 ciphers it's based on.
+//!
+//! When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
+//! take advantage of AVX2 acceleration:
+//!
+//! ```text
+//! RUSTFLAGS="-Ctarget-feature=+avx2"
+//! ```
+//!
+//! Ideally target the `haswell` or `skylake` architectures as a baseline:
+//!
+//! ```text
+//! RUSTFLAGS="-Ctarget-cpu=haswell -Ctarget-feature=+avx2"
+//! ```
+//!
 //! ## Security Warning
 //!
 //! No security audits of this crate have ever been performed, and it has not been

@@ -3,8 +3,12 @@
 //! cipher amenable to fast, constant-time implementations in software, based on
 //! the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
 //!
-//! This crate also contains an implementation of [`XChaCha20Poly1305`] -
-//! a variant of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
+//! This crate also contains the following `ChaCha20Poly1305` variants:
+//! - [`XChaCha20Poly1305`] - ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
+//! - [`ChaCha8Poly1305`] / [`ChaCha12Poly1305`] - nonstandard, reduced round variants
+//!   (gated under the `reduced-round` Cargo feature). See the [Too Much Crypto][5]
+//!   paper for background and rationale on when these constructions shoudl be used.
+//!   When in doubt, prefer `ChaCha20Poly1305`.
 //!
 //! ## Performance Notes
 //!
@@ -55,12 +59,12 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`][5] and [`Aead::decrypt_in_place`][6]
-//! methods accept any type that impls the [`aead::Buffer`][7] trait which
+//! The [`Aead::encrypt_in_place`][6] and [`Aead::decrypt_in_place`][7]
+//! methods accept any type that impls the [`aead::Buffer`][8] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
 //! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][8]
+//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][9]
 //! (re-exported from the `aead` crate as `aead::heapless::Vec`),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
@@ -94,10 +98,11 @@
 //! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
 //! [4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
-//! [5]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
-//! [6]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
-//! [7]: https://docs.rs/aead/latest/aead/trait.Buffer.html
-//! [8]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
+//! [5]: https://eprint.iacr.org/2019/1492.pdf
+//! [6]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [7]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [8]: https://docs.rs/aead/latest/aead/trait.Buffer.html
+//! [9]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
@@ -120,62 +125,87 @@ use aead::{Aead, Error, NewAead};
 use chacha20::{stream_cipher::NewStreamCipher, ChaCha20};
 use zeroize::Zeroize;
 
+#[cfg(feature = "reduced-round")]
+use chacha20::{ChaCha12, ChaCha8};
+
 /// Poly1305 tags
 pub type Tag = GenericArray<u8, U16>;
 
-/// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
-///
-/// The [`Aead`] and [`NewAead`] traits provide the primary API for using this
-/// construction.
-///
-/// See the [toplevel documentation](https://docs.rs/chacha20poly1305) for
-/// a usage example.
-#[derive(Clone)]
-pub struct ChaCha20Poly1305 {
-    /// Secret key
-    key: GenericArray<u8, U32>,
-}
+macro_rules! impl_chachapoly {
+    ($name:ident, $cipher:ident, $doc:expr) => {
+        #[doc = $doc]
+        #[doc = "\n"]
+        #[doc = "The [`Aead`] and [`NewAead`] traits provide the primary API for using this construction."]
+        #[doc = "\n"]
+        #[doc = "See the [toplevel documentation](https://docs.rs/chacha20poly1305) for a usage example."]
+        #[derive(Clone)]
+        pub struct $name {
+            /// Secret key
+            key: GenericArray<u8, U32>,
+        }
 
-impl NewAead for ChaCha20Poly1305 {
-    type KeySize = U32;
+        impl NewAead for $name {
+            type KeySize = U32;
 
-    fn new(key: GenericArray<u8, U32>) -> Self {
-        ChaCha20Poly1305 { key }
+            fn new(key: GenericArray<u8, U32>) -> Self {
+                Self { key }
+            }
+        }
+
+        impl Aead for $name {
+            type NonceSize = U12;
+            type TagSize = U16;
+            type CiphertextOverhead = U0;
+
+            fn encrypt_in_place_detached(
+                &self,
+                nonce: &GenericArray<u8, Self::NonceSize>,
+                associated_data: &[u8],
+                buffer: &mut [u8],
+            ) -> Result<Tag, Error> {
+                Cipher::new($cipher::new(&self.key, nonce))
+                    .encrypt_in_place_detached(associated_data, buffer)
+            }
+
+            fn decrypt_in_place_detached(
+                &self,
+                nonce: &GenericArray<u8, Self::NonceSize>,
+                associated_data: &[u8],
+                buffer: &mut [u8],
+                tag: &Tag,
+            ) -> Result<(), Error> {
+                Cipher::new($cipher::new(&self.key, nonce)).decrypt_in_place_detached(
+                    associated_data,
+                    buffer,
+                    tag,
+                )
+            }
+        }
+
+        impl Drop for $name {
+            fn drop(&mut self) {
+                self.key.as_mut_slice().zeroize();
+            }
+        }
     }
 }
 
-impl Aead for ChaCha20Poly1305 {
-    type NonceSize = U12;
-    type TagSize = U16;
-    type CiphertextOverhead = U0;
+#[cfg(feature = "reduced-round")]
+impl_chachapoly!(
+    ChaCha8Poly1305,
+    ChaCha8,
+    "ChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD)."
+);
 
-    fn encrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-    ) -> Result<Tag, Error> {
-        Cipher::new(ChaCha20::new(&self.key, nonce))
-            .encrypt_in_place_detached(associated_data, buffer)
-    }
+#[cfg(feature = "reduced-round")]
+impl_chachapoly!(
+    ChaCha12Poly1305,
+    ChaCha12,
+    "ChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD)."
+);
 
-    fn decrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-        tag: &Tag,
-    ) -> Result<(), Error> {
-        Cipher::new(ChaCha20::new(&self.key, nonce)).decrypt_in_place_detached(
-            associated_data,
-            buffer,
-            tag,
-        )
-    }
-}
-
-impl Drop for ChaCha20Poly1305 {
-    fn drop(&mut self) {
-        self.key.as_mut_slice().zeroize();
-    }
-}
+impl_chachapoly!(
+    ChaCha20Poly1305,
+    ChaCha20,
+    "ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD)."
+);

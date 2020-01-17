@@ -19,7 +19,7 @@ maintenance = { status = "experimental" }
 
 [dependencies]
 aead = { version = "0.2", default-features = false }
-salsa20 = { version = "0.3.0", features = ["xsalsa20", "zeroize"] }
+salsa20 = { version = "0.4", features = ["xsalsa20", "zeroize"] }
 poly1305 = "0.5"
 zeroize = { version = "1", default-features = false }
 

@@ -84,6 +84,8 @@
 //! [8]: https://tools.ietf.org/html/rfc8439
 
 #![no_std]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
+#![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead;
 

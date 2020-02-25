@@ -1,4 +1,4 @@
-//! **XSalsa20Poly1305** (a.k.a. NaCl `crypto_secretbox`[1]) is an
+//! **XSalsa20Poly1305** (a.k.a. NaCl [`crypto_secretbox`][1]) is an
 //! [authenticated encryption][2] cipher amenable to fast, constant-time
 //! implementations in software, based on the [Salsa20][3] stream cipher
 //! (with [XSalsa20][4] 192-bit nonce extension) and the [Poly1305][5] universal
@@ -39,12 +39,12 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`][3] and [`Aead::decrypt_in_place`][4]
-//! methods accept any type that impls the [`aead::Buffer`][5] trait which
+//! The [`Aead::encrypt_in_place`][9] and [`Aead::decrypt_in_place`][10]
+//! methods accept any type that impls the [`aead::Buffer`][11] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
 //! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][8]
+//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][12]
 //! (re-exported from the `aead` crate as `aead::heapless::Vec`),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
@@ -82,6 +82,10 @@
 //! [6]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
 //! [7]: https://docs.rs/chacha20poly1305/latest/chacha20poly1305/struct.XChaCha20Poly1305.html
 //! [8]: https://tools.ietf.org/html/rfc8439
+//! [9]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [10]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [11]: https://docs.rs/aead/latest/aead/trait.Buffer.html
+//! [12]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]

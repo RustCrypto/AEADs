@@ -119,6 +119,9 @@
 //! [X25519]: https://cr.yp.to/ecdh.html
 //! [XSalsa20Poly1305]: https://nacl.cr.yp.to/secretbox.html
 //! [ECIES]: https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme
+//! [`Aead::encrypt_in_place`]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [`Aead::decrypt_in_place`]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [`aead::Buffer`]: https://docs.rs/aead/latest/aead/trait.Buffer.html
 //! [`heapless::Vec`]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]

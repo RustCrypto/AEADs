@@ -3,8 +3,8 @@ members = [
     "aes-gcm",
     "aes-gcm-siv",
     "aes-siv",
+    "box",
     "chacha20poly1305",
     "ring",
     "xsalsa20poly1305"
 ]
-

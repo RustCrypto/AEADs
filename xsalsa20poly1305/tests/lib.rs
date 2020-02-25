@@ -1,6 +1,7 @@
-/// XSalsa20Poly1305 test vectors.
-///
-/// Adapted from NaCl's `tests/secretbox.c` and `tests/secretbox.out`
+//! XSalsa20Poly1305 test vectors.
+//!
+//! Adapted from NaCl's `tests/secretbox.c` and `tests/secretbox.out`
+
 use xsalsa20poly1305::aead::generic_array::GenericArray;
 use xsalsa20poly1305::aead::{Aead, NewAead};
 use xsalsa20poly1305::XSalsa20Poly1305;
@@ -44,9 +45,9 @@ const CIPHERTEXT: &[u8] = &[
 fn encrypt() {
     let key = GenericArray::from_slice(KEY);
     let nonce = GenericArray::from_slice(NONCE);
-
     let cipher = XSalsa20Poly1305::new(*key);
     let ciphertext = cipher.encrypt(nonce, PLAINTEXT).unwrap();
+
     assert_eq!(CIPHERTEXT, ciphertext.as_slice());
 }
 
@@ -54,7 +55,6 @@ fn encrypt() {
 fn decrypt() {
     let key = GenericArray::from_slice(KEY);
     let nonce = GenericArray::from_slice(NONCE);
-
     let cipher = XSalsa20Poly1305::new(*key);
     let plaintext = cipher.decrypt(nonce, CIPHERTEXT).unwrap();
 

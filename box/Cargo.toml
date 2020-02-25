@@ -1,0 +1,38 @@
+[package]
+name = "crypto_box"
+version = "0.0.0"
+description = """
+Pure Rust implementation of NaCl's crypto_box public-key authenticated
+encryption primitive which combines the X25519 Elliptic Curve Diffie-Hellman
+function and the XSalsa20Poly1305 authenticated encryption cipher
+"""
+authors = ["RustCrypto Developers"]
+edition = "2018"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/crypto_box"
+repository = "https://github.com/RustCrypto/AEADs"
+categories = ["cryptography", "no-std"]
+keywords = ["nacl", "libsodium", "public-key", "x25519", "xsalsa20poly1305"]
+
+[dependencies]
+rand_core = "0.5"
+salsa20 = { version = "0.4.1", features = ["hsalsa20"] }
+
+[dependencies.x25519-dalek]
+version = "0.6"
+default-features = false
+features = ["u64_backend"]
+
+[dependencies.xsalsa20poly1305]
+version = "0.3"
+default-features = false
+path = "../xsalsa20poly1305"
+
+[dev-dependencies]
+rand = "0.7"
+
+[features]
+default = ["alloc"]
+alloc = ["xsalsa20poly1305/alloc"]
+heapless = ["xsalsa20poly1305/heapless"]

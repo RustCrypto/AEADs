@@ -25,7 +25,8 @@ matrix:
     - name: "Rust: stable (thumbv7em-none-eabihf)"
       rust: stable
       install: rustup target add thumbv7em-none-eabihf
-      script: cargo build --all --exclude ring-aead --target thumbv7em-none-eabihf --release
+      # TODO: test no_std builds of crypto_box when rust-lang/cargo#7916 is on stable
+      script: cargo build --all --exclude ring-aead --exclude crypto_box --target thumbv7em-none-eabihf --release
     - name: rustfmt
       rust: stable
       install: rustup component add rustfmt

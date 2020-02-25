@@ -1,4 +1,4 @@
-# Pure Rust Nacl `crypto_box`
+# Pure Rust NaCl `crypto_box`
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]

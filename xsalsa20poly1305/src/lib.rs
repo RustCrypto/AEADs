@@ -169,12 +169,12 @@ impl Aead for XSalsa20Poly1305 {
             return Err(Error);
         }
 
-        let siv_tag = Tag::clone_from_slice(&buffer.as_ref()[..tag_len]);
+        let tag = Tag::clone_from_slice(&buffer.as_ref()[..tag_len]);
         self.decrypt_in_place_detached(
             nonce,
             associated_data,
             &mut buffer.as_mut()[tag_len..],
-            &siv_tag,
+            &tag,
         )?;
 
         let pt_len = buffer.len() - tag_len;

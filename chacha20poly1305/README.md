@@ -1,27 +1,27 @@
-# ChaCha20Poly1305: Authenticated Encryption Cipher
+# ChaCha20Poly1305 [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
 
-[![crate][crate-image]][crate-link]
-[![Docs][docs-image]][docs-link]
-![Apache2/MIT licensed][license-image]
-![Rust Version][rustc-image]
-[![Build Status][build-image]][build-link]
-
-**ChaCha20Poly1305** ([RFC 8439][1]) is an [Authenticated Encryption with Associated Data (AEAD)][2]
-cipher amenable to fast, constant-time implementations in software, based on
-the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
+Pure Rust implementation of **ChaCha20Poly1305** ([RFC 8439][1]): an
+[Authenticated Encryption with Associated Data (AEAD)][2] cipher amenable to
+fast, constant-time implementations in software, based on the [ChaCha20][3]
+stream cipher and [Poly1305][4] universal hash function.
 
 This crate also contains an implementation of **XChaCha20Poly1305**: a variant
 of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
 
 [Documentation][docs-link]
 
-## Security Warning
+## Security Notes
 
-No security audits of this crate have ever been performed, and it has not been
-thoroughly assessed to ensure its operation is constant-time on common CPU
-architectures.
+This crate has received one [audit security by NCC Group][5], with no significant
+findings. We would like to thank [MobileCoin][6] for funding the audit.
 
-USE AT YOUR OWN RISK!
+All implementations contained in the crate are designed to execute in constant
+time, either by relying on hardware intrinsics (i.e. AVX2 on x86/x86_64), or
+using a portable implementation which is only constant time on processors which
+implement constant-time multiplication.
+
+It is not suitable for use on processors with a variable-time multiplication
+operation (e.g. short circuit on multiply-by-zero / multiply-by-one).
 
 ## License
 
@@ -55,3 +55,5 @@ dual licensed as above, without any additional terms or conditions.
 [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
 [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
 [4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
+[5]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
+[6]: https://www.mobilecoin.com/

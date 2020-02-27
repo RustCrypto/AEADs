@@ -3,7 +3,9 @@
 //! cipher amenable to fast, constant-time implementations in software, based on
 //! the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
 //!
-//! This crate also contains the following `ChaCha20Poly1305` variants:
+//! This crate contains pure Rust implementations of `ChaCha20Poly1305`
+//! (with optional AVX2 acceleration) as well as the following variants thereof:
+//!
 //! - [`XChaCha20Poly1305`] - ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
 //! - [`ChaCha8Poly1305`] / [`ChaCha12Poly1305`] - nonstandard, reduced round variants
 //!   (gated under the `reduced-round` Cargo feature). See the [Too Much Crypto][5]
@@ -28,16 +30,18 @@
 //! RUSTFLAGS="-Ctarget-cpu=haswell -Ctarget-feature=+avx2"
 //! ```
 //!
-//! ## Security Warning
+//! ## Security Notes
 //!
-//! No security audits of this crate have ever been performed, and it has not been
-//! thoroughly assessed to ensure its operation is constant-time on common CPU
-//! architectures.
+//! This crate has received one [audit security by NCC Group][6], with no significant
+//! findings. We would like to thank [MobileCoin][7] for funding the audit.
 //!
-//! Where possible the implementation uses constant-time hardware intrinsics,
-//! or otherwise falls back to an implementation which contains no secret-dependent
-//! branches or table lookups, however it's possible LLVM may insert such
-//! operations in certain scenarios.
+//! All implementations contained in the crate are designed to execute in
+//! constant time, either by relying on hardware intrinsics (i.e. AVX2 on
+//! x86/x86_64), or using a portable implementation which is only constant time
+//! on processors which implement constant-time multiplication.
+//!
+//! It is not suitable for use on processors with a variable-time multiplication
+//! operation (e.g. short circuit on multiply-by-zero / multiply-by-one).
 //!
 //! # Usage
 //!
@@ -59,12 +63,12 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`][6] and [`Aead::decrypt_in_place`][7]
-//! methods accept any type that impls the [`aead::Buffer`][8] trait which
+//! The [`Aead::encrypt_in_place`][8] and [`Aead::decrypt_in_place`][9]
+//! methods accept any type that impls the [`aead::Buffer`][10] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
 //! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][9]
+//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][11]
 //! (re-exported from the `aead` crate as `aead::heapless::Vec`),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
@@ -99,10 +103,12 @@
 //! [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
 //! [4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
 //! [5]: https://eprint.iacr.org/2019/1492.pdf
-//! [6]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
-//! [7]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
-//! [8]: https://docs.rs/aead/latest/aead/trait.Buffer.html
-//! [9]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
+//! [6]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
+//! [7]: https://www.mobilecoin.com/
+//! [8]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [9]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [10]: https://docs.rs/aead/latest/aead/trait.Buffer.html
+//! [11]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]

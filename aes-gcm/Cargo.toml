@@ -16,7 +16,7 @@ keywords = ["aead", "aes", "encryption", "gcm", "ghash"]
 categories = ["cryptography", "no-std"]
 
 [badges]
-maintenance = { status = "experimental" }
+maintenance = { status = "actively-maintained" }
 
 [dependencies]
 aead = { version = "0.2", default-features = false }

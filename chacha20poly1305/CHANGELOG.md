@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.2 (2020-02-26)
+### Added
+- Notes about NCC audit to documentation ([#80])
+
+[#80]: https://github.com/RustCrypto/AEADs/pull/80
+
 ## 0.3.1 (2020-01-16)
 ### Added
 - `ChaCha8Poly1305`/`ChaCha12Poly1305` reduced round variants ([#69])

@@ -46,8 +46,12 @@ where
         }
 
         self.mac.update_padded(associated_data);
+
+        // TODO(tarcieri): interleave encryption with Poly1305
+        // See: <https://github.com/RustCrypto/AEADs/issues/74>
         self.cipher.apply_keystream(buffer);
         self.mac.update_padded(buffer);
+
         self.authenticate_lengths(associated_data, buffer)?;
         Ok(self.mac.result().into_bytes())
     }
@@ -70,6 +74,8 @@ where
 
         // This performs a constant-time comparison using the `subtle` crate
         if self.mac.verify(tag).is_ok() {
+            // TODO(tarcieri): interleave decryption with Poly1305
+            // See: <https://github.com/RustCrypto/AEADs/issues/74>
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {

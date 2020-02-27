@@ -13,16 +13,18 @@
 //! RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
 //! ```
 //!
-//! ## Security Warning
+//! ## Security Notes
 //!
-//! No security audits of this crate have ever been performed, and it has not been
-//! thoroughly assessed to ensure its operation is constant-time on common CPU
-//! architectures.
+//! This crate has received one [audit security by NCC Group][3], with no significant
+//! findings. We would like to thank [MobileCoin][4] for funding the audit.
 //!
-//! Where possible the implementation uses constant-time hardware intrinsics,
-//! or otherwise falls back to an implementation which contains no secret-dependent
-//! branches or table lookups, however it's possible LLVM may insert such
-//! operations in certain scenarios.
+//! All implementations contained in the crate are designed to execute in constant
+//! time, either by relying on hardware intrinsics (i.e. AES-NI and CLMUL on
+//! x86/x86_64), or using a portable implementation which is only constant time
+//! on processors which implement constant-time multiplication.
+//!
+//! It is not suitable for use on processors with a variable-time multiplication
+//! operation (e.g. short circuit on multiply-by-zero / multiply-by-one).
 //!
 //! # Usage
 //!
@@ -46,12 +48,12 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`][3] and [`Aead::decrypt_in_place`][4]
-//! methods accept any type that impls the [`aead::Buffer`][5] trait which
+//! The [`Aead::encrypt_in_place`][5] and [`Aead::decrypt_in_place`][6]
+//! methods accept any type that impls the [`aead::Buffer`][7] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
 //! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][6]
+//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][8]
 //! (re-exported from the `aead` crate as `aead::heapless::Vec`),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
@@ -83,10 +85,12 @@
 //!
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [2]: https://en.wikipedia.org/wiki/Galois/Counter_Mode
-//! [3]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
-//! [4]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
-//! [5]: https://docs.rs/aead/latest/aead/trait.Buffer.html
-//! [6]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
+//! [3]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
+//! [4]: https://www.mobilecoin.com/
+//! [5]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [6]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [7]: https://docs.rs/aead/latest/aead/trait.Buffer.html
+//! [8]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
@@ -173,6 +177,7 @@ where
         }
 
         // TODO(tarcieri): interleave encryption with GHASH
+        // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let mut ctr = Ctr32::new(&self.cipher, nonce);
         ctr.seek(1);
         ctr.apply_keystream(buffer);
@@ -195,7 +200,8 @@ where
             return Err(Error);
         }
 
-        // TODO(tarcieri): interleave decryption with GHASH
+        // TODO(tarcieri): interleave encryption with GHASH
+        // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let mut expected_tag = compute_tag(&mut self.ghash.clone(), associated_data, buffer);
         let mut ctr = Ctr32::new(&self.cipher, nonce);
         ctr.apply_keystream(expected_tag.as_mut_slice());

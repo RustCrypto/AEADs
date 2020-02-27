@@ -21,7 +21,8 @@ using a portable implementation which is only constant time on processors which
 implement constant-time multiplication.
 
 It is not suitable for use on processors with a variable-time multiplication
-operation (e.g. short circuit on multiply-by-zero / multiply-by-one).
+operation (e.g. short circuit on multiply-by-zero / multiply-by-one, such as
+certain 32-bit PowerPC CPUs and some non-ARM microcontrollers).
 
 ## License
 

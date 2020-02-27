@@ -7,7 +7,7 @@ Pure Rust implementation of the AES-GCM
 
 ## Security Notes
 
-This crate has received one [audit security by NCC Group][2], with no significant
+This crate has received one [security audit by NCC Group][2], with no significant
 findings. We would like to thank [MobileCoin][3] for funding the audit.
 
 All implementations contained in the crate are designed to execute in constant

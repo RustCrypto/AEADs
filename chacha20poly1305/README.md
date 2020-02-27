@@ -12,7 +12,7 @@ of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
 
 ## Security Notes
 
-This crate has received one [audit security by NCC Group][5], with no significant
+This crate has received one [security audit by NCC Group][5], with no significant
 findings. We would like to thank [MobileCoin][6] for funding the audit.
 
 All implementations contained in the crate are designed to execute in constant

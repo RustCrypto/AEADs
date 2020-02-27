@@ -4,13 +4,6 @@
 Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.
 
-## Warnings
-
-Crates in this repository have not yet received any formal cryptographic and
-security reviews.
-
-**USE AT YOUR OWN RISK.**
-
 ## Usage
 
 Crates functionality is expressed in terms of traits defined in the [`aead`]
@@ -23,6 +16,7 @@ crate.
 | [`aes-gcm-siv`]      | [AES-GCM-SIV](https://en.wikipedia.org/wiki/AES-GCM-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) |
 | [`aes-siv`]          |[AES-SIV](https://github.com/miscreant/meta/wiki/AES-SIV) | [![crates.io](https://img.shields.io/crates/v/aes-siv.svg)](https://crates.io/crates/aes-siv) | [![Documentation](https://docs.rs/aes-siv/badge.svg)](https://docs.rs/aes-siv) |
 | [`chacha20poly1305`] | [(X)ChaCha20Poly1305](https://tools.ietf.org/html/rfc8439) | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) |
+| [`crypto_box`]       | [Curve25519XSalsa20Poly1305](https://nacl.cr.yp.to/box.html) | [![crates.io](https://img.shields.io/crates/v/crypto_box.svg)](https://crates.io/crates/crypto_box) | [![Documentation](https://docs.rs/crypto_box/badge.svg)](https://docs.rs/crypto_box)
 | [`xsalsa20poly1305`] | [XSalsa20Poly1305](https://nacl.cr.yp.to/secretbox.html) | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) |
 
 NOTE: the [`aes-ccm`] crate also implements the [`aead`] traits
@@ -50,10 +44,11 @@ dual licensed as above, without any additional terms or conditions.
 
 [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption
 [`aead`]: https://docs.rs/aead
+[`aes-ccm`]: https://crates.io/crates/aes-ccm
 [`aes-gcm`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm
 [`aes-gcm-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm-siv
 [`aes-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-siv
 [`chacha20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
+[`crypto_box`]: https://github.com/RustCrypto/AEADs/tree/master/crypto_box
 [`xsalsa20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/xsalsa20poly1305 
-[`aes-ccm`]: https://crates.io/crates/aes-ccm
 

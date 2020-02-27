@@ -1,6 +1,6 @@
 [package]
 name = "aes-gcm"
-version = "0.3.0"
+version = "0.3.1"
 description = """
 Pure Rust implementation of the AES-GCM (Galois/Counter Mode)
 Authenticated Encryption with Associated Data (AEAD) Cipher
@@ -16,7 +16,7 @@ keywords = ["aead", "aes", "encryption", "gcm", "ghash"]
 categories = ["cryptography", "no-std"]
 
 [badges]
-maintenance = { status = "actively-maintained" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 aead = { version = "0.2", default-features = false }

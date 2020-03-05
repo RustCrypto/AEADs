@@ -110,17 +110,18 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
 #![warn(missing_docs, rust_2018_idioms)]
 
-mod ctr32;
+pub mod ctr;
 
 pub use aead;
 
-use self::ctr32::{Ctr32, BLOCK8_SIZE};
+use self::ctr::{Ctr, Ctr32, BLOCK8_SIZE};
 use aead::generic_array::{
-    typenum::{U0, U12, U16, U8},
-    GenericArray,
+    typenum::{U0, U12, U16},
+    ArrayLength, GenericArray,
 };
 use aead::{Aead, Error, NewAead};
 use block_cipher_trait::BlockCipher;
+use core::marker::PhantomData;
 use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
 
@@ -142,44 +143,64 @@ pub type Tag = GenericArray<u8, U16>;
 
 /// AES-GCM-SIV with a 128-bit key
 #[cfg(feature = "aes")]
-pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
+pub type Aes128GcmSiv = AesGcmSiv<Aes128, Ctr32<Aes128>>;
 
 /// AES-GCM-SIV with a 256-bit key
 #[cfg(feature = "aes")]
-pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
+pub type Aes256GcmSiv = AesGcmSiv<Aes256, Ctr32<Aes256>>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
-pub struct AesGcmSiv<C: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
-    /// Secret key (i.e. key generating key)
-    key: C,
+pub struct AesGcmSiv<B, C>
+where
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    C: Ctr<B>,
+{
+    /// Block cipher (i.e. key generating key)
+    key: B,
+
+    /// Counter mode implementation
+    ctr: PhantomData<C>,
 }
 
-impl<C> NewAead for AesGcmSiv<C>
+impl<B, C> NewAead for AesGcmSiv<B, C>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    C: Ctr<B>,
 {
-    type KeySize = C::KeySize;
+    type KeySize = B::KeySize;
 
-    fn new(mut key_bytes: GenericArray<u8, C::KeySize>) -> Self {
-        let key = C::new(&key_bytes);
+    fn new(mut key_bytes: GenericArray<u8, B::KeySize>) -> Self {
+        let key = B::new(&key_bytes);
         key_bytes.zeroize();
-        Self { key }
+        Self {
+            key,
+            ctr: PhantomData,
+        }
     }
 }
 
-impl<C> From<C> for AesGcmSiv<C>
+impl<B, C> From<B> for AesGcmSiv<B, C>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    C: Ctr<B>,
 {
-    fn from(key: C) -> AesGcmSiv<C> {
-        Self { key }
+    fn from(key: B) -> Self {
+        Self {
+            key,
+            ctr: PhantomData,
+        }
     }
 }
 
-impl<C> Aead for AesGcmSiv<C>
+impl<B, C> Aead for AesGcmSiv<B, C>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    C: Ctr<B>,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -191,7 +212,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
-        Cipher::<C>::new(&self.key, nonce).encrypt_in_place_detached(associated_data, buffer)
+        Cipher::<B, C>::new(&self.key, nonce).encrypt_in_place_detached(associated_data, buffer)
     }
 
     fn decrypt_in_place_detached(
@@ -201,14 +222,22 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::<C>::new(&self.key, nonce).decrypt_in_place_detached(associated_data, buffer, tag)
+        Cipher::<B, C>::new(&self.key, nonce).decrypt_in_place_detached(associated_data, buffer, tag)
     }
 }
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
-struct Cipher<C: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
+struct Cipher<B, C>
+where
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    C: Ctr<B>,
+{
     /// Encryption cipher
-    enc_cipher: C,
+    enc_cipher: B,
+
+    /// Counter mode implementation
+    ctr: PhantomData<C>,
 
     /// POLYVAL universal hash
     polyval: Polyval,
@@ -217,13 +246,15 @@ struct Cipher<C: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
     nonce: GenericArray<u8, U12>,
 }
 
-impl<C> Cipher<C>
+impl<B, C> Cipher<B, C>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    C: Ctr<B>,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
-    pub(crate) fn new(key_generating_key: &C, nonce: &GenericArray<u8, U12>) -> Self {
+    pub(crate) fn new(key_generating_key: &B, nonce: &GenericArray<u8, U12>) -> Self {
         let mut mac_key = GenericArray::default();
         let mut enc_key = GenericArray::default();
         let mut block = GenericArray::default();
@@ -258,7 +289,8 @@ where
         }
 
         let result = Self {
-            enc_cipher: C::new(&enc_key),
+            enc_cipher: B::new(&enc_key),
+            ctr: PhantomData,
             polyval: Polyval::new(&mac_key),
             nonce: *nonce,
         };
@@ -283,7 +315,7 @@ where
         }
 
         let tag = self.compute_tag(associated_data, buffer);
-        Ctr32::new(&self.enc_cipher, &tag).apply_keystream(buffer);
+        C::new(&tag).apply_keystream(&self.enc_cipher, buffer);
         Ok(tag)
     }
 
@@ -300,10 +332,10 @@ where
         }
 
         self.polyval.update_padded(associated_data);
-        let mut ctr = Ctr32::new(&self.enc_cipher, tag);
+        let mut ctr = C::new(tag);
 
         for chunk in buffer.chunks_mut(BLOCK8_SIZE) {
-            ctr.apply_8block_keystream(chunk);
+            ctr.apply_8block_keystream(&self.enc_cipher, chunk);
             self.polyval.update_padded(chunk);
         }
 
@@ -315,7 +347,7 @@ where
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
             // prevent accidental exposure.
-            Ctr32::new(&self.enc_cipher, tag).apply_keystream(buffer);
+            C::new(tag).apply_keystream(&self.enc_cipher, buffer);
             Err(Error)
         }
     }

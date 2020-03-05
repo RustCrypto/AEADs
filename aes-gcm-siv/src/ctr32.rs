@@ -2,7 +2,7 @@ use aead::generic_array::{
     typenum::{U16, U8},
     GenericArray,
 };
-use aes::block_cipher_trait::BlockCipher;
+use block_cipher_trait::BlockCipher;
 use core::{convert::TryInto, mem};
 
 /// AES blocks

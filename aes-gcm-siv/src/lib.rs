@@ -120,9 +120,13 @@ use aead::generic_array::{
     GenericArray,
 };
 use aead::{Aead, Error, NewAead};
-use aes::{block_cipher_trait::BlockCipher, Aes128, Aes256};
+use block_cipher_trait::BlockCipher;
 use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
+
+/// AES is optional to allow swapping in hardware-specific backends
+#[cfg(feature = "aes")]
+use aes::{Aes128, Aes256};
 
 /// Maximum length of associated data (from RFC 8452 Section 6)
 pub const A_MAX: u64 = 1 << 36;
@@ -137,9 +141,11 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 pub type Tag = GenericArray<u8, U16>;
 
 /// AES-GCM-SIV with a 128-bit key
+#[cfg(feature = "aes")]
 pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
 
 /// AES-GCM-SIV with a 256-bit key
+#[cfg(feature = "aes")]
 pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)

@@ -120,9 +120,13 @@ use aead::generic_array::{
     GenericArray,
 };
 use aead::{Aead, Error, NewAead};
-use aes::{block_cipher_trait::BlockCipher, Aes128, Aes256};
+use block_cipher_trait::BlockCipher;
 use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
+
+/// AES is optional to allow swapping in hardware-specific backends
+#[cfg(feature = "aes")]
+use aes::{Aes128, Aes256};
 
 /// Maximum length of associated data (from RFC 8452 Section 6)
 pub const A_MAX: u64 = 1 << 36;
@@ -137,16 +141,18 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 pub type Tag = GenericArray<u8, U16>;
 
 /// AES-GCM-SIV with a 128-bit key
+#[cfg(feature = "aes")]
 pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
 
 /// AES-GCM-SIV with a 256-bit key
+#[cfg(feature = "aes")]
 pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
 pub struct AesGcmSiv<C: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
-    /// Secret key
-    key: GenericArray<u8, C::KeySize>,
+    /// Secret key (i.e. key generating key)
+    key: C,
 }
 
 impl<C> NewAead for AesGcmSiv<C>
@@ -155,7 +161,18 @@ where
 {
     type KeySize = C::KeySize;
 
-    fn new(key: GenericArray<u8, C::KeySize>) -> Self {
+    fn new(mut key_bytes: GenericArray<u8, C::KeySize>) -> Self {
+        let key = C::new(&key_bytes);
+        key_bytes.zeroize();
+        Self { key }
+    }
+}
+
+impl<C> From<C> for AesGcmSiv<C>
+where
+    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+{
+    fn from(key: C) -> AesGcmSiv<C> {
         Self { key }
     }
 }
@@ -206,9 +223,7 @@ where
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
-    pub(crate) fn new(key: &GenericArray<u8, C::KeySize>, nonce: &GenericArray<u8, U12>) -> Self {
-        let key_generating_key = C::new(key);
-
+    pub(crate) fn new(key_generating_key: &C, nonce: &GenericArray<u8, U12>) -> Self {
         let mut mac_key = GenericArray::default();
         let mut enc_key = GenericArray::default();
         let mut block = GenericArray::default();
@@ -334,14 +349,5 @@ where
 
         self.enc_cipher.encrypt_block(&mut tag);
         tag
-    }
-}
-
-impl<C> Drop for AesGcmSiv<C>
-where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
-{
-    fn drop(&mut self) {
-        self.key.as_mut_slice().zeroize();
     }
 }

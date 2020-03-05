@@ -151,8 +151,8 @@ pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
 pub struct AesGcmSiv<C: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
-    /// Secret key
-    key: GenericArray<u8, C::KeySize>,
+    /// Secret key (i.e. key generating key)
+    key: C,
 }
 
 impl<C> NewAead for AesGcmSiv<C>
@@ -161,7 +161,18 @@ where
 {
     type KeySize = C::KeySize;
 
-    fn new(key: GenericArray<u8, C::KeySize>) -> Self {
+    fn new(mut key_bytes: GenericArray<u8, C::KeySize>) -> Self {
+        let key = C::new(&key_bytes);
+        key_bytes.zeroize();
+        Self { key }
+    }
+}
+
+impl<C> From<C> for AesGcmSiv<C>
+where
+    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+{
+    fn from(key: C) -> AesGcmSiv<C> {
         Self { key }
     }
 }
@@ -212,9 +223,7 @@ where
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
-    pub(crate) fn new(key: &GenericArray<u8, C::KeySize>, nonce: &GenericArray<u8, U12>) -> Self {
-        let key_generating_key = C::new(key);
-
+    pub(crate) fn new(key_generating_key: &C, nonce: &GenericArray<u8, U12>) -> Self {
         let mut mac_key = GenericArray::default();
         let mut enc_key = GenericArray::default();
         let mut block = GenericArray::default();
@@ -340,14 +349,5 @@ where
 
         self.enc_cipher.encrypt_block(&mut tag);
         tag
-    }
-}
-
-impl<C> Drop for AesGcmSiv<C>
-where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
-{
-    fn drop(&mut self) {
-        self.key.as_mut_slice().zeroize();
     }
 }

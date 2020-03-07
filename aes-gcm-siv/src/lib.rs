@@ -114,7 +114,7 @@ pub mod ctr;
 
 pub use aead;
 
-use self::ctr::{Ctr, Ctr32, BLOCK8_SIZE};
+use self::ctr::{Ctr, Ctr32x8, BLOCK8_SIZE};
 use aead::generic_array::{
     typenum::{U0, U12, U16},
     ArrayLength, GenericArray,
@@ -143,15 +143,15 @@ pub type Tag = GenericArray<u8, U16>;
 
 /// AES-GCM-SIV with a 128-bit key
 #[cfg(feature = "aes")]
-pub type Aes128GcmSiv = AesGcmSiv<Aes128, Ctr32<Aes128>>;
+pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
 
 /// AES-GCM-SIV with a 256-bit key
 #[cfg(feature = "aes")]
-pub type Aes256GcmSiv = AesGcmSiv<Aes256, Ctr32<Aes256>>;
+pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
-pub struct AesGcmSiv<B, C>
+pub struct AesGcmSiv<B, C = Ctr32x8<B>>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
@@ -222,7 +222,11 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::<B, C>::new(&self.key, nonce).decrypt_in_place_detached(associated_data, buffer, tag)
+        Cipher::<B, C>::new(&self.key, nonce).decrypt_in_place_detached(
+            associated_data,
+            buffer,
+            tag,
+        )
     }
 }
 
@@ -335,7 +339,7 @@ where
         let mut ctr = C::new(tag);
 
         for chunk in buffer.chunks_mut(BLOCK8_SIZE) {
-            ctr.apply_8block_keystream(&self.enc_cipher, chunk);
+            ctr.apply_keystream(&self.enc_cipher, chunk);
             self.polyval.update_padded(chunk);
         }
 

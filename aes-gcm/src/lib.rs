@@ -104,8 +104,8 @@ pub use aead;
 use self::ctr::Ctr32;
 use aead::{Aead, Error, NewAead};
 use block_cipher_trait::generic_array::{
-    typenum::{U0, U12, U16, U8},
-    GenericArray,
+    typenum::{U0, U12, U16},
+    ArrayLength, GenericArray,
 };
 use block_cipher_trait::BlockCipher;
 use ghash::{universal_hash::UniversalHash, GHash};
@@ -136,7 +136,11 @@ pub type Aes256Gcm = AesGcm<Aes256>;
 
 /// AES-GCM
 #[derive(Clone)]
-pub struct AesGcm<B: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
+pub struct AesGcm<B>
+where
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+{
     /// Encryption cipher
     cipher: B,
 
@@ -146,7 +150,8 @@ pub struct AesGcm<B: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
 
 impl<B> NewAead for AesGcm<B>
 where
-    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
 {
     type KeySize = B::KeySize;
 
@@ -166,7 +171,8 @@ where
 
 impl<B> Aead for AesGcm<B>
 where
-    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -184,13 +190,13 @@ where
 
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        let mut ctr = Ctr32::new(&self.cipher, nonce);
+        let mut ctr = Ctr32::new(nonce);
         ctr.seek(1);
-        ctr.apply_keystream(buffer);
+        ctr.apply_keystream(&self.cipher, buffer);
 
         let mut tag = compute_tag(&mut self.ghash.clone(), associated_data, buffer);
         ctr.seek(0);
-        ctr.apply_keystream(tag.as_mut_slice());
+        ctr.apply_keystream(&self.cipher, tag.as_mut_slice());
 
         Ok(tag)
     }
@@ -209,12 +215,12 @@ where
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let mut expected_tag = compute_tag(&mut self.ghash.clone(), associated_data, buffer);
-        let mut ctr = Ctr32::new(&self.cipher, nonce);
-        ctr.apply_keystream(expected_tag.as_mut_slice());
+        let mut ctr = Ctr32::new(nonce);
+        ctr.apply_keystream(&self.cipher, expected_tag.as_mut_slice());
 
         use subtle::ConstantTimeEq;
         if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream(&self.cipher, buffer);
             Ok(())
         } else {
             Err(Error)

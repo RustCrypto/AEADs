@@ -1,48 +1,49 @@
 //! Counter mode implementation
 
 use block_cipher_trait::generic_array::{
-    typenum::{U12, U16, U8},
-    GenericArray,
+    typenum::{Unsigned, U12, U16},
+    ArrayLength, GenericArray,
 };
 use block_cipher_trait::BlockCipher;
-use core::{convert::TryInto, mem};
+use core::{convert::TryInto, marker::PhantomData, mem};
 
 /// AES blocks
 type Block128 = GenericArray<u8, U16>;
 
-/// 8 * AES blocks (to be encrypted in parallel)
-type Block128x8 = GenericArray<Block128, U8>;
-
 /// Size of an AES block in bytes
-const BLOCK_SIZE: usize = 16;
-
-/// Size of an 8-AES block buffer in bytes
-pub(super) const BLOCK8_SIZE: usize = BLOCK_SIZE * 8;
+pub(crate) const BLOCK_SIZE: usize = 16;
 
 /// CTR mode with a 32-bit big endian counter
-pub(crate) struct Ctr32<'c, B>
+pub(crate) struct Ctr32<B>
 where
-    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
 {
-    cipher: &'c B,
+    /// Block cipher
+    block_cipher: PhantomData<B>,
+
+    /// Keystream buffer
+    buffer: GenericArray<Block128, B::ParBlocks>,
+
+    /// Current CTR value
     counter_block: Block128,
-    buffer: Block128x8,
 }
 
-impl<'c, B> Ctr32<'c, B>
+impl<B> Ctr32<B>
 where
-    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
 {
     /// Instantiate a new CTR instance
-    pub fn new(cipher: &'c B, nonce: &GenericArray<u8, U12>) -> Self {
+    pub fn new(nonce: &GenericArray<u8, U12>) -> Self {
         let mut counter_block = GenericArray::default();
         counter_block[..12].copy_from_slice(nonce.as_slice());
         counter_block[15] = 1;
 
         Self {
-            cipher,
-            counter_block,
+            block_cipher: PhantomData,
             buffer: unsafe { mem::zeroed() },
+            counter_block,
         }
     }
 
@@ -53,17 +54,17 @@ where
     }
 
     /// Apply AES-CTR keystream to the given input buffer
-    pub fn apply_keystream(&mut self, msg: &mut [u8]) {
-        for chunk in msg.chunks_mut(BLOCK8_SIZE) {
-            self.apply_8block_keystream(chunk);
+    pub fn apply_keystream(&mut self, block_cipher: &B, msg: &mut [u8]) {
+        for chunk in msg.chunks_mut(BLOCK_SIZE * B::ParBlocks::to_usize()) {
+            self.apply_keystream_blocks(block_cipher, chunk);
         }
     }
 
-    /// Perform AES-CTR (32-bit big endian counter) encryption on up to
-    /// 8 AES blocks
-    pub fn apply_8block_keystream(&mut self, msg: &mut [u8]) {
+    /// Apply `B::ParBlocks` parallel blocks of keystream to the input buffer
+    fn apply_keystream_blocks(&mut self, block_cipher: &B, msg: &mut [u8]) {
         let mut counter = u32::from_be_bytes(self.counter_block[12..].try_into().unwrap());
         let n_blocks = msg.chunks(BLOCK_SIZE).count();
+        debug_assert!(n_blocks < B::ParBlocks::to_usize());
 
         for block in self.buffer.iter_mut().take(n_blocks) {
             *block = self.counter_block;
@@ -72,9 +73,9 @@ where
         }
 
         if n_blocks == 1 {
-            self.cipher.encrypt_block(&mut self.buffer[0]);
+            block_cipher.encrypt_block(&mut self.buffer[0]);
         } else {
-            self.cipher.encrypt_blocks(&mut self.buffer);
+            block_cipher.encrypt_blocks(&mut self.buffer);
         }
 
         for (i, chunk) in msg.chunks_mut(BLOCK_SIZE).enumerate() {

@@ -20,7 +20,8 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 aead = { version = "0.2", default-features = false }
-aes = "0.3"
+aes = { version = "0.3", optional = true }
+block-cipher-trait = "0.6"
 ghash = { version = "0.2.2", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
@@ -31,7 +32,7 @@ criterion-cycles-per-byte = "0.1.1"
 hex-literal = "0.2"
 
 [features]
-default = ["alloc"]
+default = ["aes", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 

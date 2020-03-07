@@ -110,18 +110,17 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub mod ctr;
+mod ctr;
 
 pub use aead;
 
-use self::ctr::{Ctr, Ctr32x8, BLOCK8_SIZE};
-use aead::generic_array::{
-    typenum::{U0, U12, U16},
+use self::ctr::{Ctr32, BLOCK_SIZE};
+use aead::{Aead, Error, NewAead};
+use block_cipher_trait::generic_array::{
+    typenum::{Unsigned, U0, U12, U16},
     ArrayLength, GenericArray,
 };
-use aead::{Aead, Error, NewAead};
 use block_cipher_trait::BlockCipher;
-use core::marker::PhantomData;
 use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
 
@@ -151,56 +150,43 @@ pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
-pub struct AesGcmSiv<B, C = Ctr32x8<B>>
+pub struct AesGcmSiv<B>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
-    C: Ctr<B>,
 {
-    /// Block cipher (i.e. key generating key)
-    key: B,
-
-    /// Counter mode implementation
-    ctr: PhantomData<C>,
+    /// Key generating key used to derive AES-GCM-SIV subkeys
+    key_generating_key: B,
 }
 
-impl<B, C> NewAead for AesGcmSiv<B, C>
+impl<B> NewAead for AesGcmSiv<B>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
-    C: Ctr<B>,
 {
     type KeySize = B::KeySize;
 
     fn new(mut key_bytes: GenericArray<u8, B::KeySize>) -> Self {
-        let key = B::new(&key_bytes);
+        let key_generating_key = B::new(&key_bytes);
         key_bytes.zeroize();
-        Self {
-            key,
-            ctr: PhantomData,
-        }
+        Self { key_generating_key }
     }
 }
 
-impl<B, C> From<B> for AesGcmSiv<B, C>
+impl<B> From<B> for AesGcmSiv<B>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
-    C: Ctr<B>,
 {
-    fn from(key: B) -> Self {
-        Self {
-            key,
-            ctr: PhantomData,
-        }
+    fn from(key_generating_key: B) -> Self {
+        Self { key_generating_key }
     }
 }
 
-impl<B, C> Aead for AesGcmSiv<B, C>
+impl<B> Aead for AesGcmSiv<B>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
-    C: Ctr<B>,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -212,7 +198,8 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
-        Cipher::<B, C>::new(&self.key, nonce).encrypt_in_place_detached(associated_data, buffer)
+        Cipher::<B>::new(&self.key_generating_key, nonce)
+            .encrypt_in_place_detached(associated_data, buffer)
     }
 
     fn decrypt_in_place_detached(
@@ -222,7 +209,7 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::<B, C>::new(&self.key, nonce).decrypt_in_place_detached(
+        Cipher::<B>::new(&self.key_generating_key, nonce).decrypt_in_place_detached(
             associated_data,
             buffer,
             tag,
@@ -231,17 +218,13 @@ where
 }
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
-struct Cipher<B, C>
+struct Cipher<B>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
-    C: Ctr<B>,
 {
     /// Encryption cipher
     enc_cipher: B,
-
-    /// Counter mode implementation
-    ctr: PhantomData<C>,
 
     /// POLYVAL universal hash
     polyval: Polyval,
@@ -250,11 +233,10 @@ where
     nonce: GenericArray<u8, U12>,
 }
 
-impl<B, C> Cipher<B, C>
+impl<B> Cipher<B>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
-    C: Ctr<B>,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
@@ -294,7 +276,6 @@ where
 
         let result = Self {
             enc_cipher: B::new(&enc_key),
-            ctr: PhantomData,
             polyval: Polyval::new(&mac_key),
             nonce: *nonce,
         };
@@ -319,7 +300,7 @@ where
         }
 
         let tag = self.compute_tag(associated_data, buffer);
-        C::new(&tag).apply_keystream(&self.enc_cipher, buffer);
+        Ctr32::new(&tag).apply_keystream(&self.enc_cipher, buffer);
         Ok(tag)
     }
 
@@ -336,9 +317,9 @@ where
         }
 
         self.polyval.update_padded(associated_data);
-        let mut ctr = C::new(tag);
+        let mut ctr = Ctr32::new(tag);
 
-        for chunk in buffer.chunks_mut(BLOCK8_SIZE) {
+        for chunk in buffer.chunks_mut(BLOCK_SIZE * B::ParBlocks::to_usize()) {
             ctr.apply_keystream(&self.enc_cipher, chunk);
             self.polyval.update_padded(chunk);
         }
@@ -351,7 +332,7 @@ where
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
             // prevent accidental exposure.
-            C::new(tag).apply_keystream(&self.enc_cipher, buffer);
+            Ctr32::new(tag).apply_keystream(&self.enc_cipher, buffer);
             Err(Error)
         }
     }

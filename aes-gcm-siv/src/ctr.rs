@@ -1,7 +1,7 @@
 //! Counter mode implementation
 
 use aead::generic_array::{
-    typenum::{U16, U8},
+    typenum::{U1, U16, U8},
     ArrayLength, GenericArray,
 };
 use block_cipher_trait::BlockCipher;
@@ -19,7 +19,7 @@ const BLOCK_SIZE: usize = 16;
 /// Size of an 8-AES block buffer in bytes
 pub(super) const BLOCK8_SIZE: usize = BLOCK_SIZE * 8;
 
-/// Counter mode implementation
+/// Counter mode
 pub trait Ctr<B>
 where
     B: BlockCipher<BlockSize = U16>,
@@ -30,13 +30,58 @@ where
 
     /// Apply keystream to the given input buffer
     fn apply_keystream(&mut self, block_cipher: &B, msg: &mut [u8]);
-
-    /// Apply keystream using to up to 8 AES blocks in parallel
-    fn apply_8block_keystream(&mut self, block_cipher: &B, msg: &mut [u8]);
 }
 
-/// CTR mode with a 32-bit little endian counter
-pub struct Ctr32<B: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
+/// CTR mode with a 32-bit little endian counter which operates over one AES
+/// block at a time.
+pub struct Ctr32<B: BlockCipher<BlockSize = U16, ParBlocks = U1>> {
+    /// Block cipher
+    block_cipher: PhantomData<B>,
+
+    /// Keystream buffer
+    buffer: Block128,
+
+    /// Current CTR value
+    counter_block: Block128,
+}
+
+impl<B> Ctr<B> for Ctr32<B>
+where
+    B: BlockCipher<BlockSize = U16, ParBlocks = U1>,
+{
+    /// Instantiate a new CTR instance
+    fn new(counter_block: &Block128) -> Self {
+        let mut counter_block = *counter_block;
+        counter_block[15] |= 0x80;
+
+        Self {
+            block_cipher: PhantomData,
+            buffer: unsafe { mem::zeroed() },
+            counter_block,
+        }
+    }
+
+    /// Apply AES-CTR keystream to the given input buffer
+    fn apply_keystream(&mut self, block_cipher: &B, msg: &mut [u8]) {
+        let mut counter = u32::from_le_bytes(self.counter_block[..4].try_into().unwrap());
+
+        for chunk in msg.chunks_mut(BLOCK_SIZE) {
+            self.buffer.copy_from_slice(&self.counter_block);
+            counter = counter.wrapping_add(1);
+            self.counter_block[..4].copy_from_slice(&counter.to_le_bytes());
+
+            block_cipher.encrypt_block(&mut self.buffer);
+
+            for (i, byte) in chunk.iter_mut().enumerate() {
+                *byte ^= self.buffer[i];
+            }
+        }
+    }
+}
+
+/// CTR mode with a 32-bit little endian counter which operates over 8 blocks
+/// in parallel (to optimize performance on x86/x86_64 architectures)
+pub struct Ctr32x8<B: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
     /// Block cipher
     block_cipher: PhantomData<B>,
 
@@ -47,7 +92,7 @@ pub struct Ctr32<B: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
     counter_block: Block128,
 }
 
-impl<B> Ctr<B> for Ctr32<B>
+impl<B> Ctr<B> for Ctr32x8<B>
 where
     B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
 {
@@ -69,7 +114,12 @@ where
             self.apply_8block_keystream(block_cipher, chunk);
         }
     }
+}
 
+impl<B> Ctr32x8<B>
+where
+    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+{
     /// Perform AES-CTR (32-bit little endian counter) encryption on up to
     /// 8 AES blocks
     fn apply_8block_keystream(&mut self, block_cipher: &B, msg: &mut [u8]) {

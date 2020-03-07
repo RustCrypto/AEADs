@@ -4,7 +4,6 @@
 [![Docs][docs-image]][docs-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
-![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
 [AES-GCM-SIV][1] ([RFC 8452][2]) is a state-of-the-art high-performance
@@ -28,9 +27,21 @@ See also:
 
 ## Security Warning
 
-No security audits of this crate have ever been performed, and it has not been
-thoroughly assessed to ensure its operation is constant-time on common CPU
-architectures.
+No security audits of this crate have ever been performed.
+
+Some of this crate's dependencies were [audited by by NCC Group][7] as part of
+an audit of the `aes-gcm` crate, including the AES implementations (both AES-NI
+and a portable software implementation), as well as the `polyval` crate which
+is used as an authenticator. There were no significant findings.
+
+All implementations contained in the crate are designed to execute in constant
+time, either by relying on hardware intrinsics (i.e. AES-NI and CLMUL on
+x86/x86_64), or using a portable implementation which is only constant time
+on processors which implement constant-time multiplication.
+
+It is not suitable for use on processors with a variable-time multiplication
+operation (e.g. short circuit on multiply-by-zero / multiply-by-one, such as
+certain 32-bit PowerPC CPUs and some non-ARM microcontrollers).
 
 USE AT YOUR OWN RISK!
 
@@ -57,7 +68,6 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/aes-gcm-siv/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.37+-blue.svg
-[maintenance-image]: https://img.shields.io/badge/maintenance-experimental-blue.svg
 [build-image]: https://travis-ci.com/RustCrypto/AEADs.svg?branch=master
 [build-link]: https://travis-ci.com/RustCrypto/AEADs
 
@@ -69,3 +79,4 @@ dual licensed as above, without any additional terms or conditions.
 [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
 [5]: https://www.imperialviolet.org/2017/05/14/aesgcmsiv.html
 [6]: https://codahale.com/towards-a-safer-footgun/
+[7]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/

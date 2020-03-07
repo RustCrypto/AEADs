@@ -29,14 +29,23 @@
 //!
 //! ## Security Warning
 //!
-//! No security audits of this crate have ever been performed, and it has not been
-//! thoroughly assessed to ensure its operation is constant-time on common CPU
-//! architectures.
+//! No security audits of this crate have ever been performed.
 //!
-//! Where possible the implementation uses constant-time hardware intrinsics,
-//! or otherwise falls back to an implementation which contains no secret-dependent
-//! branches or table lookups, however it's possible LLVM may insert such
-//! operations in certain scenarios.
+//! Some of this crate's dependencies were [audited by by NCC Group][7] as part of
+//! an audit of the `aes-gcm` crate, including the AES implementations (both AES-NI
+//! and a portable software implementation), as well as the `polyval` crate which
+//! is used as an authenticator. There were no significant findings.
+//!
+//! All implementations contained in the crate are designed to execute in constant
+//! time, either by relying on hardware intrinsics (i.e. AES-NI and CLMUL on
+//! x86/x86_64), or using a portable implementation which is only constant time
+//! on processors which implement constant-time multiplication.
+//!
+//! It is not suitable for use on processors with a variable-time multiplication
+//! operation (e.g. short circuit on multiply-by-zero / multiply-by-one, such as
+//! certain 32-bit PowerPC CPUs and some non-ARM microcontrollers).
+//!
+//! USE AT YOUR OWN RISK!
 //!
 //! # Usage
 //!
@@ -60,12 +69,12 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`][7] and [`Aead::decrypt_in_place`][8]
-//! methods accept any type that impls the [`aead::Buffer`][9] trait which
+//! The [`Aead::encrypt_in_place`][8] and [`Aead::decrypt_in_place`][9]
+//! methods accept any type that impls the [`aead::Buffer`][10] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
 //! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][10]
+//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][11]
 //! (re-exported from the `aead` crate as `aead::heapless::Vec`),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
@@ -101,10 +110,11 @@
 //! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
 //! [5]: https://www.imperialviolet.org/2017/05/14/aesgcmsiv.html
 //! [6]: https://codahale.com/towards-a-safer-footgun/
-//! [7]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
-//! [8]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
-//! [9]: https://docs.rs/aead/latest/aead/trait.Buffer.html
-//! [10]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
+//! [7]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
+//! [8]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
+//! [9]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
+//! [10]: https://docs.rs/aead/latest/aead/trait.Buffer.html
+//! [11]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]

@@ -1,8 +1,10 @@
-use aead::generic_array::{
+//! Counter mode implementation
+
+use block_cipher_trait::generic_array::{
     typenum::{U12, U16, U8},
     GenericArray,
 };
-use aes::block_cipher_trait::BlockCipher;
+use block_cipher_trait::BlockCipher;
 use core::{convert::TryInto, mem};
 
 /// AES blocks
@@ -18,21 +20,21 @@ const BLOCK_SIZE: usize = 16;
 pub(super) const BLOCK8_SIZE: usize = BLOCK_SIZE * 8;
 
 /// CTR mode with a 32-bit big endian counter
-pub(crate) struct Ctr32<'c, C>
+pub(crate) struct Ctr32<'c, B>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
 {
-    cipher: &'c C,
+    cipher: &'c B,
     counter_block: Block128,
     buffer: Block128x8,
 }
 
-impl<'c, C> Ctr32<'c, C>
+impl<'c, B> Ctr32<'c, B>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
 {
     /// Instantiate a new CTR instance
-    pub fn new(cipher: &'c C, nonce: &GenericArray<u8, U12>) -> Self {
+    pub fn new(cipher: &'c B, nonce: &GenericArray<u8, U12>) -> Self {
         let mut counter_block = GenericArray::default();
         counter_block[..12].copy_from_slice(nonce.as_slice());
         counter_block[15] = 1;

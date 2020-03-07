@@ -97,19 +97,22 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
 #![warn(missing_docs, rust_2018_idioms)]
 
-mod ctr32;
+mod ctr;
 
 pub use aead;
 
-use self::ctr32::Ctr32;
-use aead::generic_array::{
+use self::ctr::Ctr32;
+use aead::{Aead, Error, NewAead};
+use block_cipher_trait::generic_array::{
     typenum::{U0, U12, U16, U8},
     GenericArray,
 };
-use aead::{Aead, Error, NewAead};
-use aes::{block_cipher_trait::BlockCipher, Aes128, Aes256};
+use block_cipher_trait::BlockCipher;
 use ghash::{universal_hash::UniversalHash, GHash};
 use zeroize::Zeroize;
+
+#[cfg(feature = "aes")]
+use aes::{Aes128, Aes256};
 
 /// Maximum length of associated data
 pub const A_MAX: u64 = 1 << 36;
@@ -124,29 +127,31 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 pub type Tag = GenericArray<u8, U16>;
 
 /// AES-GCM with a 128-bit key
+#[cfg(feature = "aes")]
 pub type Aes128Gcm = AesGcm<Aes128>;
 
 /// AES-GCM with a 256-bit key
+#[cfg(feature = "aes")]
 pub type Aes256Gcm = AesGcm<Aes256>;
 
 /// AES-GCM
 #[derive(Clone)]
-pub struct AesGcm<C: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
+pub struct AesGcm<B: BlockCipher<BlockSize = U16, ParBlocks = U8>> {
     /// Encryption cipher
-    cipher: C,
+    cipher: B,
 
     /// GHASH authenticator
     ghash: GHash,
 }
 
-impl<C> NewAead for AesGcm<C>
+impl<B> NewAead for AesGcm<B>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
 {
-    type KeySize = C::KeySize;
+    type KeySize = B::KeySize;
 
-    fn new(mut key: GenericArray<u8, C::KeySize>) -> Self {
-        let cipher = C::new(&key);
+    fn new(mut key: GenericArray<u8, B::KeySize>) -> Self {
+        let cipher = B::new(&key);
         key.as_mut_slice().zeroize();
 
         let mut ghash_key = GenericArray::default();
@@ -159,9 +164,9 @@ where
     }
 }
 
-impl<C> Aead for AesGcm<C>
+impl<B> Aead for AesGcm<B>
 where
-    C: BlockCipher<BlockSize = U16, ParBlocks = U8>,
+    B: BlockCipher<BlockSize = U16, ParBlocks = U8>,
 {
     type NonceSize = U12;
     type TagSize = U16;

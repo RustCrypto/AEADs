@@ -2,9 +2,9 @@
 
 use aead::generic_array::GenericArray;
 use aead::Error;
-use stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
 use core::convert::TryInto;
 use poly1305::{universal_hash::UniversalHash, Poly1305};
+use stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
 use zeroize::Zeroizing;
 
 use super::Tag;

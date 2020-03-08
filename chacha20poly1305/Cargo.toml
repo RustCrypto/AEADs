@@ -22,8 +22,9 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 aead = { version = "0.2", default-features = false }
-chacha20 = { version = "0.3", features = ["zeroize"] }
+chacha20 = { version = "0.3", features = ["zeroize"], optional = true }
 poly1305 = "0.5"
+stream-cipher = "0.3"
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
@@ -31,10 +32,10 @@ criterion = "0.3.0"
 criterion-cycles-per-byte = "0.1.1"
 
 [features]
-default = ["alloc", "xchacha20poly1305"]
+default = ["alloc", "chacha20", "xchacha20poly1305"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
-reduced-round = []
+reduced-round = ["chacha20"]
 xchacha20poly1305 = ["chacha20/xchacha20"]
 
 [[bench]]

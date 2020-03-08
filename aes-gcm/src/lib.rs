@@ -158,7 +158,16 @@ where
     fn new(mut key: GenericArray<u8, B::KeySize>) -> Self {
         let cipher = B::new(&key);
         key.as_mut_slice().zeroize();
+        cipher.into()
+    }
+}
 
+impl<B> From<B> for AesGcm<B>
+where
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+{
+    fn from(cipher: B) -> Self {
         let mut ghash_key = GenericArray::default();
         cipher.encrypt_block(&mut ghash_key);
 

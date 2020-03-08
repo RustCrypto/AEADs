@@ -2,12 +2,19 @@
 
 use aead::generic_array::GenericArray;
 use aead::Error;
-use chacha20::stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
+use stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
 use core::convert::TryInto;
 use poly1305::{universal_hash::UniversalHash, Poly1305};
 use zeroize::Zeroizing;
 
 use super::Tag;
+
+/// Size of a ChaCha20 block in bytes
+const BLOCK_SIZE: usize = 64;
+
+/// Maximum number of blocks that can be encrypted with ChaCha20 before the
+/// counter overflows.
+const MAX_BLOCKS: usize = core::u32::MAX as usize;
 
 /// ChaCha20Poly1305 instantiated with a particular nonce
 pub(crate) struct Cipher<C>
@@ -30,7 +37,7 @@ where
         let mac = Poly1305::new(GenericArray::from_slice(&*mac_key));
 
         // Set ChaCha20 counter to 1
-        cipher.seek(chacha20::BLOCK_SIZE as u64);
+        cipher.seek(BLOCK_SIZE as u64);
 
         Self { cipher, mac }
     }
@@ -41,7 +48,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
-        if buffer.len() / chacha20::BLOCK_SIZE >= chacha20::MAX_BLOCKS {
+        if buffer.len() / BLOCK_SIZE >= MAX_BLOCKS {
             return Err(Error);
         }
 
@@ -64,7 +71,7 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        if buffer.len() / chacha20::BLOCK_SIZE >= chacha20::MAX_BLOCKS {
+        if buffer.len() / BLOCK_SIZE >= MAX_BLOCKS {
             return Err(Error);
         }
 

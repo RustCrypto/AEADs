@@ -129,8 +129,12 @@ use aead::generic_array::{
     GenericArray,
 };
 use aead::{Aead, Error, NewAead};
-use chacha20::{stream_cipher::NewStreamCipher, ChaCha20};
+use core::marker::PhantomData;
+use stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use zeroize::Zeroize;
+
+#[cfg(feature = "chacha20")]
+use chacha20::ChaCha20;
 
 #[cfg(feature = "reduced-round")]
 use chacha20::{ChaCha12, ChaCha8};
@@ -138,81 +142,86 @@ use chacha20::{ChaCha12, ChaCha8};
 /// Poly1305 tags
 pub type Tag = GenericArray<u8, U16>;
 
-macro_rules! impl_chachapoly {
-    ($name:ident, $cipher:ident, $doc:expr) => {
-        #[doc = $doc]
-        #[doc = "\n"]
-        #[doc = "The [`Aead`] and [`NewAead`] traits provide the primary API for using this construction."]
-        #[doc = "\n"]
-        #[doc = "See the [toplevel documentation](https://docs.rs/chacha20poly1305) for a usage example."]
-        #[derive(Clone)]
-        pub struct $name {
-            /// Secret key
-            key: GenericArray<u8, U32>,
-        }
+/// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
+#[cfg(feature = "chacha20")]
+pub type ChaCha20Poly1305 = ChaChaPoly1305<ChaCha20>;
 
-        impl NewAead for $name {
-            type KeySize = U32;
+/// ChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
+#[cfg(feature = "reduced-round")]
+pub type ChaCha8Poly1305 = ChaChaPoly1305<ChaCha8>;
 
-            fn new(key: GenericArray<u8, U32>) -> Self {
-                Self { key }
-            }
-        }
+/// ChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
+#[cfg(feature = "reduced-round")]
+pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaCha12>;
 
-        impl Aead for $name {
-            type NonceSize = U12;
-            type TagSize = U16;
-            type CiphertextOverhead = U0;
+/// ChaCha* + Poly1305 Authenticated Encryption with Additional Data (AEAD) construction.
+///
+/// The [`Aead`] and [`NewAead`] traits provide the primary API for using this construction.
+///
+/// See the [toplevel documentation](https://docs.rs/chacha20poly1305) for a usage example.
+#[derive(Clone)]
+pub struct ChaChaPoly1305<C>
+where
+    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+{
+    /// Secret key
+    key: GenericArray<u8, U32>,
 
-            fn encrypt_in_place_detached(
-                &self,
-                nonce: &GenericArray<u8, Self::NonceSize>,
-                associated_data: &[u8],
-                buffer: &mut [u8],
-            ) -> Result<Tag, Error> {
-                Cipher::new($cipher::new(&self.key, nonce))
-                    .encrypt_in_place_detached(associated_data, buffer)
-            }
+    /// ChaCha stream cipher
+    stream_cipher: PhantomData<C>,
+}
 
-            fn decrypt_in_place_detached(
-                &self,
-                nonce: &GenericArray<u8, Self::NonceSize>,
-                associated_data: &[u8],
-                buffer: &mut [u8],
-                tag: &Tag,
-            ) -> Result<(), Error> {
-                Cipher::new($cipher::new(&self.key, nonce)).decrypt_in_place_detached(
-                    associated_data,
-                    buffer,
-                    tag,
-                )
-            }
-        }
+impl<C> NewAead for ChaChaPoly1305<C>
+where
+    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+{
+    type KeySize = U32;
 
-        impl Drop for $name {
-            fn drop(&mut self) {
-                self.key.as_mut_slice().zeroize();
-            }
+    fn new(key: GenericArray<u8, U32>) -> Self {
+        Self {
+            key,
+            stream_cipher: PhantomData,
         }
     }
 }
 
-#[cfg(feature = "reduced-round")]
-impl_chachapoly!(
-    ChaCha8Poly1305,
-    ChaCha8,
-    "ChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD)."
-);
+impl<C> Aead for ChaChaPoly1305<C>
+where
+    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+{
+    type NonceSize = U12;
+    type TagSize = U16;
+    type CiphertextOverhead = U0;
 
-#[cfg(feature = "reduced-round")]
-impl_chachapoly!(
-    ChaCha12Poly1305,
-    ChaCha12,
-    "ChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD)."
-);
+    fn encrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+    ) -> Result<Tag, Error> {
+        Cipher::new(C::new(&self.key, nonce)).encrypt_in_place_detached(associated_data, buffer)
+    }
 
-impl_chachapoly!(
-    ChaCha20Poly1305,
-    ChaCha20,
-    "ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD)."
-);
+    fn decrypt_in_place_detached(
+        &self,
+        nonce: &GenericArray<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut [u8],
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        Cipher::new(C::new(&self.key, nonce)).decrypt_in_place_detached(
+            associated_data,
+            buffer,
+            tag,
+        )
+    }
+}
+
+impl<C> Drop for ChaChaPoly1305<C>
+where
+    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+{
+    fn drop(&mut self) {
+        self.key.as_mut_slice().zeroize();
+    }
+}

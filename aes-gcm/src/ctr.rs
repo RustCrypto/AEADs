@@ -64,7 +64,7 @@ where
     fn apply_keystream_blocks(&mut self, block_cipher: &B, msg: &mut [u8]) {
         let mut counter = u32::from_be_bytes(self.counter_block[12..].try_into().unwrap());
         let n_blocks = msg.chunks(BLOCK_SIZE).count();
-        debug_assert!(n_blocks < B::ParBlocks::to_usize());
+        debug_assert!(n_blocks <= B::ParBlocks::to_usize());
 
         for block in self.buffer.iter_mut().take(n_blocks) {
             *block = self.counter_block;

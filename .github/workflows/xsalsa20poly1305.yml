@@ -1,4 +1,4 @@
-name: xsalsa20poly1305 crate
+name: xsalsa20poly1305
 on:
   pull_request:
     paths:

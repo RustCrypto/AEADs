@@ -1,4 +1,4 @@
-name: aes-siv crate
+name: aes-siv
 on:
   pull_request:
     paths:

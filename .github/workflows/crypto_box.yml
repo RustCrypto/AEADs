@@ -1,4 +1,4 @@
-name: crypto_box crate
+name: crypto_box
 on:
   pull_request:
     paths:

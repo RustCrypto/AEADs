@@ -1,4 +1,4 @@
-name: ring-aead crate
+name: ring-aead
 on:
   pull_request:
     paths:

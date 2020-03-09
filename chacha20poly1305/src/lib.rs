@@ -159,7 +159,6 @@ pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaCha12>;
 /// The [`Aead`] and [`NewAead`] traits provide the primary API for using this construction.
 ///
 /// See the [toplevel documentation](https://docs.rs/chacha20poly1305) for a usage example.
-#[derive(Clone)]
 pub struct ChaChaPoly1305<C>
 where
     C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
@@ -214,6 +213,18 @@ where
             buffer,
             tag,
         )
+    }
+}
+
+impl<C> Clone for ChaChaPoly1305<C>
+where
+    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+{
+    fn clone(&self) -> Self {
+        Self {
+            key: self.key,
+            stream_cipher: PhantomData,
+        }
     }
 }
 

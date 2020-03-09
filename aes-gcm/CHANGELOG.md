@@ -10,13 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [#104]: https://github.com/RustCrypto/AEADs/pull/104
 
-## 0.4.1 (2020-03-07)
+## 0.4.1 (2020-03-07) - YANKED, see [#104]
 ### Added
 - Support instantiation from an existing cipher instance ([#101])
 
 [#101]: https://github.com/RustCrypto/AEADs/pull/101
 
-## 0.4.0 (2020-03-07)
+## 0.4.0 (2020-03-07) - YANKED, see [#104]
 ### Added
 - `aes` cargo feature; 3rd-party AES crate support ([#96])
 

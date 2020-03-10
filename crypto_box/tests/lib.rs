@@ -84,6 +84,7 @@ fn encrypt_in_place_detached() {
     let tag = salsa_box
         .encrypt_in_place_detached(nonce, b"", &mut buffer)
         .unwrap();
+
     let (expected_tag, expected_ciphertext) = CIPHERTEXT.split_at(16);
     assert_eq!(expected_tag, &tag[..]);
     assert_eq!(expected_ciphertext, &buffer[..]);
@@ -112,5 +113,6 @@ fn decrypt_in_place_detached() {
     salsa_box
         .decrypt_in_place_detached(nonce, b"", &mut buffer, &tag)
         .unwrap();
+
     assert_eq!(PLAINTEXT, &buffer[..]);
 }

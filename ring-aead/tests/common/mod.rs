@@ -33,6 +33,23 @@ macro_rules! tests {
         }
 
         #[test]
+        fn encrypt_in_place_detached() {
+            for vector in $vectors {
+                let key = GenericArray::from_slice(vector.key);
+                let nonce = GenericArray::from_slice(vector.nonce);
+                let mut buffer = vector.plaintext.to_vec();
+
+                let cipher = <$aead>::new(*key);
+                let tag = cipher
+                    .encrypt_in_place_detached(nonce, vector.aad, &mut buffer)
+                    .unwrap();
+
+                assert_eq!(vector.tag, &tag[..]);
+                assert_eq!(vector.ciphertext, &buffer[..]);
+            }
+        }
+
+        #[test]
         fn decrypt() {
             for vector in $vectors {
                 let key = GenericArray::from_slice(vector.key);
@@ -49,6 +66,21 @@ macro_rules! tests {
                 let plaintext = cipher.decrypt(nonce, payload).unwrap();
 
                 assert_eq!(vector.plaintext, plaintext.as_slice());
+            }
+        }
+
+        #[test]
+        #[should_panic] // not implemented
+        fn decrypt_in_place_detached() {
+            for vector in $vectors {
+                let key = GenericArray::from_slice(vector.key);
+                let nonce = GenericArray::from_slice(vector.nonce);
+                let tag = GenericArray::clone_from_slice(vector.tag);
+                let mut buffer = vector.ciphertext.to_vec();
+
+                <$aead>::new(*key)
+                    .decrypt_in_place_detached(nonce, vector.aad, &mut buffer, &tag)
+                    .unwrap();
             }
         }
 

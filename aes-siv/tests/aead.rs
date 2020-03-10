@@ -72,8 +72,7 @@ macro_rules! tests {
                 let tag = GenericArray::clone_from_slice(&vector.ciphertext[..16]);
                 let mut buffer = vector.ciphertext[16..].to_vec();
 
-                let mut cipher = <$aead>::new(*key);
-                cipher
+                <$aead>::new(*key)
                     .decrypt_in_place_detached(nonce, vector.aad, &mut buffer, &tag)
                     .unwrap();
 

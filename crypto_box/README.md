@@ -1,10 +1,4 @@
-# Pure Rust NaCl `crypto_box`
-
-[![crate][crate-image]][crate-link]
-[![Docs][docs-image]][docs-link]
-![Apache2/MIT licensed][license-image]
-![Rust Version][rustc-image]
-[![Build Status][build-image]][build-link]
+# `crypto_box` [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
 
 Pure Rust implementation of [NaCl]'s [`crypto_box`] primitive, providing
 public-key authenticated encryption which combines the [X25519] Diffie-Hellman

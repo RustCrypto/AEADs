@@ -1,7 +1,10 @@
-# RustCrypto: Authenticated Encryption with Associated Data [![codecov](https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg)](https://codecov.io/gh/RustCrypto/AEADs)
+# RustCrypto: Authenticated Encryption with Associated Data (AEAD) Algorithms [![CodeCov Status][codecov-image]][codecov-link]  [![Dependency Status][deps-image]][deps-link] ![Rust Version][rustc-image]
 
 Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.
+
+AEADs provide high-level symmetric encryption primitives which defend against
+a wide spectrum of potential attacks (i.e. [IND-CCA3]).
 
 ## Usage
 
@@ -41,7 +44,16 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 
+[//]: # (badges)
+
+[codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
+[deps-image]: https://deps.rs/repo/github/RustCrypto/AEADs/status.svg
+[deps-link]: https://deps.rs/repo/github/RustCrypto/AEADs/
+[rustc-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
+
 [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption
+[IND-CCA3]: https://eprint.iacr.org/2004/272.pdf
 [`aead`]: https://docs.rs/aead
 [`aes-ccm`]: https://crates.io/crates/aes-ccm
 [`aes-gcm`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm

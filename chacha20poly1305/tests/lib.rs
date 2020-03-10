@@ -11,8 +11,7 @@ macro_rules! impl_tests {
                 aad: $aad,
             };
 
-            let cipher = <$cipher>::new(*key);
-            let ciphertext = cipher.encrypt(nonce, payload).unwrap();
+            let ciphertext = <$cipher>::new(*key).encrypt(nonce, payload).unwrap();
 
             let tag_begins = ciphertext.len() - 16;
             assert_eq!($ciphertext, &ciphertext[..tag_begins]);
@@ -31,8 +30,7 @@ macro_rules! impl_tests {
                 aad: $aad,
             };
 
-            let cipher = <$cipher>::new(*key);
-            let plaintext = cipher.decrypt(nonce, payload).unwrap();
+            let plaintext = <$cipher>::new(*key).decrypt(nonce, payload).unwrap();
 
             assert_eq!($plaintext, plaintext.as_slice());
         }
@@ -114,11 +112,17 @@ mod chacha20 {
         CIPHERTEXT,
         TAG
     );
+
+    #[test]
+    fn clone_impl() {
+        let _ = ChaCha20Poly1305::new(GenericArray::clone_from_slice(KEY)).clone();
+    }
 }
 
 /// XChaCha20Poly1305 test vectors.
 ///
 /// From <https://tools.ietf.org/html/draft-arciszewski-xchacha-03#appendix-A.1>
+#[cfg(feature = "xchacha20poly1305")]
 mod xchacha20 {
     use super::{AAD, KEY, PLAINTEXT};
     use chacha20poly1305::aead::generic_array::GenericArray;

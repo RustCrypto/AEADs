@@ -57,14 +57,36 @@ const CIPHERTEXT: &[u8] = &[
 ];
 
 #[test]
+fn public_key() {
+    let secret_key = SecretKey::from(ALICE_SECRET_KEY);
+    assert_eq!(secret_key.public_key().as_bytes(), &ALICE_PUBLIC_KEY);
+}
+
+#[test]
 fn encrypt() {
     let secret_key = SecretKey::from(ALICE_SECRET_KEY);
     let public_key = PublicKey::from(BOB_PUBLIC_KEY);
     let nonce = GenericArray::from_slice(NONCE);
     let salsa_box = SalsaBox::new(&public_key, &secret_key);
-    let ciphertext = salsa_box.encrypt(nonce, PLAINTEXT).unwrap();
 
-    assert_eq!(CIPHERTEXT, ciphertext.as_slice());
+    let ciphertext = salsa_box.encrypt(nonce, PLAINTEXT).unwrap();
+    assert_eq!(CIPHERTEXT, &ciphertext[..]);
+}
+
+#[test]
+fn encrypt_in_place_detached() {
+    let secret_key = SecretKey::from(ALICE_SECRET_KEY);
+    let public_key = PublicKey::from(BOB_PUBLIC_KEY);
+    let nonce = GenericArray::from_slice(NONCE);
+    let salsa_box = SalsaBox::new(&public_key, &secret_key);
+    let mut buffer = PLAINTEXT.to_vec();
+
+    let tag = salsa_box
+        .encrypt_in_place_detached(nonce, b"", &mut buffer)
+        .unwrap();
+    let (expected_tag, expected_ciphertext) = CIPHERTEXT.split_at(16);
+    assert_eq!(expected_tag, &tag[..]);
+    assert_eq!(expected_ciphertext, &buffer[..]);
 }
 
 #[test]
@@ -73,7 +95,22 @@ fn decrypt() {
     let public_key = PublicKey::from(ALICE_PUBLIC_KEY);
     let nonce = GenericArray::from_slice(NONCE);
     let salsa_box = SalsaBox::new(&public_key, &secret_key);
-    let plaintext = salsa_box.decrypt(nonce, CIPHERTEXT).unwrap();
 
-    assert_eq!(PLAINTEXT, plaintext.as_slice());
+    let plaintext = salsa_box.decrypt(nonce, CIPHERTEXT).unwrap();
+    assert_eq!(PLAINTEXT, &plaintext[..]);
+}
+
+#[test]
+fn decrypt_in_place_detached() {
+    let secret_key = SecretKey::from(BOB_SECRET_KEY);
+    let public_key = PublicKey::from(ALICE_PUBLIC_KEY);
+    let nonce = GenericArray::from_slice(NONCE);
+    let salsa_box = SalsaBox::new(&public_key, &secret_key);
+    let tag = GenericArray::clone_from_slice(&CIPHERTEXT[..16]);
+    let mut buffer = CIPHERTEXT[16..].to_vec();
+
+    salsa_box
+        .decrypt_in_place_detached(nonce, b"", &mut buffer, &tag)
+        .unwrap();
+    assert_eq!(PLAINTEXT, &buffer[..]);
 }

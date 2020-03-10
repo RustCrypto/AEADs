@@ -1,6 +1,4 @@
-# RustCrypto: Authenticated Encryption with Associated Data
-
-[![codecov](https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg)](https://codecov.io/gh/RustCrypto/AEADs)
+# RustCrypto: Authenticated Encryption with Associated Data [![codecov](https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg)](https://codecov.io/gh/RustCrypto/AEADs)
 
 Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.

@@ -30,6 +30,23 @@ macro_rules! tests {
         }
 
         #[test]
+        fn encrypt_in_place_detached() {
+            for vector in $vectors {
+                let key = GenericArray::from_slice(vector.key);
+                let nonce = GenericArray::from_slice(vector.nonce);
+                let mut buffer = vector.plaintext.to_vec();
+
+                let mut cipher = <$aead>::new(*key);
+                let tag = cipher
+                    .encrypt_in_place_detached(nonce, vector.aad, &mut buffer)
+                    .unwrap();
+                let (expected_tag, expected_ciphertext) = vector.ciphertext.split_at(16);
+                assert_eq!(expected_tag, &tag[..]);
+                assert_eq!(expected_ciphertext, &buffer[..]);
+            }
+        }
+
+        #[test]
         fn decrypt() {
             for vector in $vectors {
                 let key = GenericArray::from_slice(vector.key);
@@ -48,11 +65,27 @@ macro_rules! tests {
         }
 
         #[test]
+        fn decrypt_in_place_detached() {
+            for vector in $vectors {
+                let key = GenericArray::from_slice(vector.key);
+                let nonce = GenericArray::from_slice(vector.nonce);
+                let tag = GenericArray::clone_from_slice(&vector.ciphertext[..16]);
+                let mut buffer = vector.ciphertext[16..].to_vec();
+
+                let mut cipher = <$aead>::new(*key);
+                cipher
+                    .decrypt_in_place_detached(nonce, vector.aad, &mut buffer, &tag)
+                    .unwrap();
+
+                assert_eq!(vector.plaintext, buffer.as_slice());
+            }
+        }
+
+        #[test]
         fn decrypt_modified() {
             let vector = &$vectors[0];
             let key = GenericArray::from_slice(vector.key);
             let nonce = GenericArray::from_slice(vector.nonce);
-
             let mut ciphertext = Vec::from(vector.ciphertext);
 
             // Tweak the first byte

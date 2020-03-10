@@ -1,10 +1,4 @@
-# AES-SIV: Misuse-Resistant Authenticated Encryption Cipher
-
-[![crate][crate-image]][crate-link]
-[![Docs][docs-image]][docs-link]
-![Apache2/MIT licensed][license-image]
-![Rust Version][rustc-image]
-[![Build Status][build-image]][build-link]
+# AES-SIV: Misuse-Resistant Authenticated Encryption Cipher [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
 
 [AES-SIV][1] ([RFC 5297][2]) is a high-performance
 [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also

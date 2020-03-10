@@ -14,6 +14,10 @@ repository = "https://github.com/RustCrypto/AEADs"
 categories = ["cryptography", "no-std"]
 keywords = ["aead", "aes-gcm", "chacha20poly1305", "crypto", "ring"]
 
+[badges]
+codecov = { repository = "RustCrypto/AEADs", branch = "master", service = "github" }
+maintenance = { status = "passively-maintained" }
+
 [dependencies]
 aead = { version = "0.2", default-features = false }
 ring = "0.16"

@@ -3,8 +3,8 @@
 Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.
 
-AEADs provide high-level symmetric encryption primitives which defend against
-a wide spectrum of potential attacks (i.e. [IND-CCA3]).
+AEADs are high-level symmetric encryption primitives which defend against a
+wide range of potential attacks (i.e. [IND-CCA3]).
 
 ## Usage
 

@@ -67,9 +67,11 @@ fn encrypt() {
     let secret_key = SecretKey::from(ALICE_SECRET_KEY);
     let public_key = PublicKey::from(BOB_PUBLIC_KEY);
     let nonce = GenericArray::from_slice(NONCE);
-    let salsa_box = SalsaBox::new(&public_key, &secret_key);
 
-    let ciphertext = salsa_box.encrypt(nonce, PLAINTEXT).unwrap();
+    let ciphertext = SalsaBox::new(&public_key, &secret_key)
+        .encrypt(nonce, PLAINTEXT)
+        .unwrap();
+
     assert_eq!(CIPHERTEXT, &ciphertext[..]);
 }
 
@@ -78,10 +80,9 @@ fn encrypt_in_place_detached() {
     let secret_key = SecretKey::from(ALICE_SECRET_KEY);
     let public_key = PublicKey::from(BOB_PUBLIC_KEY);
     let nonce = GenericArray::from_slice(NONCE);
-    let salsa_box = SalsaBox::new(&public_key, &secret_key);
     let mut buffer = PLAINTEXT.to_vec();
 
-    let tag = salsa_box
+    let tag = SalsaBox::new(&public_key, &secret_key)
         .encrypt_in_place_detached(nonce, b"", &mut buffer)
         .unwrap();
 
@@ -95,9 +96,11 @@ fn decrypt() {
     let secret_key = SecretKey::from(BOB_SECRET_KEY);
     let public_key = PublicKey::from(ALICE_PUBLIC_KEY);
     let nonce = GenericArray::from_slice(NONCE);
-    let salsa_box = SalsaBox::new(&public_key, &secret_key);
 
-    let plaintext = salsa_box.decrypt(nonce, CIPHERTEXT).unwrap();
+    let plaintext = SalsaBox::new(&public_key, &secret_key)
+        .decrypt(nonce, CIPHERTEXT)
+        .unwrap();
+
     assert_eq!(PLAINTEXT, &plaintext[..]);
 }
 
@@ -106,11 +109,10 @@ fn decrypt_in_place_detached() {
     let secret_key = SecretKey::from(BOB_SECRET_KEY);
     let public_key = PublicKey::from(ALICE_PUBLIC_KEY);
     let nonce = GenericArray::from_slice(NONCE);
-    let salsa_box = SalsaBox::new(&public_key, &secret_key);
     let tag = GenericArray::clone_from_slice(&CIPHERTEXT[..16]);
     let mut buffer = CIPHERTEXT[16..].to_vec();
 
-    salsa_box
+    SalsaBox::new(&public_key, &secret_key)
         .decrypt_in_place_detached(nonce, b"", &mut buffer, &tag)
         .unwrap();
 

@@ -38,8 +38,7 @@ jobs:
           components: clippy
       - run: cargo clippy --all-features -- -D warnings
 
-  coverage:
-    name: Code Coverage
+  codecov:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

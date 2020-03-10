@@ -16,6 +16,7 @@ keywords = ["aead", "aes", "aes-gcm", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
 
 [badges]
+codecov = { repository = "RustCrypto/AEADs", branch = "master", service = "github" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]

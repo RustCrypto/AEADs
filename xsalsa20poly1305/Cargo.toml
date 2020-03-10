@@ -15,7 +15,8 @@ keywords = ["aead", "salsa20", "poly1305", "xsalsa20"]
 categories = ["cryptography", "no-std"]
 
 [badges]
-maintenance = { status = "experimental" }
+codecov = { repository = "RustCrypto/AEADs", branch = "master", service = "github" }
+maintenance = { status = "passively-maintained" }
 
 [dependencies]
 aead = { version = "0.2", default-features = false }

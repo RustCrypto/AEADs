@@ -4,7 +4,6 @@
 [![Docs][docs-image]][docs-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
-![Maintenance Status: Experimental][maintenance-image]
 [![Build Status][build-image]][build-link]
 
 **XSalsa20Poly1305** (a.k.a. NaCl [`crypto_secretbox`][1]) is an
@@ -50,7 +49,6 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/xsalsa20poly1305/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.37+-blue.svg
-[maintenance-image]: https://img.shields.io/badge/maintenance-experimental-blue.svg
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/xsalsa20poly1305/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 

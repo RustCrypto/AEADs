@@ -183,13 +183,12 @@ where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
 {
-    type NonceSize = U12;
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &[u8],
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -197,9 +196,19 @@ where
             return Err(Error);
         }
 
+        // Handles variable-length nonce
+        let nonce = if nonce.len() != 12 {
+            let ghash = &mut self.ghash.clone();
+            ghash.update_padded(nonce);
+            let nonce = ghash.result_reset().into_bytes().to_vec();
+            nonce
+        } else {
+            nonce.to_vec()
+        };
+
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        let mut ctr = Ctr32::new(nonce);
+        let mut ctr = Ctr32::new(nonce.as_ref());
         ctr.seek(1);
         ctr.apply_keystream(&self.cipher, buffer);
 
@@ -212,7 +221,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &[u8],
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
@@ -221,10 +230,20 @@ where
             return Err(Error);
         }
 
+        // Handles variable-length nonce
+        let nonce = if nonce.len() != 12 {
+            let ghash = &mut self.ghash.clone();
+            ghash.update_padded(nonce);
+            let nonce = ghash.result_reset().into_bytes().to_vec();
+            nonce
+        } else {
+            nonce.to_vec()
+        };
+
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let mut expected_tag = compute_tag(&mut self.ghash.clone(), associated_data, buffer);
-        let mut ctr = Ctr32::new(nonce);
+        let mut ctr = Ctr32::new(nonce.as_ref());
         ctr.apply_keystream(&self.cipher, expected_tag.as_mut_slice());
 
         use subtle::ConstantTimeEq;

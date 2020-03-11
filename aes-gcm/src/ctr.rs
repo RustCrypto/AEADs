@@ -1,7 +1,7 @@
 //! Counter mode implementation
 
 use block_cipher_trait::generic_array::{
-    typenum::{Unsigned, U12, U16},
+    typenum::{Unsigned, U16},
     ArrayLength, GenericArray,
 };
 use block_cipher_trait::BlockCipher;

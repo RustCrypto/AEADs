@@ -35,10 +35,14 @@ where
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
 {
     /// Instantiate a new CTR instance
-    pub fn new(nonce: &GenericArray<u8, U12>) -> Self {
+    pub fn new(nonce: &[u8]) -> Self {
         let mut counter_block = GenericArray::default();
-        counter_block[..12].copy_from_slice(nonce.as_slice());
-        counter_block[15] = 1;
+        if nonce.len() == 12 {
+            counter_block[..12].copy_from_slice(nonce);
+            counter_block[15] = 1;
+        } else {
+            counter_block[..].copy_from_slice(nonce);
+        }
 
         Self {
             block_cipher: PhantomData,

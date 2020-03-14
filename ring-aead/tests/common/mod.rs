@@ -70,6 +70,22 @@ macro_rules! tests {
         }
 
         #[test]
+        fn decrypt_in_place() {
+            for vector in $vectors {
+                let key = GenericArray::from_slice(vector.key);
+                let nonce = GenericArray::from_slice(vector.nonce);
+                let mut buffer = vector.ciphertext.to_vec();
+                buffer.extend_from_slice(vector.tag);
+
+                <$aead>::new(*key)
+                    .decrypt_in_place(nonce, vector.aad, &mut buffer)
+                    .unwrap();
+
+                assert_eq!(vector.plaintext, buffer.as_slice());
+            }
+        }
+
+        #[test]
         #[should_panic] // not implemented
         fn decrypt_in_place_detached() {
             for vector in $vectors {

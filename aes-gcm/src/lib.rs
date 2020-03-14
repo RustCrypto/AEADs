@@ -101,18 +101,22 @@ mod ctr;
 
 pub use aead;
 
+#[cfg(feature = "aes")]
+pub use aes;
+
 use self::ctr::Ctr32;
 use aead::{Aead, Error, NewAead};
 use block_cipher_trait::generic_array::{
-    typenum::{U0, U12, U16},
+    typenum::{U0, U16},
     ArrayLength, GenericArray,
 };
 use block_cipher_trait::BlockCipher;
+use core::marker::PhantomData;
 use ghash::{universal_hash::UniversalHash, GHash};
 use zeroize::Zeroize;
 
 #[cfg(feature = "aes")]
-use aes::{Aes128, Aes256};
+use aes::{block_cipher_trait::generic_array::typenum::U12, Aes128, Aes256};
 
 /// Maximum length of associated data
 pub const A_MAX: u64 = 1 << 36;
@@ -126,32 +130,37 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 /// AES-GCM tags
 pub type Tag = GenericArray<u8, U16>;
 
-/// AES-GCM with a 128-bit key
+/// AES-GCM with a 128-bit key and 96-bit nonce
 #[cfg(feature = "aes")]
-pub type Aes128Gcm = AesGcm<Aes128>;
+pub type Aes128Gcm = AesGcm<Aes128, U12>;
 
-/// AES-GCM with a 256-bit key
+/// AES-GCM with a 256-bit key and 96-bit nonce
 #[cfg(feature = "aes")]
-pub type Aes256Gcm = AesGcm<Aes256>;
+pub type Aes256Gcm = AesGcm<Aes256, U12>;
 
 /// AES-GCM
 #[derive(Clone)]
-pub struct AesGcm<B>
+pub struct AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    N: ArrayLength<u8>,
 {
     /// Encryption cipher
     cipher: B,
 
     /// GHASH authenticator
     ghash: GHash,
+
+    /// Length of the nonce
+    nonce_size: PhantomData<N>,
 }
 
-impl<B> NewAead for AesGcm<B>
+impl<B, N> NewAead for AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    N: ArrayLength<u8>,
 {
     type KeySize = B::KeySize;
 
@@ -162,10 +171,11 @@ where
     }
 }
 
-impl<B> From<B> for AesGcm<B>
+impl<B, N> From<B> for AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    N: ArrayLength<u8>,
 {
     fn from(cipher: B) -> Self {
         let mut ghash_key = GenericArray::default();
@@ -174,21 +184,27 @@ where
         let ghash = GHash::new(&ghash_key);
         ghash_key.zeroize();
 
-        Self { cipher, ghash }
+        Self {
+            cipher,
+            ghash,
+            nonce_size: PhantomData,
+        }
     }
 }
 
-impl<B> Aead for AesGcm<B>
+impl<B, N> Aead for AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    N: ArrayLength<u8>,
 {
+    type NonceSize = N;
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &[u8],
+        nonce: &GenericArray<u8, N>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -196,23 +212,13 @@ where
             return Err(Error);
         }
 
-        // Handles variable-length nonce
-        let nonce = if nonce.len() != 12 {
-            let ghash = &mut self.ghash.clone();
-            ghash.update_padded(nonce);
-            let nonce = ghash.result_reset().into_bytes().to_vec();
-            nonce
-        } else {
-            nonce.to_vec()
-        };
-
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        let mut ctr = Ctr32::new(nonce.as_ref());
+        let mut ctr = self.init_ctr(nonce);
         ctr.seek(1);
         ctr.apply_keystream(&self.cipher, buffer);
 
-        let mut tag = compute_tag(&mut self.ghash.clone(), associated_data, buffer);
+        let mut tag = self.compute_tag(associated_data, buffer);
         ctr.seek(0);
         ctr.apply_keystream(&self.cipher, tag.as_mut_slice());
 
@@ -221,7 +227,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &[u8],
+        nonce: &GenericArray<u8, N>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
@@ -230,20 +236,10 @@ where
             return Err(Error);
         }
 
-        // Handles variable-length nonce
-        let nonce = if nonce.len() != 12 {
-            let ghash = &mut self.ghash.clone();
-            ghash.update_padded(nonce);
-            let nonce = ghash.result_reset().into_bytes().to_vec();
-            nonce
-        } else {
-            nonce.to_vec()
-        };
-
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        let mut expected_tag = compute_tag(&mut self.ghash.clone(), associated_data, buffer);
-        let mut ctr = Ctr32::new(nonce.as_ref());
+        let mut expected_tag = self.compute_tag(associated_data, buffer);
+        let mut ctr = self.init_ctr(nonce);
         ctr.apply_keystream(&self.cipher, expected_tag.as_mut_slice());
 
         use subtle::ConstantTimeEq;
@@ -256,18 +252,56 @@ where
     }
 }
 
-/// Authenticate the given plaintext and associated data using GHASH
-fn compute_tag(ghash: &mut GHash, associated_data: &[u8], buffer: &[u8]) -> Tag {
-    ghash.update_padded(associated_data);
-    ghash.update_padded(buffer);
+impl<B, N> AesGcm<B, N>
+where
+    B: BlockCipher<BlockSize = U16>,
+    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    N: ArrayLength<u8>,
+{
+    /// Initialize counter mode.
+    ///
+    /// See algorithm described in Section 7.2 of NIST SP800-38D:
+    /// <https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf>
+    ///
+    /// > Define a block, J0, as follows:
+    /// > If len(IV)=96, then J0 = IV || 0{31} || 1.
+    /// > If len(IV) ≠ 96, then let s = 128 ⎡len(IV)/128⎤-len(IV), and
+    /// >     J0=GHASH(IV||0s+64||[len(IV)]64).
+    fn init_ctr(&self, nonce: &GenericArray<u8, N>) -> Ctr32<B> {
+        let j0 = if N::to_usize() == 12 {
+            let mut block = GenericArray::default();
+            block[..12].copy_from_slice(nonce);
+            block[15] = 1;
+            block
+        } else {
+            let mut ghash = self.ghash.clone();
+            ghash.update_padded(nonce);
 
-    let associated_data_bits = (associated_data.len() as u64) * 8;
-    let buffer_bits = (buffer.len() as u64) * 8;
+            let mut block = GenericArray::default();
+            let nonce_bits = (N::to_usize() as u64) * 8;
+            block[8..].copy_from_slice(&nonce_bits.to_be_bytes());
+            ghash.update_block(&block);
 
-    let mut block = GenericArray::default();
-    block[..8].copy_from_slice(&associated_data_bits.to_be_bytes());
-    block[8..].copy_from_slice(&buffer_bits.to_be_bytes());
-    ghash.update_block(&block);
+            ghash.result().into_bytes()
+        };
 
-    ghash.result_reset().into_bytes()
+        Ctr32::new(j0)
+    }
+
+    /// Authenticate the given plaintext and associated data using GHASH
+    fn compute_tag(&self, associated_data: &[u8], buffer: &[u8]) -> Tag {
+        let mut ghash = self.ghash.clone();
+        ghash.update_padded(associated_data);
+        ghash.update_padded(buffer);
+
+        let associated_data_bits = (associated_data.len() as u64) * 8;
+        let buffer_bits = (buffer.len() as u64) * 8;
+
+        let mut block = GenericArray::default();
+        block[..8].copy_from_slice(&associated_data_bits.to_be_bytes());
+        block[8..].copy_from_slice(&buffer_bits.to_be_bytes());
+        ghash.update_block(&block);
+
+        ghash.result().into_bytes()
+    }
 }

@@ -1,7 +1,7 @@
 //! Counter mode implementation
 
 use block_cipher_trait::generic_array::{
-    typenum::{Unsigned, U12, U16},
+    typenum::{Unsigned, U16},
     ArrayLength, GenericArray,
 };
 use block_cipher_trait::BlockCipher;
@@ -27,6 +27,9 @@ where
 
     /// Current CTR value
     counter_block: Block128,
+
+    /// Base value of the counter
+    base_counter: u32,
 }
 
 impl<B> Ctr32<B>
@@ -35,22 +38,25 @@ where
     B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
 {
     /// Instantiate a new CTR instance
-    pub fn new(nonce: &GenericArray<u8, U12>) -> Self {
-        let mut counter_block = GenericArray::default();
-        counter_block[..12].copy_from_slice(nonce.as_slice());
-        counter_block[15] = 1;
+    pub fn new(j0: Block128) -> Self {
+        let base_counter = u32::from_be_bytes(j0[12..].try_into().unwrap());
 
         Self {
             block_cipher: PhantomData,
             buffer: unsafe { mem::zeroed() },
-            counter_block,
+            counter_block: j0,
+            base_counter,
         }
     }
 
     /// "Seek" to the given NIST SP800-38D counter value. Note that the
     /// serialized big endian value is 1 larger than the provided "counter value"
     pub fn seek(&mut self, new_counter_value: u32) {
-        self.counter_block[12..].copy_from_slice(&new_counter_value.wrapping_add(1).to_be_bytes());
+        self.counter_block[12..].copy_from_slice(
+            &new_counter_value
+                .wrapping_add(self.base_counter)
+                .to_be_bytes(),
+        );
     }
 
     /// Apply AES-CTR keystream to the given input buffer

@@ -94,6 +94,7 @@
 //! [8]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
 #![warn(missing_docs, rust_2018_idioms)]
 
@@ -132,13 +133,27 @@ pub type Tag = GenericArray<u8, U16>;
 
 /// AES-GCM with a 128-bit key and 96-bit nonce
 #[cfg(feature = "aes")]
+#[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
 pub type Aes128Gcm = AesGcm<Aes128, U12>;
 
 /// AES-GCM with a 256-bit key and 96-bit nonce
 #[cfg(feature = "aes")]
+#[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
 pub type Aes256Gcm = AesGcm<Aes256, U12>;
 
-/// AES-GCM
+/// AES-GCM: generic over an underlying AES implementation and nonce size.
+///
+/// This type is generic to support substuting alternative AES implementations
+/// (e.g. embedded hardware implementations)
+///
+/// It is NOT intended to be instantiated with any block cipher besides AES!
+/// Doing so runs the risk of unintended cryptographic properties!
+///
+/// The `N` generic parameter can be used to instantiate AES-GCM with other
+/// nonce sizes, however it's recommended to use it with `typenum::U12`,
+/// the default of 96-bits.
+///
+/// If in doubt, use the built-in [`Aes128Gcm`] and [`Aes256Gcm`] type aliases.
 #[derive(Clone)]
 pub struct AesGcm<B, N>
 where

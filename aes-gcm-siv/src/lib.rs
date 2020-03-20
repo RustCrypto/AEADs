@@ -53,7 +53,7 @@
 //!
 //! ```
 //! use aes_gcm_siv::Aes256GcmSiv; // Or `Aes128GcmSiv`
-//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//! use aead::{Aead, NewAead, generic_array::{GenericArray, typenum::{U32, U12}}};
 //!
 //! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
 //! let aead = Aes256GcmSiv::new(key);
@@ -85,8 +85,8 @@
 //! use aead::generic_array::{GenericArray, typenum::U128};
 //! use aead::heapless::Vec;
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
-//! let aead = Aes256GcmSiv::new(key);
+//! let key: GenericArray<u8,U32> = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let aead:&GenericArray<u8,U12> = Aes256GcmSiv::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!

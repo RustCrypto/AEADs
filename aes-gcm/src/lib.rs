@@ -33,12 +33,12 @@
 //!
 //! ```
 //! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
-//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//! use aead::{Aead, NewAead, generic_array::{GenericArray, typenum::{U32, U12}}};
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key: GenericArray<u8,U32> = GenericArray::clone_from_slice(b"an example very very secret key.");
 //! let aead = Aes256Gcm::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
+//! let nonce:&GenericArray<u8,U12> = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
 //! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
 //! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
 //! assert_eq!(&plaintext, b"plaintext message");

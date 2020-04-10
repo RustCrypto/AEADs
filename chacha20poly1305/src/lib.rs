@@ -7,9 +7,9 @@
 //! (with optional AVX2 acceleration) as well as the following variants thereof:
 //!
 //! - [`XChaCha20Poly1305`] - ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
-//! - [`ChaCha8Poly1305`] / [`ChaCha12Poly1305`] - nonstandard, reduced round variants
+//! - [`ChaCha8Poly1305`] / [`ChaCha12Poly1305`] - non-standard, reduced-round variants
 //!   (gated under the `reduced-round` Cargo feature). See the [Too Much Crypto][5]
-//!   paper for background and rationale on when these constructions shoudl be used.
+//!   paper for background and rationale on when these constructions could be used.
 //!   When in doubt, prefer `ChaCha20Poly1305`.
 //!
 //! ## Performance Notes

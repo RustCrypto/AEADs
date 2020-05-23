@@ -1,4 +1,4 @@
-# AES-GCM [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
+ # AES-GCM [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
 
 Pure Rust implementation of the AES-GCM
 [Authenticated Encryption with Associated Data (AEAD)][1] cipher.

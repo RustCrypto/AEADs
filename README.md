@@ -1,4 +1,4 @@
-# RustCrypto: Authenticated Encryption with Associated Data (AEAD) Algorithms [![CodeCov Status][codecov-image]][codecov-link]  [![Dependency Status][deps-image]][deps-link] ![Rust Version][rustc-image]
+# RustCrypto: Authenticated Encryption with Associated Data (AEAD) Algorithms [![CodeCov Status][codecov-image]][codecov-link] ![Rust Version][rustc-image]
 
 Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.
@@ -48,8 +48,6 @@ dual licensed as above, without any additional terms or conditions.
 
 [codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
 [codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
-[deps-image]: https://deps.rs/repo/github/RustCrypto/AEADs/status.svg
-[deps-link]: https://deps.rs/repo/github/RustCrypto/AEADs/
 [rustc-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
 
 [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption

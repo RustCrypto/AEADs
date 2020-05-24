@@ -73,8 +73,8 @@ jobs:
         env:
           CARGO_INCREMENTAL: 0
         with:
-          version: 0.11.0
-          args: --all --exclude armistice_usbarmory -- --test-threads 1
+          version: 0.12.4
+          args: --all -- --test-threads 1
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2

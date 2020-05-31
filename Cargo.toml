@@ -8,3 +8,10 @@ members = [
     "ring-aead",
     "xsalsa20poly1305"
 ]
+
+[patch.crates-io]
+aes = { git = "https://github.com/RustCrypto/block-ciphers" }
+aead = { git = "https://github.com/RustCrypto/traits" }
+block-cipher = { git = "https://github.com/RustCrypto/traits" }
+ghash = { git = "https://github.com/RustCrypto/universal-hashes" }
+universal-hash = { git = "https://github.com/RustCrypto/traits" }

@@ -59,12 +59,12 @@ dependencies = [
 name = "aes-gcm-siv"
 version = "0.4.1"
 dependencies = [
- "aead 0.2.0",
- "aes 0.3.2",
- "block-cipher-trait",
+ "aead 0.3.0-pre",
+ "aes 0.4.0-pre",
+ "block-cipher",
  "criterion",
  "criterion-cycles-per-byte",
- "polyval 0.3.3",
+ "polyval",
  "subtle 2.2.3",
  "zeroize",
 ]
@@ -490,7 +490,7 @@ name = "ghash"
 version = "0.3.0-pre"
 source = "git+https://github.com/RustCrypto/universal-hashes#ce8281ecfe1aaedf98f1885e7d7174dea9630dae"
 dependencies = [
- "polyval 0.4.0-pre",
+ "polyval",
 ]
 
 [[package]]
@@ -674,16 +674,6 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5829f50f48e9ddb79f3f7c3097029d0caee30f8286accb241416df603b080b8"
 dependencies = [
- "universal-hash 0.3.0",
-]
-
-[[package]]
-name = "polyval"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ec3341498978de3bfd12d1b22f1af1de22818f5473a11e8a6ef997989e3a212"
-dependencies = [
- "cfg-if",
  "universal-hash 0.3.0",
 ]
 

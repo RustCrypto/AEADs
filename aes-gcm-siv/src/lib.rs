@@ -55,7 +55,7 @@
 //! use aes_gcm_siv::Aes256GcmSiv; // Or `Aes128GcmSiv`
 //! use aead::{Aead, NewAead, generic_array::GenericArray};
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = Aes256GcmSiv::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
@@ -81,11 +81,11 @@
 //!
 //! ```
 //! use aes_gcm_siv::Aes256GcmSiv; // Or `Aes128GcmSiv`
-//! use aead::{Aead, NewAead};
+//! use aead::{AeadInPlace, NewAead};
 //! use aead::generic_array::{GenericArray, typenum::U128};
 //! use aead::heapless::Vec;
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = Aes256GcmSiv::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
@@ -125,13 +125,16 @@ mod ctr;
 pub use aead;
 
 use self::ctr::{Ctr32, BLOCK_SIZE};
-use aead::{Aead, Error, NewAead};
-use block_cipher_trait::generic_array::{
-    typenum::{Unsigned, U0, U12, U16},
-    ArrayLength, GenericArray,
+use aead::{AeadInPlace, Error, NewAead};
+use block_cipher::{
+    consts::{U0, U12, U16},
+    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
+    Block, BlockCipher, NewBlockCipher,
 };
-use block_cipher_trait::BlockCipher;
-use polyval::{universal_hash::UniversalHash, Polyval};
+use polyval::{
+    universal_hash::{NewUniversalHash, UniversalHash},
+    Polyval,
+};
 use zeroize::Zeroize;
 
 /// AES is optional to allow swapping in hardware-specific backends
@@ -163,7 +166,7 @@ pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 pub struct AesGcmSiv<B>
 where
     B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B::ParBlocks: ArrayLength<Block<B>>,
 {
     /// Key generating key used to derive AES-GCM-SIV subkeys
     key_generating_key: B,
@@ -171,32 +174,32 @@ where
 
 impl<B> NewAead for AesGcmSiv<B>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    B::ParBlocks: ArrayLength<Block<B>>,
 {
     type KeySize = B::KeySize;
 
-    fn new(mut key_bytes: GenericArray<u8, B::KeySize>) -> Self {
-        let key_generating_key = B::new(&key_bytes);
-        key_bytes.zeroize();
-        Self { key_generating_key }
+    fn new(key_bytes: &GenericArray<u8, B::KeySize>) -> Self {
+        Self {
+            key_generating_key: B::new(key_bytes),
+        }
     }
 }
 
 impl<B> From<B> for AesGcmSiv<B>
 where
     B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B::ParBlocks: ArrayLength<Block<B>>,
 {
     fn from(key_generating_key: B) -> Self {
         Self { key_generating_key }
     }
 }
 
-impl<B> Aead for AesGcmSiv<B>
+impl<B> AeadInPlace for AesGcmSiv<B>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    B::ParBlocks: ArrayLength<Block<B>>,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -231,7 +234,7 @@ where
 struct Cipher<B>
 where
     B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B::ParBlocks: ArrayLength<Block<B>>,
 {
     /// Encryption cipher
     enc_cipher: B,
@@ -245,8 +248,8 @@ where
 
 impl<B> Cipher<B>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    B::ParBlocks: ArrayLength<Block<B>>,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
@@ -272,7 +275,7 @@ where
         // > discarding half, four blocks need to be encrypted.  The counter
         // > values for these blocks are 0, 1, 2, and 3.  For AES-256, six blocks
         // > are needed in total, with counter values 0 through 5 (inclusive).
-        for derived_key in &mut [mac_key.as_mut(), enc_key.as_mut()] {
+        for derived_key in &mut [mac_key.as_mut_slice(), enc_key.as_mut_slice()] {
             for chunk in derived_key.chunks_mut(8) {
                 block[..4].copy_from_slice(&counter.to_le_bytes());
                 block[4..].copy_from_slice(nonce.as_slice());
@@ -362,7 +365,7 @@ where
         let mut block = GenericArray::default();
         block[..8].copy_from_slice(&associated_data_bits.to_le_bytes());
         block[8..].copy_from_slice(&buffer_bits.to_le_bytes());
-        self.polyval.update_block(&block);
+        self.polyval.update(&block);
 
         let mut tag = self.polyval.result_reset().into_bytes();
 

@@ -23,7 +23,7 @@ macro_rules! tests {
                     aad: vector.aad,
                 };
 
-                let cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let ciphertext = cipher.encrypt(nonce, payload).unwrap();
 
                 assert_eq!(vector.ciphertext, ciphertext.as_slice());
@@ -41,7 +41,7 @@ macro_rules! tests {
                     aad: vector.aad,
                 };
 
-                let cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let plaintext = cipher.decrypt(nonce, payload).unwrap();
 
                 assert_eq!(vector.plaintext, plaintext.as_slice());
@@ -64,7 +64,7 @@ macro_rules! tests {
                 aad: vector.aad,
             };
 
-            let cipher = <$aead>::new(*key);
+            let cipher = <$aead>::new(key);
             assert!(cipher.decrypt(nonce, payload).is_err());
 
             // TODO(tarcieri): test ciphertext is unmodified in in-place API

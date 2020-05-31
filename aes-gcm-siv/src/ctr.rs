@@ -1,10 +1,10 @@
 //! Counter mode implementation
 
-use block_cipher_trait::generic_array::{
+use block_cipher::generic_array::{
     typenum::{Unsigned, U16},
     ArrayLength, GenericArray,
 };
-use block_cipher_trait::BlockCipher;
+use block_cipher::BlockCipher;
 use core::{convert::TryInto, marker::PhantomData, mem};
 
 /// AES blocks

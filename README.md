@@ -26,7 +26,7 @@ NOTE: the [`aes-ccm`] crate also implements the [`aead`] traits
 used by all of the other crates in this repository.
 
 ### Minimum Supported Rust Version
-All crates in this repository support Rust 1.40 or higher. In future minimum
+All crates in this repository support Rust 1.41 or higher. In future minimum
 supported Rust version can be changed, but it will be done with the minor
 version bump.
 
@@ -49,7 +49,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
 [codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
-[rustc-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.41+-blue.svg
 
 [//]: # (general links)
 

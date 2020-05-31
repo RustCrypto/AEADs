@@ -1,4 +1,4 @@
-# *ring* AEAD [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
+# *ring* AEAD [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![CodeCov Status][codecov-image]][codecov-link] [![Build Status][build-image]][build-link]
 
 [`aead::Aead`] wrappers for high-performance implementations of AES-GCM and ChaCha20Poly1305 in the [*ring*] crate.
 
@@ -27,6 +27,8 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/ring-aead/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
+[codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/ring-aead/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 

@@ -1,4 +1,4 @@
- # AES-GCM [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
+ # AES-GCM [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![CodeCov Status][codecov-image]][codecov-link] [![Build Status][build-image]][build-link]
 
 Pure Rust implementation of the AES-GCM
 [Authenticated Encryption with Associated Data (AEAD)][1] cipher.
@@ -42,6 +42,8 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/aes-gcm/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
+[codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/aes-gcm/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 

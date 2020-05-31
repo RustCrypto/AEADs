@@ -1,4 +1,4 @@
-# AES-SIV: Misuse-Resistant Authenticated Encryption Cipher [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
+# AES-SIV: Misuse-Resistant Authenticated Encryption Cipher [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![CodeCov Status][codecov-image]][codecov-link] [![Build Status][build-image]][build-link]
 
 [AES-SIV][1] ([RFC 5297][2]) is a high-performance
 [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
@@ -37,6 +37,8 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/aes-siv/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
+[codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/aes-siv/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 

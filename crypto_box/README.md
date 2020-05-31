@@ -1,4 +1,4 @@
-# `crypto_box` [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![Build Status][build-image]][build-link]
+# `crypto_box` [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![CodeCov Status][codecov-image]][codecov-link] [![Build Status][build-image]][build-link]
 
 Pure Rust implementation of [NaCl]'s [`crypto_box`] primitive, providing
 public-key authenticated encryption which combines the [X25519] Diffie-Hellman
@@ -30,6 +30,8 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/crypto_box/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.40+-blue.svg
+[codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/crypto_box/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 

@@ -16,10 +16,6 @@ repository = "https://github.com/RustCrypto/AEADs/tree/master/crypto_box"
 categories = ["cryptography", "no-std"]
 keywords = ["nacl", "libsodium", "public-key", "x25519", "xsalsa20poly1305"]
 
-[badges]
-codecov = { repository = "RustCrypto/AEADs", branch = "master", service = "github" }
-maintenance = { status = "passively-maintained" }
-
 [dependencies]
 rand_core = "0.5"
 salsa20 = { version = "0.4.1", features = ["hsalsa20"] }

@@ -1,4 +1,5 @@
 name: aes-gcm-siv
+
 on:
   pull_request:
     paths:
@@ -6,106 +7,50 @@ on:
       - "Cargo.*"
   push:
     branches: master
-    paths:
-      - "aes-gcm-siv/**"
-      - "Cargo.*"
+
+defaults:
+  run:
+    working-directory: aes-gcm-siv
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        rust:
+          - 1.41.0 # MSRV
+          - stable
         target:
+          # - armv7-none-eabi TODO: test after MSRV is bumped to 1.42
           - thumbv7em-none-eabi
           - wasm32-unknown-unknown
-        toolchain:
-          - 1.40.0 # MSRV
-          - stable
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v1
-
-      - name: Cache cargo registry
-        uses: actions/cache@v1
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v1
-        with:
-          path: target
-          key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-${{ matrix.target }}-cargo-build-target-${{ hashFiles('Cargo.lock') }}
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
           target: ${{ matrix.target }}
-          toolchain: ${{ matrix.toolchain }}
           override: true
-
-      - name: Run cargo build --no-default-features
-        working-directory: aes-gcm-siv
-        env:
-          CARGO_INCREMENTAL: 0
-          RUSTFLAGS: -D warnings
-        run: cargo build --no-default-features --release --target ${{ matrix.target }}
+      - run: cargo build --no-default-features --release --target ${{ matrix.target }}
 
   test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-        toolchain:
-          - 1.40.0 # MSRV
+        rust:
+          - 1.41.0 # MSRV
           - stable
-    runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v1
-
-      - name: Cache cargo registry
-        uses: actions/cache@v1
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v1
-        with:
-          path: target
-          key: ${{ runner.os }}-rust-${{ matrix.toolchain }}-cargo-build-target-${{ hashFiles('Cargo.lock') }}
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.toolchain }}
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
           override: true
-
-      - name: Run cargo test --lib
-        working-directory: aes-gcm-siv
-        env:
-          CARGO_INCREMENTAL: 0
-          RUSTFLAGS: -D warnings
-        run: cargo test --lib --release
-
-      - name: Run cargo test --all-features
-        working-directory: aes-gcm-siv
-        env:
-          CARGO_INCREMENTAL: 0
-          RUSTFLAGS: -D warnings
-        run: cargo test --all-features --release
+      - run: cargo test --lib --release
+      - run: cargo test --all-features --release

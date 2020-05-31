@@ -1,10 +1,10 @@
 //! Counter mode implementation
 
-use block_cipher_trait::generic_array::{
+use block_cipher::generic_array::{
     typenum::{Unsigned, U16},
     ArrayLength, GenericArray,
 };
-use block_cipher_trait::BlockCipher;
+use block_cipher::BlockCipher;
 use core::{convert::TryInto, marker::PhantomData, mem};
 
 /// AES blocks
@@ -41,6 +41,7 @@ where
     pub fn new(j0: Block128) -> Self {
         let base_counter = u32::from_be_bytes(j0[12..].try_into().unwrap());
 
+        #[allow(unsafe_code)]
         Self {
             block_cipher: PhantomData,
             buffer: unsafe { mem::zeroed() },

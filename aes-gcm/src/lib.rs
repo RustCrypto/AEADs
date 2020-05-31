@@ -35,7 +35,7 @@
 //! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
 //! use aead::{Aead, NewAead, generic_array::GenericArray};
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = Aes256Gcm::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
@@ -61,11 +61,11 @@
 //!
 //! ```
 //! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
-//! use aead::{Aead, NewAead};
+//! use aead::{AeadInPlace, NewAead};
 //! use aead::generic_array::{GenericArray, typenum::U128};
 //! use aead::heapless::Vec;
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = Aes256Gcm::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
@@ -96,28 +96,33 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
+#![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
 mod ctr;
 
-pub use aead;
+pub use aead::{self, AeadInPlace, Error, NewAead};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
 use self::ctr::Ctr32;
-use aead::{Aead, Error, NewAead};
-use block_cipher_trait::generic_array::{
-    typenum::{U0, U16},
-    ArrayLength, GenericArray,
+use block_cipher::{
+    consts::{U0, U16},
+    generic_array::{ArrayLength, GenericArray},
+    Block, BlockCipher, Key, NewBlockCipher,
 };
-use block_cipher_trait::BlockCipher;
 use core::marker::PhantomData;
-use ghash::{universal_hash::UniversalHash, GHash};
+use ghash::{
+    universal_hash::{NewUniversalHash, UniversalHash},
+    GHash,
+};
+
+#[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
 
 #[cfg(feature = "aes")]
-use aes::{block_cipher_trait::generic_array::typenum::U12, Aes128, Aes256};
+use aes::{block_cipher::generic_array::typenum::U12, Aes128, Aes256};
 
 /// Maximum length of associated data
 pub const A_MAX: u64 = 1 << 36;
@@ -158,7 +163,7 @@ pub type Aes256Gcm = AesGcm<Aes256, U12>;
 pub struct AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B::ParBlocks: ArrayLength<Block<B>>,
     N: ArrayLength<u8>,
 {
     /// Encryption cipher
@@ -173,23 +178,21 @@ where
 
 impl<B, N> NewAead for AesGcm<B, N>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    B::ParBlocks: ArrayLength<Block<B>>,
     N: ArrayLength<u8>,
 {
     type KeySize = B::KeySize;
 
-    fn new(mut key: GenericArray<u8, B::KeySize>) -> Self {
-        let cipher = B::new(&key);
-        key.as_mut_slice().zeroize();
-        cipher.into()
+    fn new(key: &Key<B>) -> Self {
+        B::new(key).into()
     }
 }
 
 impl<B, N> From<B> for AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B::ParBlocks: ArrayLength<Block<B>>,
     N: ArrayLength<u8>,
 {
     fn from(cipher: B) -> Self {
@@ -197,6 +200,8 @@ where
         cipher.encrypt_block(&mut ghash_key);
 
         let ghash = GHash::new(&ghash_key);
+
+        #[cfg(feature = "zeroize")]
         ghash_key.zeroize();
 
         Self {
@@ -207,10 +212,10 @@ where
     }
 }
 
-impl<B, N> Aead for AesGcm<B, N>
+impl<B, N> AeadInPlace for AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B::ParBlocks: ArrayLength<Block<B>>,
     N: ArrayLength<u8>,
 {
     type NonceSize = N;
@@ -270,7 +275,7 @@ where
 impl<B, N> AesGcm<B, N>
 where
     B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    B::ParBlocks: ArrayLength<Block<B>>,
     N: ArrayLength<u8>,
 {
     /// Initialize counter mode.
@@ -295,7 +300,7 @@ where
             let mut block = GenericArray::default();
             let nonce_bits = (N::to_usize() as u64) * 8;
             block[8..].copy_from_slice(&nonce_bits.to_be_bytes());
-            ghash.update_block(&block);
+            ghash.update(&block);
 
             ghash.result().into_bytes()
         };
@@ -315,7 +320,7 @@ where
         let mut block = GenericArray::default();
         block[..8].copy_from_slice(&associated_data_bits.to_be_bytes());
         block[8..].copy_from_slice(&buffer_bits.to_be_bytes());
-        ghash.update_block(&block);
+        ghash.update(&block);
 
         ghash.result().into_bytes()
     }

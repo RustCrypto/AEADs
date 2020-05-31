@@ -17,10 +17,6 @@ repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "chacha20", "poly1305", "xchacha20", "xchacha20poly1305"]
 categories = ["cryptography", "no-std"]
 
-[badges]
-codecov = { repository = "RustCrypto/AEADs", branch = "master", service = "github" }
-maintenance = { status = "actively-developed" }
-
 [dependencies]
 aead = { version = "0.2", default-features = false }
 chacha20 = { version = "0.3", features = ["zeroize"], optional = true }

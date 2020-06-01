@@ -7,11 +7,11 @@
 
 pub use aead;
 
-use aead::generic_array::{
-    typenum::{U0, U12, U16, U32},
-    GenericArray,
+use aead::{
+    consts::{U0, U12, U16, U32},
+    generic_array::GenericArray,
+    AeadInPlace, Buffer, Error, NewAead,
 };
-use aead::{Aead, Buffer, Error, NewAead};
 use ring::aead::LessSafeKey as Key; // (^～^;)ゞ
 use ring::aead::{Aad, Nonce, UnboundKey, AES_128_GCM, AES_256_GCM, CHACHA20_POLY1305};
 use zeroize::Zeroize;
@@ -33,12 +33,12 @@ macro_rules! impl_aead {
         impl NewAead for $cipher {
             type KeySize = $key_size;
 
-            fn new(key: GenericArray<u8, Self::KeySize>) -> Self {
-                Self(key)
+            fn new(key: &GenericArray<u8, Self::KeySize>) -> Self {
+                Self(*key)
             }
         }
 
-        impl Aead for $cipher {
+        impl AeadInPlace for $cipher {
             type NonceSize = U12;
             type TagSize = U16;
             type CiphertextOverhead = U0;
@@ -61,7 +61,7 @@ macro_rules! impl_aead {
                 &self,
                 nonce: &GenericArray<u8, Self::NonceSize>,
                 associated_data: &[u8],
-                buffer: &mut impl Buffer,
+                buffer: &mut dyn Buffer,
             ) -> Result<(), Error> {
                 let key = UnboundKey::new(&$algorithm, self.0.as_slice()).unwrap();
                 Cipher::new(key).decrypt_in_place(nonce.as_slice(), associated_data, buffer)
@@ -120,7 +120,7 @@ impl Cipher {
         &self,
         nonce: &[u8],
         associated_data: &[u8],
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         let pt_len = self
             .0

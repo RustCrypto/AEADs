@@ -7,7 +7,7 @@ extern crate hex_literal;
 mod common;
 
 use self::common::TestVector;
-use ring_aead::aead::{generic_array::GenericArray, Aead, NewAead, Payload};
+use ring_aead::aead::{generic_array::GenericArray, Aead, AeadInPlace, NewAead, Payload};
 use ring_aead::Aes256Gcm;
 
 /// NIST CAVS vectors

@@ -47,7 +47,7 @@ fn encrypt() {
         aad: AAD,
     };
 
-    let cipher = ChaCha20Poly1305::new(*key);
+    let cipher = ChaCha20Poly1305::new(key);
     let ciphertext = cipher.encrypt(nonce, payload).unwrap();
 
     let tag_begins = ciphertext.len() - 16;
@@ -67,7 +67,7 @@ fn decrypt() {
         aad: AAD,
     };
 
-    let cipher = ChaCha20Poly1305::new(*key);
+    let cipher = ChaCha20Poly1305::new(key);
     let plaintext = cipher.decrypt(nonce, payload).unwrap();
 
     assert_eq!(PLAINTEXT, plaintext.as_slice());
@@ -89,6 +89,6 @@ fn decrypt_modified() {
         aad: AAD,
     };
 
-    let cipher = ChaCha20Poly1305::new(*key);
+    let cipher = ChaCha20Poly1305::new(key);
     assert!(cipher.decrypt(nonce, payload).is_err());
 }

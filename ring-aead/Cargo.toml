@@ -15,7 +15,7 @@ categories = ["cryptography", "no-std"]
 keywords = ["aead", "aes-gcm", "chacha20poly1305", "crypto", "ring"]
 
 [dependencies]
-aead = { version = "0.2", default-features = false }
+aead = { version = "= 0.3.0-pre", default-features = false }
 ring = "0.16"
 zeroize = "1"
 

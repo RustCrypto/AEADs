@@ -24,7 +24,7 @@ macro_rules! tests {
                     aad: vector.aad,
                 };
 
-                let cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let ciphertext = cipher.encrypt(nonce, payload).unwrap();
                 let (ct, tag) = ciphertext.split_at(ciphertext.len() - 16);
                 assert_eq!(vector.ciphertext, ct);
@@ -39,7 +39,7 @@ macro_rules! tests {
                 let nonce = GenericArray::from_slice(vector.nonce);
                 let mut buffer = vector.plaintext.to_vec();
 
-                let cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let tag = cipher
                     .encrypt_in_place_detached(nonce, vector.aad, &mut buffer)
                     .unwrap();
@@ -62,7 +62,7 @@ macro_rules! tests {
                     aad: vector.aad,
                 };
 
-                let cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let plaintext = cipher.decrypt(nonce, payload).unwrap();
 
                 assert_eq!(vector.plaintext, plaintext.as_slice());
@@ -77,7 +77,7 @@ macro_rules! tests {
                 let mut buffer = vector.ciphertext.to_vec();
                 buffer.extend_from_slice(vector.tag);
 
-                <$aead>::new(*key)
+                <$aead>::new(key)
                     .decrypt_in_place(nonce, vector.aad, &mut buffer)
                     .unwrap();
 
@@ -94,7 +94,7 @@ macro_rules! tests {
                 let tag = GenericArray::clone_from_slice(vector.tag);
                 let mut buffer = vector.ciphertext.to_vec();
 
-                <$aead>::new(*key)
+                <$aead>::new(key)
                     .decrypt_in_place_detached(nonce, vector.aad, &mut buffer, &tag)
                     .unwrap();
             }
@@ -117,7 +117,7 @@ macro_rules! tests {
                 aad: vector.aad,
             };
 
-            let cipher = <$aead>::new(*key);
+            let cipher = <$aead>::new(key);
             assert!(cipher.decrypt(nonce, payload).is_err());
 
             // TODO(tarcieri): test ciphertext is unmodified in in-place API

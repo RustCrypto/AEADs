@@ -45,7 +45,7 @@ const CIPHERTEXT: &[u8] = &[
 fn encrypt() {
     let key = GenericArray::from_slice(KEY);
     let nonce = GenericArray::from_slice(NONCE);
-    let cipher = XSalsa20Poly1305::new(*key);
+    let cipher = XSalsa20Poly1305::new(key);
     let ciphertext = cipher.encrypt(nonce, PLAINTEXT).unwrap();
 
     assert_eq!(CIPHERTEXT, ciphertext.as_slice());
@@ -55,7 +55,7 @@ fn encrypt() {
 fn decrypt() {
     let key = GenericArray::from_slice(KEY);
     let nonce = GenericArray::from_slice(NONCE);
-    let cipher = XSalsa20Poly1305::new(*key);
+    let cipher = XSalsa20Poly1305::new(key);
     let plaintext = cipher.decrypt(nonce, CIPHERTEXT).unwrap();
 
     assert_eq!(PLAINTEXT, plaintext.as_slice());
@@ -71,6 +71,6 @@ fn decrypt_modified() {
     // Tweak the first byte
     ciphertext[0] ^= 0xaa;
 
-    let cipher = XSalsa20Poly1305::new(*key);
+    let cipher = XSalsa20Poly1305::new(key);
     assert!(cipher.decrypt(nonce, ciphertext.as_slice()).is_err());
 }

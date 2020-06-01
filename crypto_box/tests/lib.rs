@@ -3,7 +3,7 @@
 //! Adapted from PHP Sodium Compat's test vectors:
 //! <https://www.phpclasses.org/browse/file/122796.html>
 
-use crypto_box::aead::{generic_array::GenericArray, Aead};
+use crypto_box::aead::{generic_array::GenericArray, Aead, AeadInPlace};
 use crypto_box::{PublicKey, SalsaBox, SecretKey};
 
 // Alice's keypair

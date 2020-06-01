@@ -2,16 +2,6 @@
 # It is not intended for manual editing.
 [[package]]
 name = "aead"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cf01b9b56e767bb57b94ebf91a58b338002963785cdd7013e21c0d4679471e4"
-dependencies = [
- "generic-array 0.12.3",
- "heapless",
-]
-
-[[package]]
-name = "aead"
 version = "0.3.0-pre"
 source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
 dependencies = [
@@ -33,7 +23,7 @@ dependencies = [
 name = "aes-gcm"
 version = "0.5.0"
 dependencies = [
- "aead 0.3.0-pre",
+ "aead",
  "aes",
  "block-cipher",
  "criterion",
@@ -48,7 +38,7 @@ dependencies = [
 name = "aes-gcm-siv"
 version = "0.4.1"
 dependencies = [
- "aead 0.3.0-pre",
+ "aead",
  "aes",
  "block-cipher",
  "criterion",
@@ -62,7 +52,7 @@ dependencies = [
 name = "aes-siv"
 version = "0.2.0"
 dependencies = [
- "aead 0.3.0-pre",
+ "aead",
  "aes",
  "cmac",
  "crypto-mac",
@@ -70,7 +60,7 @@ dependencies = [
  "dbl",
  "hex-literal",
  "pmac",
- "stream-cipher 0.4.0-pre",
+ "stream-cipher",
  "zeroize",
 ]
 
@@ -185,7 +175,7 @@ name = "chacha20"
 version = "0.4.0-pre"
 source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
 dependencies = [
- "stream-cipher 0.4.0-pre",
+ "stream-cipher",
  "zeroize",
 ]
 
@@ -193,12 +183,12 @@ dependencies = [
 name = "chacha20poly1305"
 version = "0.4.1"
 dependencies = [
- "aead 0.3.0-pre",
+ "aead",
  "chacha20",
  "criterion",
  "criterion-cycles-per-byte",
- "poly1305 0.6.0-pre",
- "stream-cipher 0.4.0-pre",
+ "poly1305",
+ "stream-cipher",
  "zeroize",
 ]
 
@@ -332,6 +322,7 @@ dependencies = [
  "salsa20",
  "x25519-dalek",
  "xsalsa20poly1305",
+ "zeroize",
 ]
 
 [[package]]
@@ -362,7 +353,7 @@ version = "0.4.0-pre"
 source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
 dependencies = [
  "block-cipher",
- "stream-cipher 0.4.0-pre",
+ "stream-cipher",
 ]
 
 [[package]]
@@ -442,7 +433,7 @@ dependencies = [
 [[package]]
 name = "ghash"
 version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#ce8281ecfe1aaedf98f1885e7d7174dea9630dae"
+source = "git+https://github.com/RustCrypto/universal-hashes#fc20b7a8314a262aacd2f7644dca1d2adbb15ae7"
 dependencies = [
  "polyval",
 ]
@@ -489,9 +480,9 @@ dependencies = [
 
 [[package]]
 name = "hex-literal-impl"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d4c5c844e2fee0bf673d54c2c177f1713b3d2af2ff6e666b49cb7572e6cf42d"
+checksum = "853f769599eb31de176303197b7ba4973299c38c7a7604a6bc88c3eef05b9b46"
 dependencies = [
  "proc-macro-hack",
 ]
@@ -623,28 +614,19 @@ dependencies = [
 
 [[package]]
 name = "poly1305"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5829f50f48e9ddb79f3f7c3097029d0caee30f8286accb241416df603b080b8"
-dependencies = [
- "universal-hash 0.3.0",
-]
-
-[[package]]
-name = "poly1305"
 version = "0.6.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#ce8281ecfe1aaedf98f1885e7d7174dea9630dae"
+source = "git+https://github.com/RustCrypto/universal-hashes#fc20b7a8314a262aacd2f7644dca1d2adbb15ae7"
 dependencies = [
- "universal-hash 0.4.0-pre",
+ "universal-hash",
 ]
 
 [[package]]
 name = "polyval"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#ce8281ecfe1aaedf98f1885e7d7174dea9630dae"
+source = "git+https://github.com/RustCrypto/universal-hashes#fc20b7a8314a262aacd2f7644dca1d2adbb15ae7"
 dependencies = [
  "cfg-if",
- "universal-hash 0.4.0-pre",
+ "universal-hash",
 ]
 
 [[package]]
@@ -785,7 +767,7 @@ dependencies = [
 name = "ring-aead"
 version = "0.1.0"
 dependencies = [
- "aead 0.3.0-pre",
+ "aead",
  "hex-literal",
  "ring",
  "zeroize",
@@ -808,11 +790,10 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "salsa20"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "becffecaad76c7ff25f0ba16387721b48e7cfe0b04cd290478d338f4203eff3c"
+version = "0.5.0-pre"
+source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
 dependencies = [
- "stream-cipher 0.3.2",
+ "stream-cipher",
  "zeroize",
 ]
 
@@ -888,15 +869,6 @@ checksum = "dba1a27d3efae4351c8051072d619e3ade2820635c3958d826bfea39d59b54c8"
 
 [[package]]
 name = "stream-cipher"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8131256a5896cabcf5eb04f4d6dacbe1aefda854b0d9896e09cb58829ec5638c"
-dependencies = [
- "generic-array 0.12.3",
-]
-
-[[package]]
-name = "stream-cipher"
 version = "0.4.0-pre"
 source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
 dependencies = [
@@ -943,9 +915,9 @@ dependencies = [
 
 [[package]]
 name = "tinytemplate"
-version = "1.0.4"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45e4bc5ac99433e0dcb8b9f309dd271a165ae37dde129b9e0ce1bfdd8bfe4891"
+checksum = "6d3dc76004a03cec1c5932bca4cdc2e39aaa798e3f82363dd94f9adf6098c12f"
 dependencies = [
  "serde",
  "serde_json",
@@ -968,16 +940,6 @@ name = "unicode-xid"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
-
-[[package]]
-name = "universal-hash"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df0c900f2f9b4116803415878ff48b63da9edb268668e08cf9292d7503114a01"
-dependencies = [
- "generic-array 0.12.3",
- "subtle",
-]
 
 [[package]]
 name = "universal-hash"
@@ -1121,9 +1083,11 @@ dependencies = [
 name = "xsalsa20poly1305"
 version = "0.3.1"
 dependencies = [
- "aead 0.2.0",
- "poly1305 0.5.2",
+ "aead",
+ "poly1305",
+ "rand_core",
  "salsa20",
+ "subtle",
  "zeroize",
 ]
 

@@ -3,9 +3,12 @@
 use aead::generic_array::GenericArray;
 use aead::Error;
 use core::convert::TryInto;
-use poly1305::{universal_hash::UniversalHash, Poly1305};
+use poly1305::{
+    universal_hash::{NewUniversalHash, UniversalHash},
+    Poly1305,
+};
 use stream_cipher::{SyncStreamCipher, SyncStreamCipherSeek};
-use zeroize::Zeroizing;
+use zeroize::Zeroize;
 
 use super::Tag;
 
@@ -32,9 +35,10 @@ where
     /// Instantiate the underlying cipher with a particular nonce
     pub(crate) fn new(mut cipher: C) -> Self {
         // Derive Poly1305 key from the first 32-bytes of the ChaCha20 keystream
-        let mut mac_key = Zeroizing::new(poly1305::Key::default());
+        let mut mac_key = poly1305::Key::default();
         cipher.apply_keystream(&mut *mac_key);
         let mac = Poly1305::new(GenericArray::from_slice(&*mac_key));
+        mac_key.zeroize();
 
         // Set ChaCha20 counter to 1
         cipher.seek(BLOCK_SIZE as u64);
@@ -94,8 +98,12 @@ where
     fn authenticate_lengths(&mut self, associated_data: &[u8], buffer: &[u8]) -> Result<(), Error> {
         let associated_data_len: u64 = associated_data.len().try_into().map_err(|_| Error)?;
         let buffer_len: u64 = buffer.len().try_into().map_err(|_| Error)?;
-        self.mac.update(&associated_data_len.to_le_bytes());
-        self.mac.update(&buffer_len.to_le_bytes());
+
+        let mut block = GenericArray::default();
+        block[..8].copy_from_slice(&associated_data_len.to_le_bytes());
+        block[8..].copy_from_slice(&buffer_len.to_le_bytes());
+        self.mac.update(&block);
+
         Ok(())
     }
 }

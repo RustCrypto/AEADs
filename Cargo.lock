@@ -182,11 +182,10 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
 name = "chacha20"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6a7ae4c498f8447d86baef0fa0831909333f558866fabcb21600625ac5a31c7"
+version = "0.4.0-pre"
+source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
 dependencies = [
- "stream-cipher 0.3.2",
+ "stream-cipher 0.4.0-pre",
  "zeroize",
 ]
 
@@ -194,12 +193,12 @@ dependencies = [
 name = "chacha20poly1305"
 version = "0.4.1"
 dependencies = [
- "aead 0.2.0",
+ "aead 0.3.0-pre",
  "chacha20",
  "criterion",
  "criterion-cycles-per-byte",
- "poly1305",
- "stream-cipher 0.3.2",
+ "poly1305 0.6.0-pre",
+ "stream-cipher 0.4.0-pre",
  "zeroize",
 ]
 
@@ -629,6 +628,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5829f50f48e9ddb79f3f7c3097029d0caee30f8286accb241416df603b080b8"
 dependencies = [
  "universal-hash 0.3.0",
+]
+
+[[package]]
+name = "poly1305"
+version = "0.6.0-pre"
+source = "git+https://github.com/RustCrypto/universal-hashes#ce8281ecfe1aaedf98f1885e7d7174dea9630dae"
+dependencies = [
+ "universal-hash 0.4.0-pre",
 ]
 
 [[package]]
@@ -1115,7 +1122,7 @@ name = "xsalsa20poly1305"
 version = "0.3.1"
 dependencies = [
  "aead 0.2.0",
- "poly1305",
+ "poly1305 0.5.2",
  "salsa20",
  "zeroize",
 ]

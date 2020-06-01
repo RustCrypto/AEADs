@@ -50,7 +50,7 @@
 //! use chacha20poly1305::ChaCha20Poly1305; // Or `XChaCha20Poly1305`
 //! use aead::{Aead, NewAead, generic_array::GenericArray};
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key."); // 32-bytes
+//! let key = GenericArray::from_slice(b"an example very very secret key."); // 32-bytes
 //! let aead = ChaCha20Poly1305::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 12-bytes; unique per message
@@ -76,11 +76,11 @@
 //!
 //! ```
 //! use chacha20poly1305::ChaCha20Poly1305; // Or `XChaCha20Poly1305`
-//! use aead::{Aead, NewAead};
+//! use aead::{AeadInPlace, NewAead};
 //! use aead::generic_array::{GenericArray, typenum::U128};
 //! use aead::heapless::Vec;
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = ChaCha20Poly1305::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 128-bits; unique per message
@@ -124,11 +124,11 @@ pub use aead;
 pub use xchacha20poly1305::XChaCha20Poly1305;
 
 use self::cipher::Cipher;
-use aead::generic_array::{
-    typenum::{U0, U12, U16, U32},
-    GenericArray,
+use aead::{
+    consts::{U0, U12, U16, U32},
+    generic_array::GenericArray,
+    AeadInPlace, Error, NewAead,
 };
-use aead::{Aead, Error, NewAead};
 use core::marker::PhantomData;
 use stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use zeroize::Zeroize;
@@ -176,15 +176,15 @@ where
 {
     type KeySize = U32;
 
-    fn new(key: GenericArray<u8, U32>) -> Self {
+    fn new(key: &GenericArray<u8, U32>) -> Self {
         Self {
-            key,
+            key: *key,
             stream_cipher: PhantomData,
         }
     }
 }
 
-impl<C> Aead for ChaChaPoly1305<C>
+impl<C> AeadInPlace for ChaChaPoly1305<C>
 where
     C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
 {

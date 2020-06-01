@@ -14,11 +14,13 @@ aes = { git = "https://github.com/RustCrypto/block-ciphers" }
 aead = { git = "https://github.com/RustCrypto/traits" }
 block-cipher = { git = "https://github.com/RustCrypto/traits" }
 crypto-mac = { git = "https://github.com/RustCrypto/traits" }
+chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers" }
 cmac = { git = "https://github.com/RustCrypto/MACs" }
 ctr = { git = "https://github.com/RustCrypto/stream-ciphers" }
 dbl = { git = "https://github.com/RustCrypto/utils" }
 ghash = { git = "https://github.com/RustCrypto/universal-hashes" }
 pmac = { git = "https://github.com/RustCrypto/MACs" }
+poly1305 = { git = "https://github.com/RustCrypto/universal-hashes" }
 polyval = { git = "https://github.com/RustCrypto/universal-hashes" }
 stream-cipher = { git = "https://github.com/RustCrypto/traits" }
 universal-hash = { git = "https://github.com/RustCrypto/traits" }

@@ -11,7 +11,7 @@ macro_rules! impl_tests {
                 aad: $aad,
             };
 
-            let ciphertext = <$cipher>::new(*key).encrypt(nonce, payload).unwrap();
+            let ciphertext = <$cipher>::new(key).encrypt(nonce, payload).unwrap();
 
             let tag_begins = ciphertext.len() - 16;
             assert_eq!($ciphertext, &ciphertext[..tag_begins]);
@@ -30,7 +30,7 @@ macro_rules! impl_tests {
                 aad: $aad,
             };
 
-            let plaintext = <$cipher>::new(*key).decrypt(nonce, payload).unwrap();
+            let plaintext = <$cipher>::new(key).decrypt(nonce, payload).unwrap();
 
             assert_eq!($plaintext, plaintext.as_slice());
         }
@@ -51,7 +51,7 @@ macro_rules! impl_tests {
                 aad: $aad,
             };
 
-            let cipher = <$cipher>::new(*key);
+            let cipher = <$cipher>::new(key);
             assert!(cipher.decrypt(nonce, payload).is_err());
         }
     };
@@ -115,7 +115,7 @@ mod chacha20 {
 
     #[test]
     fn clone_impl() {
-        let _ = ChaCha20Poly1305::new(GenericArray::clone_from_slice(KEY)).clone();
+        let _ = ChaCha20Poly1305::new(GenericArray::from_slice(KEY)).clone();
     }
 }
 

@@ -3,11 +3,11 @@
 //! See [`XChaCha20Poly1305`] documentation for usage.
 
 use crate::{cipher::Cipher, Tag};
-use aead::generic_array::{
-    typenum::{U0, U16, U24, U32},
-    GenericArray,
+use aead::{
+    consts::{U0, U16, U24, U32},
+    generic_array::GenericArray,
+    AeadInPlace, Error, NewAead,
 };
-use aead::{Aead, Error, NewAead};
 use chacha20::{stream_cipher::NewStreamCipher, XChaCha20};
 use zeroize::Zeroize;
 
@@ -44,7 +44,7 @@ use zeroize::Zeroize;
 /// use chacha20poly1305::XChaCha20Poly1305;
 /// use aead::{Aead, NewAead, generic_array::GenericArray};
 ///
-/// let key = GenericArray::clone_from_slice(b"an example very very secret key."); // 32-bytes
+/// let key = GenericArray::from_slice(b"an example very very secret key."); // 32-bytes
 /// let aead = XChaCha20Poly1305::new(key);
 ///
 /// let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
@@ -61,12 +61,12 @@ pub struct XChaCha20Poly1305 {
 impl NewAead for XChaCha20Poly1305 {
     type KeySize = U32;
 
-    fn new(key: GenericArray<u8, U32>) -> Self {
-        XChaCha20Poly1305 { key }
+    fn new(key: &GenericArray<u8, U32>) -> Self {
+        XChaCha20Poly1305 { key: *key }
     }
 }
 
-impl Aead for XChaCha20Poly1305 {
+impl AeadInPlace for XChaCha20Poly1305 {
     type NonceSize = U24;
     type TagSize = U16;
     type CiphertextOverhead = U0;

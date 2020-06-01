@@ -14,7 +14,7 @@ use aes::{Aes128, Aes256};
 use alloc::vec::Vec;
 use cmac::Cmac;
 use core::ops::Add;
-use crypto_mac::{Mac, MacResult};
+use crypto_mac::{Mac, NewMac};
 use ctr::Ctr128;
 use dbl::Dbl;
 #[cfg(feature = "pmac")]
@@ -63,7 +63,7 @@ pub type Aes256PmacSiv = PmacSiv<Aes256>;
 impl<C, M> Siv<C, M>
 where
     C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
-    M: Mac<OutputSize = U16>,
+    M: Mac<OutputSize = U16> + NewMac,
     <C as NewStreamCipher>::KeySize: Add,
     KeySize<C>: ArrayLength<u8>,
 {
@@ -85,7 +85,7 @@ where
 impl<C, M> Siv<C, M>
 where
     C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
-    M: Mac<OutputSize = U16>,
+    M: Mac<OutputSize = U16> + NewMac,
 {
     /// Encrypt the given plaintext, allocating and returning a `Vec<u8>` for
     /// the ciphertext.
@@ -115,7 +115,7 @@ where
     pub fn encrypt_in_place<I, T>(
         &mut self,
         headers: I,
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error>
     where
         I: IntoIterator<Item = T>,
@@ -175,7 +175,7 @@ where
     pub fn decrypt_in_place<I, T>(
         &mut self,
         headers: I,
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error>
     where
         I: IntoIterator<Item = T>,
@@ -215,8 +215,8 @@ where
         self.xor_with_keystream(*siv_tag, ciphertext);
         let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext)?;
 
-        // Note: constant-time comparison of `MacResult` values
-        if MacResult::new(computed_siv_tag) == MacResult::new(*siv_tag) {
+        // Note: constant-time comparison of `crypto_mac::Output` values
+        if crypto_mac::Output::<M>::new(computed_siv_tag) == crypto_mac::Output::new(*siv_tag) {
             Ok(())
         } else {
             // Re-encrypt the decrypted plaintext to avoid revealing it
@@ -262,8 +262,8 @@ where
     I: IntoIterator<Item = T>,
     T: AsRef<[u8]>,
 {
-    mac.input(&Tag::default());
-    let mut state = mac.result_reset().code();
+    mac.update(&Tag::default());
+    let mut state = mac.result_reset().into_bytes();
 
     for (i, header) in headers.into_iter().enumerate() {
         if i >= MAX_HEADERS {
@@ -271,15 +271,15 @@ where
         }
 
         state = state.dbl();
-        mac.input(header.as_ref());
-        let code = mac.result_reset().code();
+        mac.update(header.as_ref());
+        let code = mac.result_reset().into_bytes();
         xor_in_place(&mut state, &code);
     }
 
     if message.len() >= IV_SIZE {
         let n = message.len().checked_sub(IV_SIZE).unwrap();
 
-        mac.input(&message[..n]);
+        mac.update(&message[..n]);
         xor_in_place(&mut state, &message[n..]);
     } else {
         state = state.dbl();
@@ -287,8 +287,8 @@ where
         state[message.len()] ^= 0x80;
     };
 
-    mac.input(state.as_ref());
-    Ok(mac.result_reset().code())
+    mac.update(state.as_ref());
+    Ok(mac.result_reset().into_bytes())
 }
 
 /// XOR the second argument into the first in-place. Slices do not have to be

@@ -10,7 +10,7 @@
 //! use aes_siv::Aes128SivAead; // Or `Aes256Siv`
 //! use aead::{Aead, NewAead, generic_array::GenericArray};
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = Aes128SivAead::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
@@ -36,11 +36,11 @@
 //!
 //! ```
 //! use aes_siv::Aes128SivAead; // Or `Aes256SivAead`
-//! use aead::{Aead, NewAead};
+//! use aead::{AeadInPlace, NewAead};
 //! use aead::generic_array::{GenericArray, typenum::U128};
 //! use aead::heapless::Vec;
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = Aes128SivAead::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
@@ -80,16 +80,16 @@ pub use aead;
 pub mod siv;
 
 use crate::siv::Siv;
-use aead::generic_array::{
-    typenum::{U0, U16, U32, U64},
-    ArrayLength, GenericArray,
+use aead::{
+    consts::{U0, U16, U32, U64},
+    generic_array::{ArrayLength, GenericArray},
+    AeadInPlace, Buffer, Error, NewAead,
 };
-use aead::{Aead, Buffer, Error, NewAead};
 use aes::{Aes128, Aes256};
 use cmac::Cmac;
 use core::marker::PhantomData;
 use core::ops::Add;
-use crypto_mac::Mac;
+use crypto_mac::{Mac, NewMac};
 use ctr::Ctr128;
 #[cfg(feature = "pmac")]
 use pmac::Pmac;
@@ -142,9 +142,9 @@ where
 {
     type KeySize = U32;
 
-    fn new(key: GenericArray<u8, Self::KeySize>) -> Self {
+    fn new(key: &GenericArray<u8, Self::KeySize>) -> Self {
         Self {
-            key,
+            key: *key,
             mac: PhantomData,
         }
     }
@@ -156,18 +156,18 @@ where
 {
     type KeySize = U64;
 
-    fn new(key: GenericArray<u8, Self::KeySize>) -> Self {
+    fn new(key: &GenericArray<u8, Self::KeySize>) -> Self {
         Self {
-            key,
+            key: *key,
             mac: PhantomData,
         }
     }
 }
 
-impl<C, M> Aead for SivAead<C, M>
+impl<C, M> AeadInPlace for SivAead<C, M>
 where
     C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
-    M: Mac<OutputSize = U16>,
+    M: Mac<OutputSize = U16> + NewMac,
     <C as NewStreamCipher>::KeySize: Add,
     KeySize<C>: ArrayLength<u8>,
 {
@@ -181,7 +181,7 @@ where
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         // "SIV performs nonce-based authenticated encryption when a component of
         // the associated data is a nonce.  For purposes of interoperability the
@@ -206,7 +206,7 @@ where
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         Siv::<C, M>::new(self.key.clone())
             .decrypt_in_place(&[associated_data, nonce.as_slice()], buffer)

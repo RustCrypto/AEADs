@@ -21,22 +21,11 @@ dependencies = [
 
 [[package]]
 name = "aes"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54eb1d8fe354e5fc611daf4f2ea97dd45a765f4f1e4512306ec183ae2e8f20c9"
-dependencies = [
- "aes-soft 0.3.3",
- "aesni 0.6.0",
- "block-cipher-trait",
-]
-
-[[package]]
-name = "aes"
 version = "0.4.0-pre"
 source = "git+https://github.com/RustCrypto/block-ciphers#aa14e7b919a8d4e304ace0af3a487539e1ff5ef8"
 dependencies = [
- "aes-soft 0.4.0-pre",
- "aesni 0.7.0-pre",
+ "aes-soft",
+ "aesni",
  "block-cipher",
 ]
 
@@ -45,13 +34,13 @@ name = "aes-gcm"
 version = "0.5.0"
 dependencies = [
  "aead 0.3.0-pre",
- "aes 0.4.0-pre",
+ "aes",
  "block-cipher",
  "criterion",
  "criterion-cycles-per-byte",
  "ghash",
  "hex-literal",
- "subtle 2.2.3",
+ "subtle",
  "zeroize",
 ]
 
@@ -60,12 +49,12 @@ name = "aes-gcm-siv"
 version = "0.4.1"
 dependencies = [
  "aead 0.3.0-pre",
- "aes 0.4.0-pre",
+ "aes",
  "block-cipher",
  "criterion",
  "criterion-cycles-per-byte",
  "polyval",
- "subtle 2.2.3",
+ "subtle",
  "zeroize",
 ]
 
@@ -73,27 +62,16 @@ dependencies = [
 name = "aes-siv"
 version = "0.2.0"
 dependencies = [
- "aead 0.2.0",
- "aes 0.3.2",
+ "aead 0.3.0-pre",
+ "aes",
  "cmac",
  "crypto-mac",
  "ctr",
  "dbl",
  "hex-literal",
  "pmac",
- "stream-cipher",
+ "stream-cipher 0.4.0-pre",
  "zeroize",
-]
-
-[[package]]
-name = "aes-soft"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfd7e7ae3f9a1fb5c03b389fc6bb9a51400d0c13053f0dca698c832bfd893a0d"
-dependencies = [
- "block-cipher-trait",
- "byteorder",
- "opaque-debug",
 ]
 
 [[package]]
@@ -103,16 +81,6 @@ source = "git+https://github.com/RustCrypto/block-ciphers#aa14e7b919a8d4e304ace0
 dependencies = [
  "block-cipher",
  "byteorder",
- "opaque-debug",
-]
-
-[[package]]
-name = "aesni"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f70a6b5f971e473091ab7cfb5ffac6cde81666c4556751d8d5620ead8abf100"
-dependencies = [
- "block-cipher-trait",
  "opaque-debug",
 ]
 
@@ -168,15 +136,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "block-cipher-trait"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c924d49bd09e7c06003acda26cd9742e796e34282ec6c1189404dee0c1f4774"
-dependencies = [
- "generic-array 0.12.3",
-]
-
-[[package]]
 name = "bstr"
 version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -227,7 +186,7 @@ version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6a7ae4c498f8447d86baef0fa0831909333f558866fabcb21600625ac5a31c7"
 dependencies = [
- "stream-cipher",
+ "stream-cipher 0.3.2",
  "zeroize",
 ]
 
@@ -240,7 +199,7 @@ dependencies = [
  "criterion",
  "criterion-cycles-per-byte",
  "poly1305",
- "stream-cipher",
+ "stream-cipher 0.3.2",
  "zeroize",
 ]
 
@@ -257,11 +216,10 @@ dependencies = [
 
 [[package]]
 name = "cmac"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f4a435124bcc292eba031f1f725d7abacdaf13cbf9f935450e8c45aa9e96cad"
+version = "0.3.0-pre"
+source = "git+https://github.com/RustCrypto/MACs#6fe20b2424c76ba55a04d9fc9030ea1d6e4a13c4"
 dependencies = [
- "block-cipher-trait",
+ "block-cipher",
  "crypto-mac",
  "dbl",
 ]
@@ -359,12 +317,11 @@ dependencies = [
 
 [[package]]
 name = "crypto-mac"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4434400df11d95d556bac068ddfedd482915eb18fe8bea89bc80b6e4b1c179e5"
+version = "0.8.0-pre"
+source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
 dependencies = [
- "generic-array 0.12.3",
- "subtle 1.0.0",
+ "generic-array 0.14.1",
+ "subtle",
 ]
 
 [[package]]
@@ -402,12 +359,11 @@ dependencies = [
 
 [[package]]
 name = "ctr"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "022cd691704491df67d25d006fe8eca083098253c4d43516c2206479c58c6736"
+version = "0.4.0-pre"
+source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
 dependencies = [
- "block-cipher-trait",
- "stream-cipher",
+ "block-cipher",
+ "stream-cipher 0.4.0-pre",
 ]
 
 [[package]]
@@ -419,17 +375,16 @@ dependencies = [
  "byteorder",
  "digest",
  "rand_core",
- "subtle 2.2.3",
+ "subtle",
  "zeroize",
 ]
 
 [[package]]
 name = "dbl"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28dc203b75decc900220c4d9838e738d08413e663c26826ba92b669bed1d0795"
+version = "0.3.0-pre"
+source = "git+https://github.com/RustCrypto/utils#2aae8a40556e166e9ca06aebc944091dda24b769"
 dependencies = [
- "generic-array 0.12.3",
+ "generic-array 0.14.1",
 ]
 
 [[package]]
@@ -659,11 +614,10 @@ dependencies = [
 
 [[package]]
 name = "pmac"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd76d63e86aa67a4bd063079f0d93bb8730b036eea5697345f651e6874ea61e5"
+version = "0.3.0-pre"
+source = "git+https://github.com/RustCrypto/MACs#6fe20b2424c76ba55a04d9fc9030ea1d6e4a13c4"
 dependencies = [
- "block-cipher-trait",
+ "block-cipher",
  "crypto-mac",
  "dbl",
 ]
@@ -851,7 +805,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "becffecaad76c7ff25f0ba16387721b48e7cfe0b04cd290478d338f4203eff3c"
 dependencies = [
- "stream-cipher",
+ "stream-cipher 0.3.2",
  "zeroize",
 ]
 
@@ -935,10 +889,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "subtle"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d67a5a62ba6e01cb2192ff309324cb4875d0c451d55fe2319433abe7a05a8ee"
+name = "stream-cipher"
+version = "0.4.0-pre"
+source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
+dependencies = [
+ "generic-array 0.14.1",
+]
 
 [[package]]
 name = "subtle"
@@ -1013,7 +969,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df0c900f2f9b4116803415878ff48b63da9edb268668e08cf9292d7503114a01"
 dependencies = [
  "generic-array 0.12.3",
- "subtle 2.2.3",
+ "subtle",
 ]
 
 [[package]]
@@ -1022,7 +978,7 @@ version = "0.4.0-pre"
 source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
 dependencies = [
  "generic-array 0.14.1",
- "subtle 2.2.3",
+ "subtle",
 ]
 
 [[package]]

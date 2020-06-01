@@ -23,7 +23,7 @@ macro_rules! tests {
                     aad: vector.aad,
                 };
 
-                let mut cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let ciphertext = cipher.encrypt(nonce, payload).unwrap();
                 assert_eq!(vector.ciphertext, ciphertext.as_slice());
             }
@@ -36,7 +36,7 @@ macro_rules! tests {
                 let nonce = GenericArray::from_slice(vector.nonce);
                 let mut buffer = vector.plaintext.to_vec();
 
-                let mut cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let tag = cipher
                     .encrypt_in_place_detached(nonce, vector.aad, &mut buffer)
                     .unwrap();
@@ -57,7 +57,7 @@ macro_rules! tests {
                     aad: vector.aad,
                 };
 
-                let mut cipher = <$aead>::new(*key);
+                let cipher = <$aead>::new(key);
                 let plaintext = cipher.decrypt(nonce, payload).unwrap();
 
                 assert_eq!(vector.plaintext, plaintext.as_slice());
@@ -72,7 +72,7 @@ macro_rules! tests {
                 let tag = GenericArray::clone_from_slice(&vector.ciphertext[..16]);
                 let mut buffer = vector.ciphertext[16..].to_vec();
 
-                <$aead>::new(*key)
+                <$aead>::new(key)
                     .decrypt_in_place_detached(nonce, vector.aad, &mut buffer, &tag)
                     .unwrap();
 
@@ -95,7 +95,7 @@ macro_rules! tests {
                 aad: vector.aad,
             };
 
-            let mut cipher = <$aead>::new(*key);
+            let cipher = <$aead>::new(key);
             assert!(cipher.decrypt(nonce, payload).is_err());
 
             // TODO(tarcieri): test ciphertext is unmodified in in-place API
@@ -105,7 +105,7 @@ macro_rules! tests {
 
 mod aes128cmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{generic_array::GenericArray, AeadMut, NewAead, Payload};
+    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, NewAead, Payload};
     use aes_siv::Aes128SivAead;
 
     /// AES-128-CMAC-SIV test vectors
@@ -125,7 +125,7 @@ mod aes128cmacsivaead {
 #[cfg(feature = "pmac")]
 mod aes128pmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{generic_array::GenericArray, AeadMut, NewAead, Payload};
+    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, NewAead, Payload};
     use aes_siv::Aes128PmacSivAead;
 
     /// AES-128-PMAC-SIV test vectors

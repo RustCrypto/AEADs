@@ -18,7 +18,8 @@ keywords = ["nacl", "libsodium", "public-key", "x25519", "xsalsa20poly1305"]
 
 [dependencies]
 rand_core = "0.5"
-salsa20 = { version = "0.4.1", features = ["hsalsa20"] }
+salsa20 = { version = "= 0.5.0-pre", features = ["hsalsa20"] }
+zeroize = { version = "1", default-features = false }
 
 [dependencies.x25519-dalek]
 version = "0.6"
@@ -28,6 +29,7 @@ features = ["u64_backend"]
 [dependencies.xsalsa20poly1305]
 version = "0.3"
 default-features = false
+features = ["rand_core"]
 path = "../xsalsa20poly1305"
 
 [dev-dependencies]

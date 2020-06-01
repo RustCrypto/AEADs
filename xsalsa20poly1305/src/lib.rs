@@ -25,7 +25,7 @@
 //! use xsalsa20poly1305::XSalsa20Poly1305;
 //! use aead::{Aead, NewAead, generic_array::GenericArray};
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = XSalsa20Poly1305::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
@@ -51,11 +51,11 @@
 //!
 //! ```
 //! use xsalsa20poly1305::XSalsa20Poly1305;
-//! use aead::{Aead, NewAead};
+//! use aead::{AeadInPlace, NewAead};
 //! use aead::generic_array::{GenericArray, typenum::U128};
 //! use aead::heapless::Vec;
 //!
-//! let key = GenericArray::clone_from_slice(b"an example very very secret key.");
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let aead = XSalsa20Poly1305::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
@@ -97,11 +97,27 @@ use aead::generic_array::{
     typenum::{Unsigned, U0, U16, U24, U32},
     GenericArray,
 };
-use aead::{Aead, Buffer, Error, NewAead};
-use poly1305::{universal_hash::UniversalHash, Poly1305};
+use aead::{AeadInPlace, Buffer, Error, NewAead};
+use poly1305::{universal_hash::NewUniversalHash, Poly1305};
 use salsa20::stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use salsa20::XSalsa20;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroize;
+
+#[cfg(feature = "rand_core")]
+use rand_core::{CryptoRng, RngCore};
+
+/// Generate a random nonce: every message MUST have a unique nonce!
+///
+/// Do *NOT* ever reuse the same nonce for two messages!
+#[cfg(feature = "rand_core")]
+pub fn generate_nonce<T>(csprng: &mut T) -> GenericArray<u8, U24>
+where
+    T: RngCore + CryptoRng,
+{
+    let mut nonce = GenericArray::default();
+    csprng.fill_bytes(&mut nonce);
+    nonce
+}
 
 /// Poly1305 tags
 pub type Tag = GenericArray<u8, U16>;
@@ -117,12 +133,12 @@ pub struct XSalsa20Poly1305 {
 impl NewAead for XSalsa20Poly1305 {
     type KeySize = U32;
 
-    fn new(key: GenericArray<u8, U32>) -> Self {
-        XSalsa20Poly1305 { key }
+    fn new(key: &GenericArray<u8, U32>) -> Self {
+        XSalsa20Poly1305 { key: *key }
     }
 }
 
-impl Aead for XSalsa20Poly1305 {
+impl AeadInPlace for XSalsa20Poly1305 {
     type NonceSize = U24;
     type TagSize = U16;
     type CiphertextOverhead = U0;
@@ -131,7 +147,7 @@ impl Aead for XSalsa20Poly1305 {
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         let pt_len = buffer.len();
         let tag_len = Self::TagSize::to_usize();
@@ -165,7 +181,7 @@ impl Aead for XSalsa20Poly1305 {
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         let tag_len = Self::TagSize::to_usize();
 
@@ -226,10 +242,11 @@ where
     /// Instantiate the underlying cipher with a particular nonce
     pub(crate) fn new(mut cipher: C) -> Self {
         // Derive Poly1305 key from the first 32-bytes of the Salsa20 keystream
-        let mut mac_key = Zeroizing::new(poly1305::Key::default());
+        let mut mac_key = poly1305::Key::default();
         cipher.apply_keystream(&mut *mac_key);
-
         let mac = Poly1305::new(GenericArray::from_slice(&*mac_key));
+        mac_key.zeroize();
+
         Self { cipher, mac }
     }
 
@@ -245,8 +262,7 @@ where
         }
 
         self.cipher.apply_keystream(buffer);
-        self.mac.update(buffer);
-        Ok(self.mac.result().into_bytes())
+        Ok(self.mac.compute_unpadded(buffer).into_bytes())
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity
@@ -262,10 +278,11 @@ where
             return Err(Error);
         }
 
-        self.mac.update(buffer);
+        use subtle::ConstantTimeEq;
+        let expected_tag = self.mac.compute_unpadded(buffer).into_bytes();
 
         // This performs a constant-time comparison using the `subtle` crate
-        if self.mac.verify(tag).is_ok() {
+        if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {

@@ -129,32 +129,21 @@
 #![warn(missing_docs, rust_2018_idioms)]
 
 pub use x25519_dalek::PublicKey;
-pub use xsalsa20poly1305::aead;
+pub use xsalsa20poly1305::{aead, generate_nonce};
 
 use aead::generic_array::{
     typenum::{U0, U16, U24},
     GenericArray,
 };
-use aead::{Aead, Buffer, Error, NewAead};
+use aead::{AeadInPlace, Buffer, Error, NewAead};
 use core::fmt::{self, Debug};
 use rand_core::{CryptoRng, RngCore};
 use salsa20::hsalsa20;
 use xsalsa20poly1305::{Tag, XSalsa20Poly1305};
+use zeroize::Zeroize;
 
 /// Size of a `crypto_box` public or secret key in bytes.
 pub const KEY_SIZE: usize = 32;
-
-/// Generate a random nonce: every message MUST have a unique nonce!
-///
-/// Do *NOT* ever reuse the same nonce for two messages!
-pub fn generate_nonce<T>(csprng: &mut T) -> GenericArray<u8, U24>
-where
-    T: RngCore + CryptoRng,
-{
-    let mut nonce = GenericArray::default();
-    csprng.fill_bytes(&mut nonce);
-    nonce
-}
 
 /// `crypto_box` secret key
 #[derive(Clone)]
@@ -220,16 +209,19 @@ impl SalsaBox {
         let shared_secret = secret_key.0.diffie_hellman(public_key);
 
         // Use HSalsa20 to create a uniformly random key from the shared secret
-        let key = hsalsa20(
+        let mut key = hsalsa20(
             &GenericArray::clone_from_slice(shared_secret.as_bytes()),
             &GenericArray::default(),
         );
 
-        SalsaBox(XSalsa20Poly1305::new(key))
+        let cipher = XSalsa20Poly1305::new(&key);
+        key.zeroize();
+
+        SalsaBox(cipher)
     }
 }
 
-impl Aead for SalsaBox {
+impl AeadInPlace for SalsaBox {
     type NonceSize = U24;
     type TagSize = U16;
     type CiphertextOverhead = U0;
@@ -238,7 +230,7 @@ impl Aead for SalsaBox {
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         self.0.encrypt_in_place(nonce, associated_data, buffer)
     }
@@ -257,7 +249,7 @@ impl Aead for SalsaBox {
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut impl Buffer,
+        buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         self.0.decrypt_in_place(nonce, associated_data, buffer)
     }

@@ -64,7 +64,7 @@ where
         self.mac.update_padded(buffer);
 
         self.authenticate_lengths(associated_data, buffer)?;
-        Ok(self.mac.result().into_bytes())
+        Ok(self.mac.finalize().into_bytes())
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity

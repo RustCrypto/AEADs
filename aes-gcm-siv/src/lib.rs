@@ -367,7 +367,7 @@ where
         block[8..].copy_from_slice(&buffer_bits.to_le_bytes());
         self.polyval.update(&block);
 
-        let mut tag = self.polyval.result_reset().into_bytes();
+        let mut tag = self.polyval.finalize_reset().into_bytes();
 
         // XOR the nonce into the resulting tag
         for (i, byte) in tag[..12].iter_mut().enumerate() {

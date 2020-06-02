@@ -263,7 +263,7 @@ where
     T: AsRef<[u8]>,
 {
     mac.update(&Tag::default());
-    let mut state = mac.result_reset().into_bytes();
+    let mut state = mac.finalize_reset().into_bytes();
 
     for (i, header) in headers.into_iter().enumerate() {
         if i >= MAX_HEADERS {
@@ -272,7 +272,7 @@ where
 
         state = state.dbl();
         mac.update(header.as_ref());
-        let code = mac.result_reset().into_bytes();
+        let code = mac.finalize_reset().into_bytes();
         xor_in_place(&mut state, &code);
     }
 
@@ -288,7 +288,7 @@ where
     };
 
     mac.update(state.as_ref());
-    Ok(mac.result_reset().into_bytes())
+    Ok(mac.finalize_reset().into_bytes())
 }
 
 /// XOR the second argument into the first in-place. Slices do not have to be

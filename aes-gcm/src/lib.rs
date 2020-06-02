@@ -302,7 +302,7 @@ where
             block[8..].copy_from_slice(&nonce_bits.to_be_bytes());
             ghash.update(&block);
 
-            ghash.result().into_bytes()
+            ghash.finalize().into_bytes()
         };
 
         Ctr32::new(j0)
@@ -322,6 +322,6 @@ where
         block[8..].copy_from_slice(&buffer_bits.to_be_bytes());
         ghash.update(&block);
 
-        ghash.result().into_bytes()
+        ghash.finalize().into_bytes()
     }
 }

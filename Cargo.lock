@@ -3,7 +3,7 @@
 [[package]]
 name = "aead"
 version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
+source = "git+https://github.com/RustCrypto/traits#a853a6fedf7210ed0303651afa29cb56eb64852e"
 dependencies = [
  "generic-array 0.14.1",
  "heapless",
@@ -120,7 +120,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 [[package]]
 name = "block-cipher"
 version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
+source = "git+https://github.com/RustCrypto/traits#a853a6fedf7210ed0303651afa29cb56eb64852e"
 dependencies = [
  "generic-array 0.14.1",
 ]
@@ -139,9 +139,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.3.0"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5356f1d23ee24a1f785a56d1d1a5f0fd5b0f6a0c0fb2412ce11da71649ab78f6"
+checksum = "2e8c087f005730276d1096a652e92a8bacee2e2472bcc9715a74d2bec38b5820"
 
 [[package]]
 name = "byteorder"
@@ -173,7 +173,7 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 [[package]]
 name = "chacha20"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
+source = "git+https://github.com/RustCrypto/stream-ciphers#9ddc1c029a25de9422d2572fd24eb11d27e21b57"
 dependencies = [
  "stream-cipher",
  "zeroize",
@@ -206,7 +206,7 @@ dependencies = [
 [[package]]
 name = "cmac"
 version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/MACs#6fe20b2424c76ba55a04d9fc9030ea1d6e4a13c4"
+source = "git+https://github.com/RustCrypto/MACs#c690bcf0e5a65ca55fe45e873a82940cc0cc9d3a"
 dependencies = [
  "block-cipher",
  "crypto-mac",
@@ -307,7 +307,7 @@ dependencies = [
 [[package]]
 name = "crypto-mac"
 version = "0.8.0-pre"
-source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
+source = "git+https://github.com/RustCrypto/traits#a853a6fedf7210ed0303651afa29cb56eb64852e"
 dependencies = [
  "generic-array 0.14.1",
  "subtle",
@@ -350,7 +350,7 @@ dependencies = [
 [[package]]
 name = "ctr"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
+source = "git+https://github.com/RustCrypto/stream-ciphers#9ddc1c029a25de9422d2572fd24eb11d27e21b57"
 dependencies = [
  "block-cipher",
  "stream-cipher",
@@ -433,7 +433,7 @@ dependencies = [
 [[package]]
 name = "ghash"
 version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#fc20b7a8314a262aacd2f7644dca1d2adbb15ae7"
+source = "git+https://github.com/RustCrypto/universal-hashes#bf6009a306806fa6c84d3b46d9d0a515564871b4"
 dependencies = [
  "polyval",
 ]
@@ -605,7 +605,7 @@ dependencies = [
 [[package]]
 name = "pmac"
 version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/MACs#6fe20b2424c76ba55a04d9fc9030ea1d6e4a13c4"
+source = "git+https://github.com/RustCrypto/MACs#c690bcf0e5a65ca55fe45e873a82940cc0cc9d3a"
 dependencies = [
  "block-cipher",
  "crypto-mac",
@@ -615,7 +615,7 @@ dependencies = [
 [[package]]
 name = "poly1305"
 version = "0.6.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#fc20b7a8314a262aacd2f7644dca1d2adbb15ae7"
+source = "git+https://github.com/RustCrypto/universal-hashes#bf6009a306806fa6c84d3b46d9d0a515564871b4"
 dependencies = [
  "universal-hash",
 ]
@@ -623,7 +623,7 @@ dependencies = [
 [[package]]
 name = "polyval"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#fc20b7a8314a262aacd2f7644dca1d2adbb15ae7"
+source = "git+https://github.com/RustCrypto/universal-hashes#bf6009a306806fa6c84d3b46d9d0a515564871b4"
 dependencies = [
  "cfg-if",
  "universal-hash",
@@ -791,7 +791,7 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 [[package]]
 name = "salsa20"
 version = "0.5.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#898461fec8e76a2173a91a0a32258820bb202f57"
+source = "git+https://github.com/RustCrypto/stream-ciphers#9ddc1c029a25de9422d2572fd24eb11d27e21b57"
 dependencies = [
  "stream-cipher",
  "zeroize",
@@ -870,7 +870,7 @@ checksum = "dba1a27d3efae4351c8051072d619e3ade2820635c3958d826bfea39d59b54c8"
 [[package]]
 name = "stream-cipher"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
+source = "git+https://github.com/RustCrypto/traits#a853a6fedf7210ed0303651afa29cb56eb64852e"
 dependencies = [
  "generic-array 0.14.1",
 ]
@@ -944,7 +944,7 @@ checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 [[package]]
 name = "universal-hash"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/traits#c1c91e6a984b8c323c2a1e602767473bac756ba1"
+source = "git+https://github.com/RustCrypto/traits#a853a6fedf7210ed0303651afa29cb56eb64852e"
 dependencies = [
  "generic-array 0.14.1",
  "subtle",

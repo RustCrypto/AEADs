@@ -1,4 +1,11 @@
-# ChaCha20Poly1305 [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![CodeCov Status][codecov-image]][codecov-link] [![Build Status][build-image]][build-link]
+# RustCrypto: ChaCha20Poly1305
+
+[![crate][crate-image]][crate-link]
+[![Docs][docs-image]][docs-link]
+![Apache2/MIT licensed][license-image]
+![Rust Version][rustc-image]
+[![CodeCov Status][codecov-image]][codecov-link]
+[![Build Status][build-image]][build-link]
 
 Pure Rust implementation of **ChaCha20Poly1305** ([RFC 8439][1]): an
 [Authenticated Encryption with Associated Data (AEAD)][2] cipher amenable to

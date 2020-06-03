@@ -1,4 +1,4 @@
-# XSalsa20Poly1305: Authenticated Encryption Cipher
+# RustCrypto: XSalsa20Poly1305 (a.k.a. `crypto_secretbox`)
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]

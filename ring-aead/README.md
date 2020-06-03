@@ -1,6 +1,14 @@
-# *ring* AEAD [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![CodeCov Status][codecov-image]][codecov-link] [![Build Status][build-image]][build-link]
+# RustCrypto: *ring* AEAD trait wrappers
 
-[`aead::Aead`] wrappers for high-performance implementations of AES-GCM and ChaCha20Poly1305 in the [*ring*] crate.
+[![crate][crate-image]][crate-link]
+[![Docs][docs-image]][docs-link]
+![Apache2/MIT licensed][license-image]
+![Rust Version][rustc-image]
+[![CodeCov Status][codecov-image]][codecov-link]
+[![Build Status][build-image]][build-link]
+
+[`aead::AeadInPlace`] trait wrappers for high-performance implementations of
+AES-GCM and ChaCha20Poly1305 in the [*ring*] crate.
 
 [Documentation][docs-link]
 
@@ -34,5 +42,5 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (general links)
 
-[`aead::Aead`]: https://docs.rs/aead/latest/aead/trait.Aead.html
+[`aead::AeadInPlace`]: https://docs.rs/aead/latest/aead/trait.AeadInPlace.html
 [*ring*]: https://github.com/briansmith/ring

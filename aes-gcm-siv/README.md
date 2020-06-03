@@ -1,4 +1,4 @@
-# AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher
+# RustCrypto: AES-GCM-SIV (Misuse-Resistant Authenticated Encryption Cipher)
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]

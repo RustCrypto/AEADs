@@ -1,8 +1,14 @@
-# AES-SIV: Misuse-Resistant Authenticated Encryption Cipher [![crate][crate-image]][crate-link] [![Docs][docs-image]][docs-link] ![Apache2/MIT licensed][license-image] ![Rust Version][rustc-image] [![CodeCov Status][codecov-image]][codecov-link] [![Build Status][build-image]][build-link]
+# RustCrypto: AES-SIV (Misuse-Resistant Authenticated Encryption Cipher)
 
-[AES-SIV][1] ([RFC 5297][2]) is a high-performance
-[Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
-provides [nonce reuse misuse resistance][4].
+[![crate][crate-image]][crate-link]
+[![Docs][docs-image]][docs-link]
+![Apache2/MIT licensed][license-image]
+![Rust Version][rustc-image]
+[![CodeCov Status][codecov-image]][codecov-link]
+[![Build Status][build-image]][build-link]
+
+[AES-SIV][1] ([RFC 5297][2]) is an [Authenticated Encryption with Associated Data (AEAD)][3]
+cipher which also provides [nonce reuse misuse resistance][4].
 
 [Documentation][docs-link]
 

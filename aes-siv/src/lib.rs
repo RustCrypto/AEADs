@@ -1,4 +1,4 @@
-//! [AES-SIV][1] ([RFC 5297][2]): high-performance
+//! [AES-SIV][1] ([RFC 5297][2]):
 //! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
 //! provides [nonce reuse misuse resistance][4].
 //!
@@ -8,14 +8,19 @@
 //!
 //! ```
 //! use aes_siv::Aes128SivAead; // Or `Aes256Siv`
-//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//! use aes_siv::aead::{Aead, NewAead, generic_array::GenericArray};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let aead = Aes128SivAead::new(key);
+//! let cipher = Aes128SivAead::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
-//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
-//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
+//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
+//!
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
+//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
+//!
 //! assert_eq!(&plaintext, b"plaintext message");
 //! ```
 //!
@@ -24,24 +29,25 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`][5] and [`Aead::decrypt_in_place`][6]
-//! methods accept any type that impls the [`aead::Buffer`][7] trait which
+//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
 //! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][8]
-//! (re-exported from the `aead` crate as `aead::heapless::Vec`),
+//! you will receive an impl of [`aead::Buffer`] for `heapless::Vec`
+//! (re-exported from the [`aead`] crate as [`aead::heapless::Vec`]),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
 //! ```
+//! # #[cfg(feature = "heapless")]
+//! # {
 //! use aes_siv::Aes128SivAead; // Or `Aes256SivAead`
-//! use aead::{AeadInPlace, NewAead};
-//! use aead::generic_array::{GenericArray, typenum::U128};
-//! use aead::heapless::Vec;
+//! use aes_siv::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use aes_siv::aead::heapless::{Vec, consts::U128};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let aead = Aes128SivAead::new(key);
+//! let cipher = Aes128SivAead::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
 //!
@@ -49,24 +55,21 @@
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! aead.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! aead.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
 //! assert_eq!(&buffer, b"plaintext message");
+//! # }
 //! ```
 //!
 //! [1]: https://github.com/miscreant/meta/wiki/AES-SIV
 //! [2]: https://tools.ietf.org/html/rfc5297
 //! [3]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
-//! [5]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
-//! [6]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
-//! [7]: https://docs.rs/aead/latest/aead/trait.Buffer.html
-//! [8]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
@@ -87,13 +90,13 @@ use aead::{
 };
 use aes::{Aes128, Aes256};
 use cmac::Cmac;
-use core::marker::PhantomData;
-use core::ops::Add;
+use core::{marker::PhantomData, ops::Add};
 use crypto_mac::{Mac, NewMac};
 use ctr::Ctr128;
+use stream_cipher::{NewStreamCipher, SyncStreamCipher};
+
 #[cfg(feature = "pmac")]
 use pmac::Pmac;
-use stream_cipher::{NewStreamCipher, SyncStreamCipher};
 
 /// Size of an AES-SIV key given a particular cipher
 pub type KeySize<C> = <<C as NewStreamCipher>::KeySize as Add>::Output;

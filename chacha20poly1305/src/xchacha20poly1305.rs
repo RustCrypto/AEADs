@@ -11,9 +11,10 @@ use aead::{
 use chacha20::{stream_cipher::NewStreamCipher, XChaCha20};
 use zeroize::Zeroize;
 
-/// **XChaCha20Poly1305** is a ChaCha20Poly1305 variant with an extended
-/// 192-bit (24-byte) nonce. The `xchacha20poly1305` Cargo feature
-/// must be enabled in order to use this (which it is by default).
+/// ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
+///
+/// The `xchacha20poly1305` Cargo feature must be enabled in order to use this
+/// (which it is by default).
 ///
 /// The construction is an adaptation of the same techniques used by
 /// XSalsa20 as described in the paper "Extending the Salsa20 Nonce"
@@ -53,6 +54,7 @@ use zeroize::Zeroize;
 /// assert_eq!(&plaintext, b"plaintext message");
 /// ```
 #[derive(Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "xchacha20poly1305")))]
 pub struct XChaCha20Poly1305 {
     /// Secret key
     key: GenericArray<u8, U32>,

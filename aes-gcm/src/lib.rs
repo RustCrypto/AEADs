@@ -33,14 +33,19 @@
 //!
 //! ```
 //! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
-//! use aead::{Aead, NewAead, generic_array::GenericArray};
+//! use aes_gcm::aead::{Aead, NewAead, generic_array::GenericArray};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let aead = Aes256Gcm::new(key);
+//! let cipher = Aes256Gcm::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
-//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
-//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
+//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
+//!
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
+//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
+//!
 //! assert_eq!(&plaintext, b"plaintext message");
 //! ```
 //!
@@ -49,24 +54,25 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`][5] and [`Aead::decrypt_in_place`][6]
-//! methods accept any type that impls the [`aead::Buffer`][7] trait which
+//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
 //! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of `aead::Buffer` for [`heapless::Vec`][8]
-//! (re-exported from the `aead` crate as `aead::heapless::Vec`),
+//! you will receive an impl of [`aead::Buffer`] for `heapless::Vec`
+//! (re-exported from the [`aead`] crate as [`aead::heapless::Vec`]),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
 //! ```
+//! # #[cfg(feature = "heapless")]
+//! # {
 //! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
-//! use aead::{AeadInPlace, NewAead};
-//! use aead::generic_array::{GenericArray, typenum::U128};
-//! use aead::heapless::Vec;
+//! use aes_gcm::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use aes_gcm::aead::heapless::{Vec, consts::U128};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let aead = Aes256Gcm::new(key);
+//! let cipher = Aes256Gcm::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
@@ -74,24 +80,21 @@
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! aead.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! aead.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
 //! assert_eq!(&buffer, b"plaintext message");
+//! # }
 //! ```
 //!
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [2]: https://en.wikipedia.org/wiki/Galois/Counter_Mode
 //! [3]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
 //! [4]: https://www.mobilecoin.com/
-//! [5]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
-//! [6]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
-//! [7]: https://docs.rs/aead/latest/aead/trait.Buffer.html
-//! [8]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]

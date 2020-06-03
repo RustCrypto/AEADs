@@ -10,17 +10,19 @@ use aead::generic_array::{
 };
 use aead::{Buffer, Error};
 use aes::{Aes128, Aes256};
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
 use cmac::Cmac;
 use core::ops::Add;
 use crypto_mac::{Mac, NewMac};
 use ctr::Ctr128;
 use dbl::Dbl;
-#[cfg(feature = "pmac")]
-use pmac::Pmac;
 use stream_cipher::{NewStreamCipher, SyncStreamCipher};
 use zeroize::Zeroize;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
+#[cfg(feature = "pmac")]
+use pmac::Pmac;
 
 /// Size of the (synthetic) initialization vector in bytes
 pub const IV_SIZE: usize = 16;
@@ -92,8 +94,8 @@ where
     ///
     /// # Errors
     ///
-    /// Returns `Error` if `plaintext.len()` is less than `M::OutputSize`.
-    /// Returns `Error` if `headers.len()` is greater than `MAX_ASSOCIATED_DATA`.
+    /// Returns [`Error`] if `plaintext.len()` is less than `M::OutputSize`.
+    /// Returns [`Error`] if `headers.len()` is greater than [`MAX_HEADERS`].
     #[cfg(feature = "alloc")]
     pub fn encrypt<I, T>(&mut self, headers: I, plaintext: &[u8]) -> Result<Vec<u8>, Error>
     where
@@ -110,8 +112,8 @@ where
     ///
     /// # Errors
     ///
-    /// Returns `Error` if `plaintext.len()` is less than `M::OutputSize`.
-    /// Returns `Error` if `headers.len()` is greater than `MAX_ASSOCIATED_DATA`.
+    /// Returns [`Error`] if `plaintext.len()` is less than `M::OutputSize`.
+    /// Returns [`Error`] if `headers.len()` is greater than [`MAX_HEADERS`].
     pub fn encrypt_in_place<I, T>(
         &mut self,
         headers: I,
@@ -138,8 +140,8 @@ where
     ///
     /// # Errors
     ///
-    /// Returns `Error` if `plaintext.len()` is less than `M::OutputSize`.
-    /// Returns `Error` if `headers.len()` is greater than `MAX_ASSOCIATED_DATA`.
+    /// Returns [`Error`] if `plaintext.len()` is less than `M::OutputSize`.
+    /// Returns [`Error`] if `headers.len()` is greater than [`MAX_HEADERS`].
     pub fn encrypt_in_place_detached<I, T>(
         &mut self,
         headers: I,
@@ -201,7 +203,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns `Error` if the ciphertext is not authentic
+    /// Returns [`Error`] if the ciphertext is not authentic
     pub fn decrypt_in_place_detached<I, T>(
         &mut self,
         headers: I,

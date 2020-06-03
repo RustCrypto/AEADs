@@ -99,7 +99,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`Aead::encrypt_in_place`] and [`Aead::decrypt_in_place`]
+//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -119,9 +119,6 @@
 //! [X25519]: https://cr.yp.to/ecdh.html
 //! [XSalsa20Poly1305]: https://nacl.cr.yp.to/secretbox.html
 //! [ECIES]: https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme
-//! [`Aead::encrypt_in_place`]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.encrypt_in_place
-//! [`Aead::decrypt_in_place`]: https://docs.rs/aead/latest/aead/trait.Aead.html#method.decrypt_in_place
-//! [`aead::Buffer`]: https://docs.rs/aead/latest/aead/trait.Buffer.html
 //! [`heapless::Vec`]: https://docs.rs/heapless/latest/heapless/struct.Vec.html
 
 #![no_std]
@@ -131,11 +128,11 @@
 pub use x25519_dalek::PublicKey;
 pub use xsalsa20poly1305::{aead, generate_nonce};
 
-use aead::generic_array::{
-    typenum::{U0, U16, U24},
-    GenericArray,
+use aead::{
+    consts::{U0, U16, U24},
+    generic_array::GenericArray,
+    AeadInPlace, Buffer, Error, NewAead,
 };
-use aead::{AeadInPlace, Buffer, Error, NewAead};
 use core::fmt::{self, Debug};
 use rand_core::{CryptoRng, RngCore};
 use salsa20::hsalsa20;

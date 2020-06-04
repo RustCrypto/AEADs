@@ -21,7 +21,7 @@ aes = "= 0.4.0-pre"
 cmac = "= 0.3.0-pre"
 crypto-mac = { version = "= 0.8.0-pre", default-features = false }
 ctr = "= 0.4.0-pre"
-dbl = { version = "= 0.3.0-pre", default-features = false }
+dbl = { version = "0.3", default-features = false }
 pmac = { version = "= 0.3.0-pre", optional = true }
 stream-cipher = { version = "= 0.4.0-pre", default-features = false }
 zeroize = { version = "1", default-features = false }

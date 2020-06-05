@@ -43,7 +43,7 @@ use zeroize::Zeroize;
 ///
 /// ```
 /// use chacha20poly1305::XChaCha20Poly1305;
-/// use aead::{Aead, NewAead, generic_array::GenericArray};
+/// use chacha20poly1305::aead::{Aead, NewAead, generic_array::GenericArray};
 ///
 /// let key = GenericArray::from_slice(b"an example very very secret key."); // 32-bytes
 /// let aead = XChaCha20Poly1305::new(key);

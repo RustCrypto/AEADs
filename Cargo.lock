@@ -159,12 +159,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cc"
-version = "1.0.54"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bbb73db36c1246e9034e307d0fba23f9a2e251faa47ade70c1bd252220c8311"
-
-[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -573,12 +567,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "once_cell"
-version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b631f7e854af39a1739f401cf34a8a013dfe09eac4fa4dba91e9768bd28168d"
-
-[[package]]
 name = "oorandom"
 version = "11.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -749,31 +737,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26412eb97c6b088a6997e05f69403a802a92d520de2f8e63c2b65f9e0f47c4e8"
 
 [[package]]
-name = "ring"
-version = "0.16.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06b3fefa4f12272808f809a0af618501fdaba41a58963c5fb72238ab0be09603"
-dependencies = [
- "cc",
- "libc",
- "once_cell",
- "spin",
- "untrusted",
- "web-sys",
- "winapi",
-]
-
-[[package]]
-name = "ring-aead"
-version = "0.1.0"
-dependencies = [
- "aead",
- "hex-literal",
- "ring",
- "zeroize",
-]
-
-[[package]]
 name = "rustc_version"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -854,12 +817,6 @@ dependencies = [
  "ryu",
  "serde",
 ]
-
-[[package]]
-name = "spin"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "stable_deref_trait"
@@ -950,12 +907,6 @@ dependencies = [
  "generic-array 0.14.1",
  "subtle",
 ]
-
-[[package]]
-name = "untrusted"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
 
 [[package]]
 name = "walkdir"

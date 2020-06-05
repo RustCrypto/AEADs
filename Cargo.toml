@@ -5,7 +5,6 @@ members = [
     "aes-siv",
     "chacha20poly1305",
     "crypto_box",
-    "ring-aead",
     "xsalsa20poly1305"
 ]
 

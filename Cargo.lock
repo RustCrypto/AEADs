@@ -52,7 +52,7 @@ dependencies = [
 
 [[package]]
 name = "aes-siv"
-version = "0.3.0-pre"
+version = "0.3.0"
 dependencies = [
  "aead",
  "aes",

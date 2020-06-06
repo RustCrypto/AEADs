@@ -2,8 +2,9 @@
 # It is not intended for manual editing.
 [[package]]
 name = "aead"
-version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/traits#7f2b98d31f704b55c502a685632bd2ea4bd5dd6c"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20e6f2cedd00d6e1d33954c9e4181094b61d87e7e751e5aaed1c249df5ba71ba"
 dependencies = [
  "generic-array 0.14.1",
  "heapless",
@@ -11,8 +12,9 @@ dependencies = [
 
 [[package]]
 name = "aes"
-version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/block-ciphers#49f41f6c8f3a1dc711cf22fb5b0faf956a1fd587"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7001367fde4c768a19d1029f0a8be5abd9308e1119846d5bd9ad26297b8faf5"
 dependencies = [
  "aes-soft",
  "aesni",
@@ -66,8 +68,9 @@ dependencies = [
 
 [[package]]
 name = "aes-soft"
-version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/block-ciphers#49f41f6c8f3a1dc711cf22fb5b0faf956a1fd587"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4925647ee64e5056cf231608957ce7c81e12d6d6e316b9ce1404778cc1d35fa7"
 dependencies = [
  "block-cipher",
  "byteorder",
@@ -76,8 +79,9 @@ dependencies = [
 
 [[package]]
 name = "aesni"
-version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/block-ciphers#49f41f6c8f3a1dc711cf22fb5b0faf956a1fd587"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d050d39b0b7688b3a3254394c3e30a9d66c41dcf9b05b0e2dbdc623f6505d264"
 dependencies = [
  "block-cipher",
  "opaque-debug",
@@ -119,8 +123,9 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "block-cipher"
-version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/traits#7f2b98d31f704b55c502a685632bd2ea4bd5dd6c"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f837aab23b44bf3be7e24411b599fda76b1788792e765fa077af268292e156d1"
 dependencies = [
  "generic-array 0.14.1",
 ]
@@ -167,7 +172,7 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 [[package]]
 name = "chacha20"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#caccc8ef2c72d061a50e6475322e9e49250519b9"
+source = "git+https://github.com/RustCrypto/stream-ciphers#c9aaf6e97e60dd7b6bdff8fd6b7cdf2e4b9b6b3c"
 dependencies = [
  "stream-cipher",
  "zeroize",
@@ -199,8 +204,9 @@ dependencies = [
 
 [[package]]
 name = "cmac"
-version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/MACs#408dcda194379f33ed4767c29264a08f4cebacd7"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9f8f8ba8b9640e29213f152015694e78208e601adf91c72b698460633b15715"
 dependencies = [
  "block-cipher",
  "crypto-mac",
@@ -300,8 +306,9 @@ dependencies = [
 
 [[package]]
 name = "crypto-mac"
-version = "0.8.0-pre"
-source = "git+https://github.com/RustCrypto/traits#7f2b98d31f704b55c502a685632bd2ea4bd5dd6c"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b584a330336237c1eecd3e94266efb216c56ed91225d634cb2991c5f3fd1aeab"
 dependencies = [
  "generic-array 0.14.1",
  "subtle",
@@ -344,7 +351,7 @@ dependencies = [
 [[package]]
 name = "ctr"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#caccc8ef2c72d061a50e6475322e9e49250519b9"
+source = "git+https://github.com/RustCrypto/stream-ciphers#c9aaf6e97e60dd7b6bdff8fd6b7cdf2e4b9b6b3c"
 dependencies = [
  "stream-cipher",
 ]
@@ -427,7 +434,7 @@ dependencies = [
 [[package]]
 name = "ghash"
 version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#bf6009a306806fa6c84d3b46d9d0a515564871b4"
+source = "git+https://github.com/RustCrypto/universal-hashes#e3201156024586caec73c9b8df599303c51fd55e"
 dependencies = [
  "polyval",
 ]
@@ -592,8 +599,9 @@ dependencies = [
 
 [[package]]
 name = "pmac"
-version = "0.3.0-pre"
-source = "git+https://github.com/RustCrypto/MACs#408dcda194379f33ed4767c29264a08f4cebacd7"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "979bdaa73c9597de894baf16305d2b4743b8c43b5511d7e574275eedbf5126bb"
 dependencies = [
  "block-cipher",
  "crypto-mac",
@@ -603,7 +611,7 @@ dependencies = [
 [[package]]
 name = "poly1305"
 version = "0.6.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#bf6009a306806fa6c84d3b46d9d0a515564871b4"
+source = "git+https://github.com/RustCrypto/universal-hashes#e3201156024586caec73c9b8df599303c51fd55e"
 dependencies = [
  "universal-hash",
 ]
@@ -611,7 +619,7 @@ dependencies = [
 [[package]]
 name = "polyval"
 version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/universal-hashes#bf6009a306806fa6c84d3b46d9d0a515564871b4"
+source = "git+https://github.com/RustCrypto/universal-hashes#e3201156024586caec73c9b8df599303c51fd55e"
 dependencies = [
  "cfg-if",
  "universal-hash",
@@ -754,7 +762,7 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 [[package]]
 name = "salsa20"
 version = "0.5.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#caccc8ef2c72d061a50e6475322e9e49250519b9"
+source = "git+https://github.com/RustCrypto/stream-ciphers#c9aaf6e97e60dd7b6bdff8fd6b7cdf2e4b9b6b3c"
 dependencies = [
  "stream-cipher",
  "zeroize",
@@ -826,8 +834,9 @@ checksum = "dba1a27d3efae4351c8051072d619e3ade2820635c3958d826bfea39d59b54c8"
 
 [[package]]
 name = "stream-cipher"
-version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/traits#7f2b98d31f704b55c502a685632bd2ea4bd5dd6c"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97961116ec5528e0df39aa6e514377cd1572b8b4623576b371da425a87328d16"
 dependencies = [
  "block-cipher",
  "generic-array 0.14.1",
@@ -901,8 +910,9 @@ checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 
 [[package]]
 name = "universal-hash"
-version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/traits#7f2b98d31f704b55c502a685632bd2ea4bd5dd6c"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8326b2c654932e3e4f9196e69d08fdf7cfd718e1dc6f66b347e6024a0c961402"
 dependencies = [
  "generic-array 0.14.1",
  "subtle",

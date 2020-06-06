@@ -7,8 +7,3 @@ members = [
     "crypto_box",
     "xsalsa20poly1305"
 ]
-
-[patch.crates-io]
-chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers" }
-ctr = { git = "https://github.com/RustCrypto/stream-ciphers" }
-salsa20 = { git = "https://github.com/RustCrypto/stream-ciphers" }

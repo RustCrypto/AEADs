@@ -171,8 +171,9 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
 name = "chacha20"
-version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#c9aaf6e97e60dd7b6bdff8fd6b7cdf2e4b9b6b3c"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6acd88fd85f945e7f2e86830a197b26baa828a623de7cd47a00c10b3a2057d7"
 dependencies = [
  "stream-cipher",
  "zeroize",
@@ -350,8 +351,9 @@ dependencies = [
 
 [[package]]
 name = "ctr"
-version = "0.4.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#c9aaf6e97e60dd7b6bdff8fd6b7cdf2e4b9b6b3c"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a3592740fd55aaf61dd72df96756bd0d11e6037b89dcf30ae2e1895b267692be"
 dependencies = [
  "stream-cipher",
 ]
@@ -764,8 +766,9 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "salsa20"
-version = "0.5.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers#c9aaf6e97e60dd7b6bdff8fd6b7cdf2e4b9b6b3c"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9431e496727766824bc7dad53a00326a78bb4b3e92afeaaaafdaaf5dca4053b6"
 dependencies = [
  "stream-cipher",
  "zeroize",

@@ -6,9 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.6.0 (2020-06-06)
 ### Changed
-- Bump `aead` crate dependency to v0.3.0; MSRV 1.41+ ([#142])
+- Bump `aead` crate dependency to v0.3.0; MSRV 1.41+ ([#140])
 
-[#142]: https://github.com/RustCrypto/AEADs/pull/126
+[#140]: https://github.com/RustCrypto/AEADs/pull/126
 
 ## 0.5.0 (2020-03-15)
 ### Added

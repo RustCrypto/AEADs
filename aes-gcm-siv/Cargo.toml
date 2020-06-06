@@ -19,7 +19,7 @@ categories = ["cryptography", "no-std"]
 aead = { version = "0.3", default-features = false }
 aes = { version = "0.4", optional = true }
 block-cipher = "0.7"
-polyval = { version = "0.4.0-pre", default-features = false }
+polyval = { version = "0.4", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 

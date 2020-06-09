@@ -14,16 +14,16 @@ type Block128 = GenericArray<u8, U16>;
 pub(crate) const BLOCK_SIZE: usize = 16;
 
 /// CTR mode with a 32-bit big endian counter
-pub(crate) struct Ctr32<B>
+pub(crate) struct Ctr32<Aes>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    Aes: BlockCipher<BlockSize = U16>,
+    Aes::ParBlocks: ArrayLength<GenericArray<u8, Aes::BlockSize>>,
 {
     /// Block cipher
-    block_cipher: PhantomData<B>,
+    block_cipher: PhantomData<Aes>,
 
     /// Keystream buffer
-    buffer: GenericArray<Block128, B::ParBlocks>,
+    buffer: GenericArray<Block128, Aes::ParBlocks>,
 
     /// Current CTR value
     counter_block: Block128,
@@ -32,10 +32,10 @@ where
     base_counter: u32,
 }
 
-impl<B> Ctr32<B>
+impl<Aes> Ctr32<Aes>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<GenericArray<u8, B::BlockSize>>,
+    Aes: BlockCipher<BlockSize = U16>,
+    Aes::ParBlocks: ArrayLength<GenericArray<u8, Aes::BlockSize>>,
 {
     /// Instantiate a new CTR instance
     pub fn new(j0: Block128) -> Self {
@@ -61,17 +61,17 @@ where
     }
 
     /// Apply AES-CTR keystream to the given input buffer
-    pub fn apply_keystream(&mut self, block_cipher: &B, msg: &mut [u8]) {
-        for chunk in msg.chunks_mut(BLOCK_SIZE * B::ParBlocks::to_usize()) {
+    pub fn apply_keystream(&mut self, block_cipher: &Aes, msg: &mut [u8]) {
+        for chunk in msg.chunks_mut(BLOCK_SIZE * Aes::ParBlocks::to_usize()) {
             self.apply_keystream_blocks(block_cipher, chunk);
         }
     }
 
     /// Apply `B::ParBlocks` parallel blocks of keystream to the input buffer
-    fn apply_keystream_blocks(&mut self, block_cipher: &B, msg: &mut [u8]) {
+    fn apply_keystream_blocks(&mut self, block_cipher: &Aes, msg: &mut [u8]) {
         let mut counter = u32::from_be_bytes(self.counter_block[12..].try_into().unwrap());
         let n_blocks = msg.chunks(BLOCK_SIZE).count();
-        debug_assert!(n_blocks <= B::ParBlocks::to_usize());
+        debug_assert!(n_blocks <= Aes::ParBlocks::to_usize());
 
         for block in self.buffer.iter_mut().take(n_blocks) {
             *block = self.counter_block;

@@ -151,7 +151,7 @@ pub type Aes256Gcm = AesGcm<Aes256, U12>;
 
 /// AES-GCM: generic over an underlying AES implementation and nonce size.
 ///
-/// This type is generic to support substuting alternative AES implementations
+/// This type is generic to support substituting alternative AES implementations
 /// (e.g. embedded hardware implementations)
 ///
 /// It is NOT intended to be instantiated with any block cipher besides AES!
@@ -163,42 +163,42 @@ pub type Aes256Gcm = AesGcm<Aes256, U12>;
 ///
 /// If in doubt, use the built-in [`Aes128Gcm`] and [`Aes256Gcm`] type aliases.
 #[derive(Clone)]
-pub struct AesGcm<B, N>
+pub struct AesGcm<Aes, NonceSize>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<Block<B>>,
-    N: ArrayLength<u8>,
+    Aes: BlockCipher<BlockSize = U16>,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    NonceSize: ArrayLength<u8>,
 {
     /// Encryption cipher
-    cipher: B,
+    cipher: Aes,
 
     /// GHASH authenticator
     ghash: GHash,
 
     /// Length of the nonce
-    nonce_size: PhantomData<N>,
+    nonce_size: PhantomData<NonceSize>,
 }
 
-impl<B, N> NewAead for AesGcm<B, N>
+impl<Aes, NonceSize> NewAead for AesGcm<Aes, NonceSize>
 where
-    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
-    B::ParBlocks: ArrayLength<Block<B>>,
-    N: ArrayLength<u8>,
+    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    NonceSize: ArrayLength<u8>,
 {
-    type KeySize = B::KeySize;
+    type KeySize = Aes::KeySize;
 
-    fn new(key: &Key<B>) -> Self {
-        B::new(key).into()
+    fn new(key: &Key<Aes>) -> Self {
+        Aes::new(key).into()
     }
 }
 
-impl<B, N> From<B> for AesGcm<B, N>
+impl<Aes, NonceSize> From<Aes> for AesGcm<Aes, NonceSize>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<Block<B>>,
-    N: ArrayLength<u8>,
+    Aes: BlockCipher<BlockSize = U16>,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    NonceSize: ArrayLength<u8>,
 {
-    fn from(cipher: B) -> Self {
+    fn from(cipher: Aes) -> Self {
         let mut ghash_key = GenericArray::default();
         cipher.encrypt_block(&mut ghash_key);
 
@@ -215,19 +215,19 @@ where
     }
 }
 
-impl<B, N> AeadInPlace for AesGcm<B, N>
+impl<Aes, NonceSize> AeadInPlace for AesGcm<Aes, NonceSize>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<Block<B>>,
-    N: ArrayLength<u8>,
+    Aes: BlockCipher<BlockSize = U16>,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    NonceSize: ArrayLength<u8>,
 {
-    type NonceSize = N;
+    type NonceSize = NonceSize;
     type TagSize = U16;
     type CiphertextOverhead = U0;
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, N>,
+        nonce: &GenericArray<u8, NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -250,7 +250,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, N>,
+        nonce: &GenericArray<u8, NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
@@ -275,11 +275,11 @@ where
     }
 }
 
-impl<B, N> AesGcm<B, N>
+impl<Aes, NonceSize> AesGcm<Aes, NonceSize>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<Block<B>>,
-    N: ArrayLength<u8>,
+    Aes: BlockCipher<BlockSize = U16>,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    NonceSize: ArrayLength<u8>,
 {
     /// Initialize counter mode.
     ///
@@ -290,8 +290,8 @@ where
     /// > If len(IV)=96, then J0 = IV || 0{31} || 1.
     /// > If len(IV) ≠ 96, then let s = 128 ⎡len(IV)/128⎤-len(IV), and
     /// >     J0=GHASH(IV||0s+64||[len(IV)]64).
-    fn init_ctr(&self, nonce: &GenericArray<u8, N>) -> Ctr32<B> {
-        let j0 = if N::to_usize() == 12 {
+    fn init_ctr(&self, nonce: &GenericArray<u8, NonceSize>) -> Ctr32<Aes> {
+        let j0 = if NonceSize::to_usize() == 12 {
             let mut block = GenericArray::default();
             block[..12].copy_from_slice(nonce);
             block[15] = 1;
@@ -301,7 +301,7 @@ where
             ghash.update_padded(nonce);
 
             let mut block = GenericArray::default();
-            let nonce_bits = (N::to_usize() as u64) * 8;
+            let nonce_bits = (NonceSize::to_usize() as u64) * 8;
             block[8..].copy_from_slice(&nonce_bits.to_be_bytes());
             ghash.update(&block);
 

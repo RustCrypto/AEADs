@@ -126,7 +126,7 @@ mod xchacha20poly1305;
 pub use aead;
 
 #[cfg(feature = "xchacha20poly1305")]
-pub use xchacha20poly1305::XChaCha20Poly1305;
+pub use xchacha20poly1305::{XChaCha20Poly1305, XNonce};
 
 use self::cipher::Cipher;
 use aead::{
@@ -144,7 +144,15 @@ use chacha20::ChaCha20;
 #[cfg(feature = "reduced-round")]
 use chacha20::{ChaCha12, ChaCha8};
 
-/// Poly1305 tags
+/// Key type (256-bits/32-bytes).
+///
+/// This is the same for all [`ChaChaPoly1305`] variants (including XChaCha20Poly1305)
+pub type Key = GenericArray<u8, U32>;
+
+/// Nonce type (96-bits/12-bytes).
+pub type Nonce = GenericArray<u8, U12>;
+
+/// Poly1305 tag.
 pub type Tag = GenericArray<u8, U16>;
 
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
@@ -182,7 +190,7 @@ where
 {
     type KeySize = U32;
 
-    fn new(key: &GenericArray<u8, U32>) -> Self {
+    fn new(key: &Key) -> Self {
         Self {
             key: *key,
             stream_cipher: PhantomData,
@@ -200,7 +208,7 @@ where
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -209,7 +217,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

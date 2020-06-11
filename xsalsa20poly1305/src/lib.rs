@@ -1,11 +1,11 @@
 //! **XSalsa20Poly1305** (a.k.a. NaCl [`crypto_secretbox`][1]) is an
 //! [authenticated encryption][2] cipher amenable to fast, constant-time
 //! implementations in software, based on the [Salsa20][3] stream cipher
-//! (with [XSalsa20][4] 192-bit nonce extension) and the [Poly1305][5] universal
+//! (with [XSalsa20] 192-bit nonce extension) and the [Poly1305] universal
 //! hash function, which acts as a message authentication code.
 //!
-//! This algorithm has largely been replaced by the newer [ChaCha20Poly1305][6]
-//! (and the associated [XChaCha20Poly1305][7]) AEAD ciphers ([RFC 8439][8]),
+//! This algorithm has largely been replaced by the newer [ChaCha20Poly1305][4]
+//! (and the associated [XChaCha20Poly1305][5]) AEAD ciphers ([RFC 8439][6]),
 //! but is useful for interoperability with legacy NaCl-based protocols.
 //!
 //! ## Security Warning
@@ -84,23 +84,22 @@
 //!
 //! [1]: https://nacl.cr.yp.to/secretbox.html
 //! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/salsa20
-//! [4]: https://cr.yp.to/snuffle/xsalsa-20081128.pdf
-//! [5]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
-//! [6]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
-//! [7]: https://docs.rs/chacha20poly1305/latest/chacha20poly1305/struct.XChaCha20Poly1305.html
-//! [8]: https://tools.ietf.org/html/rfc8439
+//! [3]: https://docs.rs/salsa20
+//! [4]: http://docs.rs/chacha20poly1305
+//! [5]: https://docs.rs/chacha20poly1305/latest/chacha20poly1305/struct.XChaCha20Poly1305.html
+//! [6]: https://tools.ietf.org/html/rfc8439
 
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
+#![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead;
+pub use salsa20::{Key, XNonce as Nonce};
 
-use aead::generic_array::{
-    typenum::{Unsigned, U0, U16, U24, U32},
-    GenericArray,
-};
+use aead::consts::{U0, U16, U24, U32};
+use aead::generic_array::GenericArray;
 use aead::{AeadInPlace, Buffer, Error, NewAead};
 use poly1305::{universal_hash::NewUniversalHash, Poly1305};
 use salsa20::stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
@@ -110,17 +109,24 @@ use zeroize::Zeroize;
 #[cfg(feature = "rand_core")]
 use rand_core::{CryptoRng, RngCore};
 
+/// Size of an XSalsa20Poly1305 nonce in bytes
+pub const NONCE_SIZE: usize = 24;
+
+/// Size of a Poly1305 tag in bytes
+pub const TAG_SIZE: usize = 16;
+
 /// Generate a random nonce: every message MUST have a unique nonce!
 ///
 /// Do *NOT* ever reuse the same nonce for two messages!
 #[cfg(feature = "rand_core")]
-pub fn generate_nonce<T>(csprng: &mut T) -> GenericArray<u8, U24>
+#[cfg_attr(docsrs, doc(cfg(feature = "rand_core")))]
+pub fn generate_nonce<T>(csprng: &mut T) -> Nonce
 where
     T: RngCore + CryptoRng,
 {
-    let mut nonce = GenericArray::default();
+    let mut nonce = [0u8; NONCE_SIZE];
     csprng.fill_bytes(&mut nonce);
-    nonce
+    nonce.into()
 }
 
 /// Poly1305 tags
@@ -131,13 +137,13 @@ pub type Tag = GenericArray<u8, U16>;
 #[derive(Clone)]
 pub struct XSalsa20Poly1305 {
     /// Secret key
-    key: GenericArray<u8, U32>,
+    key: Key,
 }
 
 impl NewAead for XSalsa20Poly1305 {
     type KeySize = U32;
 
-    fn new(key: &GenericArray<u8, U32>) -> Self {
+    fn new(key: &Key) -> Self {
         XSalsa20Poly1305 { key: *key }
     }
 }
@@ -149,31 +155,30 @@ impl AeadInPlace for XSalsa20Poly1305 {
 
     fn encrypt_in_place(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
         let pt_len = buffer.len();
-        let tag_len = Self::TagSize::to_usize();
 
         // Make room in the buffer for the tag. It needs to be prepended.
         buffer.extend_from_slice(Tag::default().as_slice())?;
 
         // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
-        buffer.as_mut().copy_within(..pt_len, tag_len);
+        buffer.as_mut().copy_within(..pt_len, TAG_SIZE);
 
         let tag = self.encrypt_in_place_detached(
             nonce,
             associated_data,
-            &mut buffer.as_mut()[tag_len..],
+            &mut buffer.as_mut()[TAG_SIZE..],
         )?;
-        buffer.as_mut()[..tag_len].copy_from_slice(tag.as_slice());
+        buffer.as_mut()[..TAG_SIZE].copy_from_slice(tag.as_slice());
         Ok(())
     }
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -183,35 +188,33 @@ impl AeadInPlace for XSalsa20Poly1305 {
 
     fn decrypt_in_place(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
-        let tag_len = Self::TagSize::to_usize();
-
-        if buffer.len() < tag_len {
+        if buffer.len() < TAG_SIZE {
             return Err(Error);
         }
 
-        let tag = Tag::clone_from_slice(&buffer.as_ref()[..tag_len]);
+        let tag = Tag::clone_from_slice(&buffer.as_ref()[..TAG_SIZE]);
         self.decrypt_in_place_detached(
             nonce,
             associated_data,
-            &mut buffer.as_mut()[tag_len..],
+            &mut buffer.as_mut()[TAG_SIZE..],
             &tag,
         )?;
 
-        let pt_len = buffer.len() - tag_len;
+        let pt_len = buffer.len() - TAG_SIZE;
 
         // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
-        buffer.as_mut().copy_within(tag_len.., 0);
+        buffer.as_mut().copy_within(TAG_SIZE.., 0);
         buffer.truncate(pt_len);
         Ok(())
     }
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

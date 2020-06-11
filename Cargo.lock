@@ -1057,7 +1057,7 @@ dependencies = [
 
 [[package]]
 name = "xsalsa20poly1305"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "aead",
  "poly1305",

@@ -2,13 +2,15 @@
 //!
 //! See [`XChaCha20Poly1305`] documentation for usage.
 
-use crate::{cipher::Cipher, Tag};
+pub use chacha20::XNonce;
+
+use crate::{cipher::Cipher, Key, Tag};
 use aead::{
     consts::{U0, U16, U24, U32},
-    generic_array::GenericArray,
     AeadInPlace, Error, NewAead,
 };
-use chacha20::{stream_cipher::NewStreamCipher, XChaCha20};
+use chacha20::XChaCha20;
+use stream_cipher::NewStreamCipher;
 use zeroize::Zeroize;
 
 /// ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
@@ -57,13 +59,13 @@ use zeroize::Zeroize;
 #[cfg_attr(docsrs, doc(cfg(feature = "xchacha20poly1305")))]
 pub struct XChaCha20Poly1305 {
     /// Secret key
-    key: GenericArray<u8, U32>,
+    key: Key,
 }
 
 impl NewAead for XChaCha20Poly1305 {
     type KeySize = U32;
 
-    fn new(key: &GenericArray<u8, U32>) -> Self {
+    fn new(key: &Key) -> Self {
         XChaCha20Poly1305 { key: *key }
     }
 }
@@ -75,7 +77,7 @@ impl AeadInPlace for XChaCha20Poly1305 {
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &XNonce,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -85,7 +87,7 @@ impl AeadInPlace for XChaCha20Poly1305 {
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &XNonce,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

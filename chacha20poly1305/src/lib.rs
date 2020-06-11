@@ -146,13 +146,20 @@ use chacha20::{ChaCha12, ChaCha8};
 
 /// Key type (256-bits/32-bytes).
 ///
-/// This is the same for all [`ChaChaPoly1305`] variants (including XChaCha20Poly1305)
+/// Implemented as an alias for [`GenericArray`].
+///
+/// All [`ChaChaPoly1305`] variants (including `XChaCha20Poly1305`) use this
+/// key type.
 pub type Key = GenericArray<u8, U32>;
 
 /// Nonce type (96-bits/12-bytes).
+///
+/// Implemented as an alias for [`GenericArray`].
 pub type Nonce = GenericArray<u8, U12>;
 
 /// Poly1305 tag.
+///
+/// Implemented as an alias for [`GenericArray`].
 pub type Tag = GenericArray<u8, U16>;
 
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).

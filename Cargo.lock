@@ -768,9 +768,9 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "salsa20"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dfc3e1db25d6d85c23f2c61b6a22bf3ea6e44d508e2d2df5b0279af7f1e5104"
+checksum = "6fc17dc5eee5d3040d9f95a2d3ac42fb2c1829a80f417045da6cfd2befa66769"
 dependencies = [
  "stream-cipher",
  "zeroize",
@@ -1057,7 +1057,7 @@ dependencies = [
 
 [[package]]
 name = "xsalsa20poly1305"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "aead",
  "poly1305",

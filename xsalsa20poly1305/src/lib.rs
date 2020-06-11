@@ -109,6 +109,9 @@ use zeroize::Zeroize;
 #[cfg(feature = "rand_core")]
 use rand_core::{CryptoRng, RngCore};
 
+/// Size of an XSalsa20Poly1305 key in bytes
+pub const KEY_SIZE: usize = 32;
+
 /// Size of an XSalsa20Poly1305 nonce in bytes
 pub const NONCE_SIZE: usize = 24;
 

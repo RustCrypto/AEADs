@@ -47,13 +47,13 @@
 //! # Usage
 //!
 //! ```
-//! use chacha20poly1305::ChaCha20Poly1305; // Or `XChaCha20Poly1305`
-//! use chacha20poly1305::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
+//! use chacha20poly1305::aead::{Aead, NewAead};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key."); // 32-bytes
+//! let key = Key::from_slice(b"an example very very secret key."); // 32-bytes
 //! let cipher = ChaCha20Poly1305::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 12-bytes; unique per message
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 12-bytes; unique per message
 //!
 //! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
 //!     .expect("encryption failure!");  // NOTE: handle this error to avoid panics!
@@ -81,14 +81,14 @@
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
-//! use chacha20poly1305::ChaCha20Poly1305; // Or `XChaCha20Poly1305`
-//! use chacha20poly1305::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
+//! use chacha20poly1305::aead::{AeadInPlace, NewAead};
 //! use chacha20poly1305::aead::heapless::{Vec, consts::U128};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = ChaCha20Poly1305::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 128-bits; unique per message
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, U128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");

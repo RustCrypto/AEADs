@@ -44,13 +44,13 @@ use zeroize::Zeroize;
 /// # Usage
 ///
 /// ```
-/// use chacha20poly1305::XChaCha20Poly1305;
-/// use chacha20poly1305::aead::{Aead, NewAead, generic_array::GenericArray};
+/// use chacha20poly1305::{XChaCha20Poly1305, Key, XNonce};
+/// use chacha20poly1305::aead::{Aead, NewAead};
 ///
-/// let key = GenericArray::from_slice(b"an example very very secret key."); // 32-bytes
+/// let key = Key::from_slice(b"an example very very secret key."); // 32-bytes
 /// let aead = XChaCha20Poly1305::new(key);
 ///
-/// let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
+/// let nonce = XNonce::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
 /// let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
 /// let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
 /// assert_eq!(&plaintext, b"plaintext message");

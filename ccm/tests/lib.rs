@@ -1,5 +1,8 @@
-use aead::{AeadInPlace, NewAead, generic_array::GenericArray};
-use ccm::{Ccm, consts::{U8, U10, U13}};
+use aead::{generic_array::GenericArray, AeadInPlace, NewAead};
+use ccm::{
+    consts::{U10, U13, U8},
+    Ccm,
+};
 use hex_literal::hex;
 
 // Test vectors from https://tools.ietf.org/html/rfc3610
@@ -21,7 +24,8 @@ macro_rules! new_test {
             assert_eq!(res.as_slice(), &$tag);
 
             let mut buf2 = $ct.clone();
-            c.decrypt_in_place_detached(nonce, &$ad, &mut buf2, &res).unwrap();
+            c.decrypt_in_place_detached(nonce, &$ad, &mut buf2, &res)
+                .unwrap();
             assert_eq!(buf2, $pt);
 
             let mut buf3 = $ct.clone();
@@ -34,7 +38,8 @@ macro_rules! new_test {
 
 new_test!(
     vector1,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("00000003020100A0A1A2A3A4A5"),
     ad: hex!("0001020304050607"),
@@ -45,7 +50,8 @@ new_test!(
 
 new_test!(
     vector2,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("00000004030201A0A1A2A3A4A5"),
     ad: hex!("0001020304050607"),
@@ -56,7 +62,8 @@ new_test!(
 
 new_test!(
     vector3,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("00000005040302A0A1A2A3A4A5"),
     ad: hex!("0001020304050607"),
@@ -67,7 +74,8 @@ new_test!(
 
 new_test!(
     vector4,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("00000006050403A0A1A2A3A4A5"),
     ad: hex!("000102030405060708090A0B"),
@@ -78,7 +86,8 @@ new_test!(
 
 new_test!(
     vector5,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("00000007060504A0A1A2A3A4A5"),
     ad: hex!("000102030405060708090A0B"),
@@ -89,7 +98,8 @@ new_test!(
 
 new_test!(
     vector6,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("00000008070605A0A1A2A3A4A5"),
     ad: hex!("000102030405060708090A0B"),
@@ -100,7 +110,8 @@ new_test!(
 
 new_test!(
     vector7,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("00000009080706A0A1A2A3A4A5"),
     ad: hex!("0001020304050607"),
@@ -111,7 +122,8 @@ new_test!(
 
 new_test!(
     vector8,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("0000000A090807A0A1A2A3A4A5"),
     ad: hex!("0001020304050607"),
@@ -122,7 +134,8 @@ new_test!(
 
 new_test!(
     vector9,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("0000000B0A0908A0A1A2A3A4A5"),
     ad: hex!("0001020304050607"),
@@ -133,7 +146,8 @@ new_test!(
 
 new_test!(
     vector10,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("0000000C0B0A09A0A1A2A3A4A5"),
     ad: hex!("000102030405060708090A0B"),
@@ -144,7 +158,8 @@ new_test!(
 
 new_test!(
     vector11,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("0000000D0C0B0AA0A1A2A3A4A5"),
     ad: hex!("000102030405060708090A0B"),
@@ -155,7 +170,8 @@ new_test!(
 
 new_test!(
     vector12,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"),
     nonce: hex!("0000000E0D0C0BA0A1A2A3A4A5"),
     ad: hex!("000102030405060708090A0B"),
@@ -166,7 +182,8 @@ new_test!(
 
 new_test!(
     vector13,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("00412B4EA9CDBE3C9696766CFA"),
     ad: hex!("0BE1A88BACE018B1"),
@@ -177,7 +194,8 @@ new_test!(
 
 new_test!(
     vector14,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("00412B4EA9CDBE3C9696766CFA"),
     ad: hex!("0BE1A88BACE018B1"),
@@ -188,7 +206,8 @@ new_test!(
 
 new_test!(
     vector15,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("00103FE41336713C9696766CFA"),
     ad: hex!("AA6CFA36CAE86B40"),
@@ -199,7 +218,8 @@ new_test!(
 
 new_test!(
     vector16,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("00764C63B8058E3C9696766CFA"),
     ad: hex!("D0D0735C531E1BECF049C244"),
@@ -210,7 +230,8 @@ new_test!(
 
 new_test!(
     vector17,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("00F8B678094E3B3C9696766CFA"),
     ad: hex!("77B60F011C03E1525899BCAE"),
@@ -221,7 +242,8 @@ new_test!(
 
 new_test!(
     vector18,
-    U8, U13,
+    U8,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("00D560912D3F703C9696766CFA"),
     ad: hex!("CD9044D2B71FDB8120EA60C0"),
@@ -232,7 +254,8 @@ new_test!(
 
 new_test!(
     vector19,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("0042FFF8F1951C3C9696766CFA"),
     ad: hex!("D85BC7E69F944FB8"),
@@ -243,7 +266,8 @@ new_test!(
 
 new_test!(
     vector20,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("00920F40E56CDC3C9696766CFA"),
     ad: hex!("74A0EBC9069F5B37"),
@@ -254,7 +278,8 @@ new_test!(
 
 new_test!(
     vector21,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("0027CA0C7120BC3C9696766CFA"),
     ad: hex!("44A3AA3AAE6475CA"),
@@ -265,7 +290,8 @@ new_test!(
 
 new_test!(
     vector22,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("005B8CCBCD9AF83C9696766CFA"),
     ad: hex!("EC46BB63B02520C33C49FD70"),
@@ -276,7 +302,8 @@ new_test!(
 
 new_test!(
     vector23,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("003EBE94044B9A3C9696766CFA"),
     ad: hex!("47A65AC78B3D594227E85E71"),
@@ -287,7 +314,8 @@ new_test!(
 
 new_test!(
     vector24,
-    U10, U13,
+    U10,
+    U13,
     key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
     nonce: hex!("008D493B30AE8B3C9696766CFA"),
     ad: hex!("6E37A6EF546D955D34AB6059"),

@@ -1,4 +1,4 @@
-use aead::consts::{U4, U6, U7, U8, U9, U10, U11, U12, U13, U14, U16};
+use aead::consts::{U10, U11, U12, U13, U14, U16, U4, U6, U7, U8, U9};
 use aead::generic_array::typenum::Unsigned;
 
 mod private {
@@ -26,7 +26,7 @@ mod private {
 // TODO: make sealed
 pub trait TagSize: Unsigned + private::SealedTag {
     fn get_m_tick() -> u8 {
-        (Self::to_u8() - 2)/2
+        (Self::to_u8() - 2) / 2
     }
 }
 pub trait NonceSize: Unsigned + private::SealedNonce {

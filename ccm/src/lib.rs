@@ -1,7 +1,7 @@
 //! Counter with CBC-MAC ([CCM]): [Authenticated Encryption and Associated Data (AEAD)][1]
 //! algorithm generic over block ciphers with block size equal to 128 bits as specified in
 //! [RFC 3610].
-//! 
+//!
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
@@ -38,17 +38,17 @@
 pub use aead;
 pub use aead::consts;
 
-use core::marker::PhantomData;
-use block_cipher::{BlockCipher, NewBlockCipher, Block};
-use aead::{AeadInPlace, Key, Tag, Nonce, Error, NewAead};
-use aead::generic_array::ArrayLength;
-use aead::generic_array::typenum::Unsigned;
 use aead::consts::{U0, U16};
+use aead::generic_array::typenum::Unsigned;
+use aead::generic_array::ArrayLength;
+use aead::{AeadInPlace, Error, Key, NewAead, Nonce, Tag};
+use block_cipher::{Block, BlockCipher, NewBlockCipher};
+use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
 
 mod traits;
 
-use traits::{TagSize, NonceSize};
+use traits::{NonceSize, TagSize};
 
 /// CCM instance generic over an underlying block cipher.
 ///
@@ -59,11 +59,11 @@ use traits::{TagSize, NonceSize};
 /// - `N`: size of nonce, valid values:
 /// `U7`, `U8`, `U9`, `U10`, `U11`, `U12`, `U13`.
 pub struct Ccm<C, M, N>
-    where
-        C: BlockCipher<BlockSize = U16>,
-        C::ParBlocks: ArrayLength<Block<C>>,
-        M: ArrayLength<u8> + TagSize,
-        N: ArrayLength<u8> + NonceSize,
+where
+    C: BlockCipher<BlockSize = U16>,
+    C::ParBlocks: ArrayLength<Block<C>>,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
 {
     cipher: C,
     _tag_size: PhantomData<M>,
@@ -71,14 +71,14 @@ pub struct Ccm<C, M, N>
 }
 
 impl<C, M, N> Ccm<C, M, N>
-    where
-        C: BlockCipher<BlockSize = U16>,
-        C::ParBlocks: ArrayLength<Block<C>>,
-        M: ArrayLength<u8> + TagSize,
-        N: ArrayLength<u8> + NonceSize,
+where
+    C: BlockCipher<BlockSize = U16>,
+    C::ParBlocks: ArrayLength<Block<C>>,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
 {
     fn from_cipher(cipher: C) -> Self {
-        Self  {
+        Self {
             cipher,
             _tag_size: Default::default(),
             _nonce_size: Default::default(),
@@ -95,14 +95,17 @@ impl<C, M, N> Ccm<C, M, N>
     }
 
     fn calc_mac(
-        &self, nonce: &Nonce<N>, adata: &[u8], buffer: &[u8]
+        &self,
+        nonce: &Nonce<N>,
+        adata: &[u8],
+        buffer: &[u8],
     ) -> Result<Tag<C::BlockSize>, Error> {
         let bs = C::BlockSize::to_usize();
         let is_ad = !adata.is_empty();
         let l = N::get_l();
-        let flags = 64*(is_ad as u8) + 8*M::get_m_tick() + (l - 1);
+        let flags = 64 * (is_ad as u8) + 8 * M::get_m_tick() + (l - 1);
 
-        if buffer.len() >= (1<<(8*l)) {
+        if buffer.len() >= (1 << (8 * l)) {
             return Err(Error);
         }
         let l_arr = buffer.len().to_be_bytes();
@@ -118,7 +121,7 @@ impl<C, M, N> Ccm<C, M, N>
         let la_arr = la.to_be_bytes();
         let b1 = if la == 0 {
             None
-        } else if la < (1<<16) - (1<<8) {
+        } else if la < (1 << 16) - (1 << 8) {
             let mut b = Block::<C>::default();
             b[..2].copy_from_slice(&la_arr[la_arr.len() - 2..]);
             Some((b, 2))
@@ -135,7 +138,6 @@ impl<C, M, N> Ccm<C, M, N>
             b[2..10].copy_from_slice(&la_arr[la_arr.len() - 8..]);
             Some((b, 10))
         };
-
 
         let mut mac = CbcMac::from_cipher(&self.cipher);
         mac.update(&b0);
@@ -174,11 +176,11 @@ impl<C, M, N> Ccm<C, M, N>
 }
 
 impl<C, M, N> NewAead for Ccm<C, M, N>
-    where
-        C: BlockCipher<BlockSize = U16> + NewBlockCipher,
-        C::ParBlocks: ArrayLength<Block<C>>,
-        M: ArrayLength<u8> + TagSize,
-        N: ArrayLength<u8> + NonceSize,
+where
+    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C::ParBlocks: ArrayLength<Block<C>>,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
 {
     type KeySize = C::KeySize;
 
@@ -188,19 +190,21 @@ impl<C, M, N> NewAead for Ccm<C, M, N>
 }
 
 impl<C, M, N> AeadInPlace for Ccm<C, M, N>
-    where
-        C: BlockCipher<BlockSize = U16>,
-        C::ParBlocks: ArrayLength<Block<C>>,
-        M: ArrayLength<u8> + TagSize,
-        N: ArrayLength<u8> + NonceSize,
+where
+    C: BlockCipher<BlockSize = U16>,
+    C::ParBlocks: ArrayLength<Block<C>>,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
 {
     type NonceSize = N;
     type TagSize = M;
     type CiphertextOverhead = U0;
 
     fn encrypt_in_place_detached(
-        &self, nonce: &Nonce<Self::NonceSize>,
-        adata: &[u8], buffer: &mut [u8],
+        &self,
+        nonce: &Nonce<Self::NonceSize>,
+        adata: &[u8],
+        buffer: &mut [u8],
     ) -> Result<Tag<Self::TagSize>, Error> {
         let bs = C::BlockSize::to_usize();
 
@@ -229,16 +233,19 @@ impl<C, M, N> AeadInPlace for Ccm<C, M, N>
     }
 
     fn decrypt_in_place_detached(
-        &self, nonce: &Nonce<Self::NonceSize>, adata: &[u8],
-        buffer: &mut [u8], tag: &Tag<Self::TagSize>,
+        &self,
+        nonce: &Nonce<Self::NonceSize>,
+        adata: &[u8],
+        buffer: &mut [u8],
+        tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
         let bs = C::BlockSize::to_usize();
 
         let mut s = Default::default();
         Self::gen_enc_block(&mut s, nonce, 0);
         self.cipher.encrypt_block(&mut s);
-        
-        let s0 = s.clone();
+
+        let s0 = s;
 
         let mut iter = buffer.chunks_exact_mut(bs);
         let mut i = 1;
@@ -272,7 +279,10 @@ struct CbcMac<'a, C: BlockCipher> {
 
 impl<'a, C: BlockCipher> CbcMac<'a, C> {
     fn from_cipher(cipher: &'a C) -> Self {
-        Self { cipher, state: Default::default() }
+        Self {
+            cipher,
+            state: Default::default(),
+        }
     }
 
     fn update(&mut self, block: &Block<C>) {

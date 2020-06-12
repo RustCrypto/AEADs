@@ -348,3 +348,22 @@ new_test!(
     ct: hex!(""),
     tag: hex!("A2CCE6AA700FF162CF39"),
 );
+
+#[test]
+fn test_data_len_check() {
+    let key = hex!("D7828D13B2B0BDC325A76236DF93CC6B");
+    let nonce = hex!("2F1DBD38CE3EDA7C23F04DD650");
+
+    type Cipher = Ccm<aes::Aes128, U10, U13>;
+    let key = GenericArray::from_slice(&key);
+    let nonce = GenericArray::from_slice(&nonce);
+    let c = Cipher::new(key);
+
+    let mut buf1 = [1; core::u16::MAX as usize];
+    let res = c.encrypt_in_place_detached(nonce, &[], &mut buf1);
+    assert!(res.is_ok());
+
+    let mut buf2 = [1; core::u16::MAX as usize + 1];
+    let res = c.encrypt_in_place_detached(nonce, &[], &mut buf2);
+    assert!(res.is_err());
+}

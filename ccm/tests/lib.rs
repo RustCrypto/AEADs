@@ -361,7 +361,6 @@ new_test!(
     tag: hex!("05F53D01E8CB88021B86"),
 );
 
-
 #[test]
 fn test_data_len_check() {
     let key = hex!("D7828D13B2B0BDC325A76236DF93CC6B");

@@ -164,6 +164,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ccm"
+version = "0.1.0"
+dependencies = [
+ "aead",
+ "aes",
+ "block-cipher",
+ "hex-literal",
+ "subtle",
+]
+
+[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -349,6 +349,19 @@ new_test!(
     tag: hex!("A2CCE6AA700FF162CF39"),
 );
 
+new_test!(
+    big_ad,
+    U10,
+    U13,
+    key: hex!("D7828D13B2B0BDC325A76236DF93CC6B"),
+    nonce: hex!("AAC5630EFA5396F770CE1A66B1"),
+    ad: [0x80; core::u16::MAX as usize],
+    pt: hex!("009769ECABDF48625594C59251E6035722675E04C8"),
+    ct: hex!("880DA7DA27DC28F531C3B2CA2BDF23B118A0637E8A"),
+    tag: hex!("05F53D01E8CB88021B86"),
+);
+
+
 #[test]
 fn test_data_len_check() {
     let key = hex!("D7828D13B2B0BDC325A76236DF93CC6B");

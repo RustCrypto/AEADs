@@ -105,7 +105,7 @@ where
         let l = N::get_l();
         let flags = 64 * (is_ad as u8) + 8 * M::get_m_tick() + (l - 1);
 
-        if buffer.len() >= (1 << (8 * l)) {
+        if buffer.len() > N::get_max_len() {
             return Err(Error);
         }
         let l_arr = buffer.len().to_be_bytes();
@@ -128,7 +128,7 @@ where
         } else if la <= core::u32::MAX as usize {
             let mut b = Block::<C>::default();
             b[0] = 0xFF;
-            b[1] = 0xEE;
+            b[1] = 0xFE;
             b[2..6].copy_from_slice(&la_arr[la_arr.len() - 4..]);
             Some((b, 6))
         } else {
@@ -166,10 +166,12 @@ where
         for chunk in &mut chunks {
             mac.update(Block::<C>::from_slice(chunk));
         }
-        let mut bn = Block::<C>::default();
         let rem = chunks.remainder();
-        bn[..rem.len()].copy_from_slice(rem);
-        mac.update(&bn);
+        if !rem.is_empty() {
+            let mut bn = Block::<C>::default();
+            bn[..rem.len()].copy_from_slice(rem);
+            mac.update(&bn);
+        }
 
         Ok(mac.finalize())
     }

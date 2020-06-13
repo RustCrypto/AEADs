@@ -33,6 +33,11 @@ pub trait NonceSize: Unsigned + private::SealedNonce {
     fn get_l() -> u8 {
         15 - Self::to_u8()
     }
+
+    fn get_max_len() -> usize {
+        // TODO: fix overflow (e.g. L = 32 or 32-bit systems)
+        (1 << (8 * Self::get_l())) - 1
+    }
 }
 
 impl TagSize for U4 {}

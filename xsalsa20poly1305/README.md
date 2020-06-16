@@ -1,4 +1,4 @@
-# RustCrypto: XSalsa20Poly1305 (a.k.a. `crypto_secretbox`)
+# RustCrypto: XSalsa20Poly1305
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]

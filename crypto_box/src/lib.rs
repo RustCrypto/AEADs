@@ -128,14 +128,14 @@
 pub use x25519_dalek::PublicKey;
 pub use xsalsa20poly1305::{aead, generate_nonce};
 
-use aead::{
+use core::fmt::{self, Debug};
+use rand_core::{CryptoRng, RngCore};
+use salsa20::hsalsa20;
+use xsalsa20poly1305::aead::{
     consts::{U0, U16, U24},
     generic_array::GenericArray,
     AeadInPlace, Buffer, Error, NewAead,
 };
-use core::fmt::{self, Debug};
-use rand_core::{CryptoRng, RngCore};
-use salsa20::hsalsa20;
 use xsalsa20poly1305::{Tag, XSalsa20Poly1305};
 use zeroize::Zeroize;
 

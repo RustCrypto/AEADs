@@ -39,7 +39,7 @@ pub trait NonceSize: Unsigned + private::SealedNonce {
         // compiler should be able to completely optimize it out
         let l = Self::get_l() as u128;
         let v = (1 << (8 * l)) - 1;
-        core::cmp::min(v, usize::MAX as u128) as usize
+        core::cmp::min(v, core::usize::MAX as u128) as usize
     }
 }
 

@@ -34,7 +34,7 @@
 //! [CCM]: https://en.wikipedia.org/wiki/CCM_mode
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//#![no_std]
+#![no_std]
 pub use aead;
 pub use aead::consts;
 

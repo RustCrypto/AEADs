@@ -34,7 +34,7 @@
 //! [CCM]: https://en.wikipedia.org/wiki/CCM_mode
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-#![no_std]
+//#![no_std]
 pub use aead;
 pub use aead::consts;
 
@@ -143,7 +143,7 @@ where
         mac.update(&b0);
 
         if let Some((mut b1, n)) = b1 {
-            if b1.len() - n > adata.len() {
+            if b1.len() - n >= adata.len() {
                 b1[n..n + adata.len()].copy_from_slice(adata);
                 mac.update(&b1);
             } else {
@@ -155,10 +155,12 @@ where
                 for chunk in &mut chunks {
                     mac.update(Block::<C>::from_slice(chunk));
                 }
-                let mut bn = Block::<C>::default();
                 let rem = chunks.remainder();
-                bn[..rem.len()].copy_from_slice(rem);
-                mac.update(&bn)
+                if rem.len() != 0 {
+                    let mut bn = Block::<C>::default();
+                    bn[..rem.len()].copy_from_slice(rem);
+                    mac.update(&bn)
+                }
             }
         }
 

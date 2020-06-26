@@ -35,8 +35,11 @@ pub trait NonceSize: Unsigned + private::SealedNonce {
     }
 
     fn get_max_len() -> usize {
-        // TODO: fix overflow (e.g. L = 32 or 32-bit systems)
-        (1 << (8 * Self::get_l())) - 1
+        // a somewhat ugly code to prevent overlfow.
+        // compiler should be able to completely optimize it out
+        let l = Self::get_l() as u128;
+        let v = (1 << (8 * l)) - 1;
+        core::cmp::min(v, usize::MAX as u128) as usize
     }
 }
 

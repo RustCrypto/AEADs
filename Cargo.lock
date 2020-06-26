@@ -3,7 +3,7 @@
 [[package]]
 name = "aead"
 version = "0.3.1"
-source = "git+https://github.com/RustCrypto/traits?branch=aead_dev#d0af88c94d4d779893e18328b5af430fbdec35d1"
+source = "git+https://github.com/RustCrypto/traits?branch=aead_dev#ca915c35d4312fbb905a8c771eff224aaaf79fc8"
 dependencies = [
  "blobby",
  "generic-array 0.14.2",
@@ -134,7 +134,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 [[package]]
 name = "blobby"
 version = "0.3.0"
-source = "git+https://github.com/RustCrypto/utils?branch=blobby4#d3181e63284ad3d17b2ce4023a03f6e017234065"
+source = "git+https://github.com/RustCrypto/utils?branch=blobby4#f5636e4e0bf5b3dfc513813ed989c5c69d4ef06c"
 
 [[package]]
 name = "block-cipher"

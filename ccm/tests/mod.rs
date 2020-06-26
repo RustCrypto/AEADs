@@ -1,10 +1,10 @@
-use aead::{generic_array::GenericArray, AeadInPlace, NewAead, Payload, Aead};
+use aead::{generic_array::GenericArray, Aead, AeadInPlace, NewAead, Payload};
+use aes::{Aes128, Aes192, Aes256};
 use ccm::{
-    consts::{U10, U7, U8, U16, U12, U13, U14, U4, U6, U9, U11},
+    consts::{U10, U11, U12, U13, U14, U16, U4, U6, U7, U8, U9},
     Ccm,
 };
 use hex_literal::hex;
-use aes::{Aes128, Aes192, Aes256};
 
 #[test]
 fn test_data_len_check() {
@@ -25,7 +25,6 @@ fn test_data_len_check() {
     assert!(res.is_err());
 }
 
-
 /// Example test vectors from NIST SP 800-38C
 #[test]
 fn sp800_38c_examples() {
@@ -39,9 +38,25 @@ fn sp800_38c_examples() {
 
     let c = Ccm::<aes::Aes128, U4, U7>::new(key);
     let nonce = GenericArray::from_slice(&nonce);
-    let res = c.encrypt(nonce, Payload { aad: &adata, msg: &pt }).unwrap();
+    let res = c
+        .encrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &pt,
+            },
+        )
+        .unwrap();
     assert_eq!(res, ct);
-    let res = c.decrypt(nonce, Payload { aad: &adata, msg: &ct }).unwrap();
+    let res = c
+        .decrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &ct,
+            },
+        )
+        .unwrap();
     assert_eq!(res, pt);
 
     let nonce = hex!("10111213 14151617");
@@ -51,46 +66,102 @@ fn sp800_38c_examples() {
 
     let c = Ccm::<aes::Aes128, U6, U8>::new(key);
     let nonce = GenericArray::from_slice(&nonce);
-    let res = c.encrypt(nonce, Payload { aad: &adata, msg: &pt }).unwrap();
+    let res = c
+        .encrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &pt,
+            },
+        )
+        .unwrap();
     assert_eq!(res, ct);
-    let res = c.decrypt(nonce, Payload { aad: &adata, msg: &ct }).unwrap();
+    let res = c
+        .decrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &ct,
+            },
+        )
+        .unwrap();
     assert_eq!(res, pt);
 
     let nonce = hex!("10111213 14151617 18191a1b");
     let adata = hex!("00010203 04050607 08090a0b 0c0d0e0f 10111213");
-    let pt = hex!("
+    let pt = hex!(
+        "
         20212223 24252627 28292a2b 2c2d2e2f
         30313233 34353637
-    ");
-    let ct = hex!("
+    "
+    );
+    let ct = hex!(
+        "
         e3b201a9 f5b71a7a 9b1ceaec cd97e70b
         6176aad9 a4428aa5 484392fb c1b09951
-    ");
+    "
+    );
 
     let c = Ccm::<aes::Aes128, U8, U12>::new(key);
     let nonce = GenericArray::from_slice(&nonce);
-    let res = c.encrypt(nonce, Payload { aad: &adata, msg: &pt }).unwrap();
+    let res = c
+        .encrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &pt,
+            },
+        )
+        .unwrap();
     assert_eq!(res, ct);
-    let res = c.decrypt(nonce, Payload { aad: &adata, msg: &ct }).unwrap();
+    let res = c
+        .decrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &ct,
+            },
+        )
+        .unwrap();
     assert_eq!(res, pt);
 
     let nonce = hex!("10111213 14151617 18191a1b 1c");
-    let adata = (0..524288/8).map(|i| i as u8).collect::<Vec<u8>>();
-    let pt = hex!("
+    let adata = (0..524288 / 8).map(|i| i as u8).collect::<Vec<u8>>();
+    let pt = hex!(
+        "
         20212223 24252627 28292a2b 2c2d2e2f
         30313233 34353637 38393a3b 3c3d3e3f
-    ");
-    let ct = hex!("
+    "
+    );
+    let ct = hex!(
+        "
         69915dad 1e84c637 6a68c296 7e4dab61
         5ae0fd1f aec44cc4 84828529 463ccf72
         b4ac6bec 93e8598e 7f0dadbc ea5b
-    ");
+    "
+    );
 
     let c = Ccm::<aes::Aes128, U14, U13>::new(key);
     let nonce = GenericArray::from_slice(&nonce);
-    let res = c.encrypt(nonce, Payload { aad: &adata, msg: &pt }).unwrap();
+    let res = c
+        .encrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &pt,
+            },
+        )
+        .unwrap();
     assert_eq!(res, ct.as_ref());
-    let res = c.decrypt(nonce, Payload { aad: &adata, msg: &ct }).unwrap();
+    let res = c
+        .decrypt(
+            nonce,
+            Payload {
+                aad: &adata,
+                msg: &ct,
+            },
+        )
+        .unwrap();
     assert_eq!(res, pt);
 }
 

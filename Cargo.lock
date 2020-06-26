@@ -2,9 +2,19 @@
 # It is not intended for manual editing.
 [[package]]
 name = "aead"
-version = "0.3.0"
+version = "0.3.1"
+source = "git+https://github.com/RustCrypto/traits?branch=aead_dev#d0af88c94d4d779893e18328b5af430fbdec35d1"
+dependencies = [
+ "blobby",
+ "generic-array 0.14.2",
+ "heapless",
+]
+
+[[package]]
+name = "aead"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20e6f2cedd00d6e1d33954c9e4181094b61d87e7e751e5aaed1c249df5ba71ba"
+checksum = "3672ba0d12aaf256aabcdab516ebed87b5cec4b602316d7a3035fac9b7a9567b"
 dependencies = [
  "generic-array 0.14.2",
  "heapless",
@@ -25,7 +35,7 @@ dependencies = [
 name = "aes-gcm"
 version = "0.6.0"
 dependencies = [
- "aead",
+ "aead 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "aes",
  "block-cipher",
  "criterion",
@@ -40,7 +50,7 @@ dependencies = [
 name = "aes-gcm-siv"
 version = "0.5.0"
 dependencies = [
- "aead",
+ "aead 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "aes",
  "block-cipher",
  "criterion",
@@ -54,7 +64,7 @@ dependencies = [
 name = "aes-siv"
 version = "0.3.0"
 dependencies = [
- "aead",
+ "aead 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "aes",
  "cmac",
  "crypto-mac",
@@ -122,6 +132,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
+name = "blobby"
+version = "0.3.0"
+source = "git+https://github.com/RustCrypto/utils?branch=blobby4#d3181e63284ad3d17b2ce4023a03f6e017234065"
+
+[[package]]
 name = "block-cipher"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -167,7 +182,7 @@ dependencies = [
 name = "ccm"
 version = "0.1.0"
 dependencies = [
- "aead",
+ "aead 0.3.1 (git+https://github.com/RustCrypto/traits?branch=aead_dev)",
  "aes",
  "block-cipher",
  "hex-literal",
@@ -182,9 +197,9 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
 name = "chacha20"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04e4318ad22787558d7d8ffba6663bb164dc0075dd59164d159fa3065627ab3b"
+checksum = "086c0f07ac275808b7bf9a39f2fd013aae1498be83632814c8c4e0bd53f2dc58"
 dependencies = [
  "stream-cipher",
  "zeroize",
@@ -194,7 +209,7 @@ dependencies = [
 name = "chacha20poly1305"
 version = "0.5.1"
 dependencies = [
- "aead",
+ "aead 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chacha20",
  "criterion",
  "criterion-cycles-per-byte",
@@ -478,9 +493,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91780f809e750b0a89f5544be56617ff6b1227ee485bcb06ebe10cdf89bd3b71"
+checksum = "b9586eedd4ce6b3c498bc3b4dd92fc9f11166aa908a914071953768066c67909"
 dependencies = [
  "libc",
 ]
@@ -515,9 +530,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8b7a7c0c47db5545ed3fef7468ee7bb5b74691498139e4b3f6a20685dc6dd8e"
+checksum = "dc6f3ad7b9d11a0c00842ff8de1b60ee58661048eb8049ed33c73594f359d7e6"
 
 [[package]]
 name = "js-sys"
@@ -572,9 +587,9 @@ dependencies = [
 
 [[package]]
 name = "num-traits"
-version = "0.2.11"
+version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c62be47e61d1842b9170f0fdeec8eba98e60e90e5446449a0545e5152acd7096"
+checksum = "ac267bcc07f48ee5f8935ab0d24f316fb722d7a1292e2913f0cc196b29ffd611"
 dependencies = [
  "autocfg",
 ]
@@ -591,9 +606,9 @@ dependencies = [
 
 [[package]]
 name = "oorandom"
-version = "11.1.1"
+version = "11.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94af325bc33c7f60191be4e2c984d48aaa21e2854f473b85398344b60c9b6358"
+checksum = "a170cebd8021a008ea92e4db85a72f80b35df514ec664b296fdcbb654eac0b2c"
 
 [[package]]
 name = "opaque-debug"
@@ -716,10 +731,11 @@ dependencies = [
 
 [[package]]
 name = "rayon"
-version = "1.3.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db6ce3297f9c85e16621bb8cca38a06779ffc31bb8184e1be4bed2be4678a098"
+checksum = "62f02856753d04e03e26929f820d0a0a337ebe71f849801eea335d464b349080"
 dependencies = [
+ "autocfg",
  "crossbeam-deque",
  "either",
  "rayon-core",
@@ -727,9 +743,9 @@ dependencies = [
 
 [[package]]
 name = "rayon-core"
-version = "1.7.0"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08a89b46efaf957e52b18062fb2f4660f8b8a4dde1807ca002690868ef2c85a9"
+checksum = "e92e15d89083484e11353891f1af602cc661426deb9564c298b270c726973280"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-queue",
@@ -819,15 +835,15 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.111"
+version = "1.0.114"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9124df5b40cbd380080b2cc6ab894c040a3070d995f5c9dc77e18c34a8ae37d"
+checksum = "5317f7588f0a5078ee60ef675ef96735a1442132dc645eb1d12c018620ed8cd3"
 
 [[package]]
 name = "serde_derive"
-version = "1.0.111"
+version = "1.0.114"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f2c3ac8e6ca1e9c80b8be1023940162bf81ae3cffbb1809474152f2ce1eb250"
+checksum = "2a0be94b04690fbaed37cddffc5c134bf537c8e3329d53e982fe04c374978f8e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -869,9 +885,9 @@ checksum = "502d53007c02d7605a05df1c1a73ee436952781653da5d0bf57ad608f66932c1"
 
 [[package]]
 name = "syn"
-version = "1.0.31"
+version = "1.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5304cfdf27365b7585c25d4af91b35016ed21ef88f17ced89c7093b43dba8b6"
+checksum = "e8d5d96e8cbb005d6959f119f773bfaebb5684296108fb32600c00cde305b2cd"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -923,9 +939,9 @@ checksum = "caaa9d531767d1ff2150b9332433f32a24622147e5ebb1f26409d5da67afd479"
 
 [[package]]
 name = "unicode-xid"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
+checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 
 [[package]]
 name = "universal-hash"
@@ -1026,9 +1042,9 @@ dependencies = [
 
 [[package]]
 name = "winapi"
-version = "0.3.8"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8093091eeb260906a183e6ae1abdba2ef5ef2257a21801128899c3fc699229c6"
+checksum = "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419"
 dependencies = [
  "winapi-i686-pc-windows-gnu",
  "winapi-x86_64-pc-windows-gnu",
@@ -1070,7 +1086,7 @@ dependencies = [
 name = "xsalsa20poly1305"
 version = "0.4.2"
 dependencies = [
- "aead",
+ "aead 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "poly1305",
  "rand_core",
  "salsa20",

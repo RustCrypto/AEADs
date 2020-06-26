@@ -156,7 +156,7 @@ where
                     mac.update(Block::<C>::from_slice(chunk));
                 }
                 let rem = chunks.remainder();
-                if rem.len() != 0 {
+                if !rem.is_empty() {
                     let mut bn = Block::<C>::default();
                     bn[..rem.len()].copy_from_slice(rem);
                     mac.update(&bn)

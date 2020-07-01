@@ -3,6 +3,7 @@ members = [
     "aes-gcm",
     "aes-gcm-siv",
     "aes-siv",
+    "ccm",
     "chacha20poly1305",
     "crypto_box",
     "xsalsa20poly1305"

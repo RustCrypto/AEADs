@@ -20,20 +20,19 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.3", default-features = false }
-aes = { version = "0.4", optional = true }
 block-cipher = "0.7"
 cmac = "0.3"
 ctr = "0.4"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
+aes = "0.4"
+aead = { version = "0.3", features = ["dev"], default-features = false }
 criterion = "0.3.0"
 criterion-cycles-per-byte = "0.1.1"
-hex-literal = "0.2"
-quickcheck = "0.9"
 
 [features]
-default = ["aes", "alloc"]
+default = ["alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 

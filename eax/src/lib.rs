@@ -6,13 +6,12 @@
 //! Simple usage (allocating, no associated data):
 //!
 //! ```
-//! # #[cfg(feature = "aes")]
-//! # {
-//! use eax::Aes256Eax; // Or `Aes128Eax`
+//! use aes::Aes256;
+//! use eax::Eax;
 //! use eax::aead::{Aead, NewAead, generic_array::GenericArray};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256Eax::new(key);
+//! let cipher = Eax::<Aes256>::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
 //!
@@ -23,7 +22,6 @@
 //!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
 //!
 //! assert_eq!(&plaintext, b"plaintext message");
-//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -44,12 +42,13 @@
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
-//! use eax::Aes256Eax; // Or `Aes128Eax`
+//! use aes::Aes256;
+//! use eax::Eax;
 //! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
 //! use eax::aead::heapless::{Vec, consts::U128};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256Eax::new(key);
+//! let cipher = Eax::<Aes256>::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
 //!
@@ -76,14 +75,7 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-#[cfg(test)]
-#[macro_use]
-extern crate std;
-
 pub use aead::{self, AeadInPlace, Error, NewAead};
-
-#[cfg(feature = "aes")]
-pub use aes;
 
 use block_cipher::{
     consts::{U0, U16},
@@ -94,9 +86,6 @@ use block_cipher::{
 use cmac::crypto_mac::NewMac;
 use cmac::{Cmac, Mac};
 use ctr::stream_cipher::{FromBlockCipher, SyncStreamCipher};
-
-#[cfg(feature = "aes")]
-use aes::{Aes128, Aes256};
 
 // TODO Max values?
 /// Maximum length of associated data
@@ -110,16 +99,6 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// EAX tags
 pub type Tag = GenericArray<u8, U16>;
-
-/// EAX with a 128-bit key and 96-bit nonce
-#[cfg(feature = "aes")]
-#[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
-pub type Aes128Eax = Eax<Aes128>;
-
-/// EAX with a 256-bit key and 96-bit nonce
-#[cfg(feature = "aes")]
-#[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
-pub type Aes256Eax = Eax<Aes256>;
 
 /// EAX: generic over an underlying block cipher implementation.
 ///
@@ -250,37 +229,5 @@ where
         mac.update(data);
 
         mac.finalize().into_bytes()
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    use quickcheck::quickcheck;
-    use std::prelude::v1::*;
-
-    #[test]
-    fn known_data() {
-        let mut data = [1, 2, 3, 4, 5];
-        let cipher = Aes128Eax::new(&[0; 16].into());
-        let mac = cipher
-            .encrypt_in_place_detached(&[0; 16].into(), &[1, 2, 3, 4], &mut data)
-            .unwrap();
-        assert_eq!(
-            mac.as_slice(),
-            &[232, 88, 147, 206, 130, 126, 14, 121, 62, 127, 33, 233, 239, 81, 51, 177]
-        );
-        assert_eq!(&data, &[182, 81, 68, 170, 62]);
-    }
-
-    quickcheck! {
-        fn roundtrip(data: Vec<u8>) -> bool {
-            let mut enc = data.clone();
-            let cipher = Aes128Eax::new(&[0; 16].into());
-            let mac = cipher.encrypt_in_place_detached(&[0; 16].into(), &[1, 2, 3, 4], &mut enc).unwrap();
-            cipher.decrypt_in_place_detached(&[0; 16].into(), &[1, 2, 3, 4], &mut enc, &mac).unwrap();
-            data == enc
-        }
     }
 }

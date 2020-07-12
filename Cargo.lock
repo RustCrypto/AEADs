@@ -420,7 +420,6 @@ dependencies = [
  "criterion",
  "criterion-cycles-per-byte",
  "ctr",
- "hex-literal",
  "subtle",
 ]
 

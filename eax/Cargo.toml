@@ -30,7 +30,6 @@ aes = "0.4"
 aead = { version = "0.3", features = ["dev"], default-features = false }
 criterion = "0.3.0"
 criterion-cycles-per-byte = "0.1.1"
-hex-literal = "0.2"
 
 [features]
 default = ["alloc"]

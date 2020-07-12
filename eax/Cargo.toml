@@ -1,0 +1,46 @@
+[package]
+name = "eax"
+version = "0.2.0"
+description = """
+Pure Rust implementation of the EAX
+Authenticated Encryption with Associated Data (AEAD) Cipher
+with optional architecture-specific hardware acceleration
+
+This scheme is only based on a block cipher. It uses counter mode (CTR) for
+encryption and CBC mode for generating a OMAC/CMAC/CBCMAC (all names for the same thing).
+"""
+authors = ["RustCrypto Developers"]
+edition = "2018"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/eax"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["aead", "aes", "encryption"]
+categories = ["cryptography", "no-std"]
+
+[dependencies]
+aead = { version = "0.3", default-features = false }
+aes = { version = "0.4", optional = true }
+block-cipher = "0.7"
+cmac = "0.3"
+ctr = "0.4"
+subtle = { version = "2", default-features = false }
+
+[dev-dependencies]
+criterion = "0.3.0"
+criterion-cycles-per-byte = "0.1.1"
+hex-literal = "0.2"
+quickcheck = "0.9"
+
+[features]
+default = ["aes", "alloc"]
+alloc = ["aead/alloc"]
+heapless = ["aead/heapless"]
+
+[[bench]]
+name = "eax"
+harness = false
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

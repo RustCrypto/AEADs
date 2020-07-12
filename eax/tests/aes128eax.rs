@@ -1,3 +1,5 @@
+//! Test vectors from Appendix G:
+//! https://web.cs.ucdavis.edu/~rogaway/papers/eax.pdf
 use aes::Aes128;
 use eax::Eax;
 

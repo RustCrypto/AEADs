@@ -54,3 +54,4 @@ jobs:
           override: true
       - run: cargo test --lib --release
       - run: cargo test --all-features --release
+      - run: cargo build --benches

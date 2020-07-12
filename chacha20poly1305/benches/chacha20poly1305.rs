@@ -15,11 +15,11 @@ fn bench(c: &mut Criterion<CyclesPerByte>) {
         group.throughput(Throughput::Bytes(*size as u64));
 
         group.bench_function(BenchmarkId::new("encrypt", size), |b| {
-            let cipher = ChaCha20Poly1305::new(Default::default());
+            let cipher = ChaCha20Poly1305::new(&Default::default());
             b.iter(|| cipher.encrypt(&Default::default(), &*buf))
         });
         group.bench_function(BenchmarkId::new("decrypt", size), |b| {
-            let cipher = ChaCha20Poly1305::new(Default::default());
+            let cipher = ChaCha20Poly1305::new(&Default::default());
             b.iter(|| cipher.decrypt(&Default::default(), &*buf))
         });
     }

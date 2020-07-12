@@ -15,20 +15,20 @@ fn bench(c: &mut Criterion<CyclesPerByte>) {
         group.throughput(Throughput::Bytes(*size as u64));
 
         group.bench_function(BenchmarkId::new("encrypt-128", size), |b| {
-            let cipher = Aes128GcmSiv::new(Default::default());
+            let cipher = Aes128GcmSiv::new(&Default::default());
             b.iter(|| cipher.encrypt(&Default::default(), &*buf))
         });
         group.bench_function(BenchmarkId::new("decrypt-128", size), |b| {
-            let cipher = Aes128GcmSiv::new(Default::default());
+            let cipher = Aes128GcmSiv::new(&Default::default());
             b.iter(|| cipher.decrypt(&Default::default(), &*buf))
         });
 
         group.bench_function(BenchmarkId::new("encrypt-256", size), |b| {
-            let cipher = Aes256GcmSiv::new(Default::default());
+            let cipher = Aes256GcmSiv::new(&Default::default());
             b.iter(|| cipher.encrypt(&Default::default(), &*buf))
         });
         group.bench_function(BenchmarkId::new("decrypt-256", size), |b| {
-            let cipher = Aes256GcmSiv::new(Default::default());
+            let cipher = Aes256GcmSiv::new(&Default::default());
             b.iter(|| cipher.decrypt(&Default::default(), &*buf))
         });
     }

@@ -3,6 +3,9 @@
 //!
 //! More information can be found in the Intel whitepaper:
 //! https://software.intel.com/sites/default/files/managed/72/cc/clmul-wp-rev-2.02-2014-04-20.pdf
+#[cfg(target_arch = "x86")]
+use core::arch::x86::*;
+#[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 use crate::Block;
 

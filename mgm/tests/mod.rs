@@ -1,11 +1,12 @@
 use aead::{generic_array::GenericArray, AeadInPlace, NewAead};
+use hex_literal::hex;
 use kuznyechik::Kuznyechik;
 use mgm::Mgm;
-use hex_literal::hex;
 
 /// Test vector from:
 /// https://tools.ietf.org/html/draft-smyshlyaev-mgm-17#appendix-A
 #[test]
+#[rustfmt::skip]
 fn ietf_draft() {
     let key = hex!("
         8899AABBCCDDEEFF0011223344556677

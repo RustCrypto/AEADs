@@ -1,5 +1,5 @@
-use core::num::Wrapping;
 use crate::Block;
+use core::num::Wrapping;
 
 pub(crate) struct Element(u64, u64);
 
@@ -26,9 +26,7 @@ impl Element {
 
         let d = v2 ^ (v3 >> 63) ^ (v3 >> 62) ^ (v3 >> 57);
         self.1 ^= v0 ^ d ^ (d << 1) ^ (d << 2) ^ (d << 7);
-        self.0 ^= v1 ^ v3
-            ^ (v3 << 1) ^ (v3 << 2) ^ (v3 << 7)
-            ^ (d >> 63) ^ (d >> 62) ^ (d >> 57);
+        self.0 ^= v1 ^ v3 ^ (v3 << 1) ^ (v3 << 2) ^ (v3 << 7) ^ (d >> 63) ^ (d >> 62) ^ (d >> 57);
     }
 
     pub(crate) fn into_bytes(self) -> Block {

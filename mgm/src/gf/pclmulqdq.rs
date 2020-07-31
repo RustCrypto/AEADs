@@ -3,11 +3,11 @@
 //!
 //! More information can be found in the Intel whitepaper:
 //! https://software.intel.com/sites/default/files/managed/72/cc/clmul-wp-rev-2.02-2014-04-20.pdf
+use crate::Block;
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
-use crate::Block;
 
 pub(crate) struct Element(__m128i);
 
@@ -58,7 +58,7 @@ impl Element {
                 _mm_srli_epi64(v3, 57)
             );
             let lo = xor!(
-                v0, 
+                v0,
                 d,
                 _mm_slli_epi64(d, 1),
                 _mm_slli_epi64(d, 2),

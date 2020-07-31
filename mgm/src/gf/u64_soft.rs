@@ -9,6 +9,7 @@ impl Element {
     }
 
     #[allow(clippy::cast_ptr_alignment)]
+    #[allow(clippy::many_single_char_names)]
     pub(crate) fn mul_sum(&mut self, a: &Block, b: &Block) {
         let [a1, a0] = from_block(a);
         let [b1, b0] = from_block(b);

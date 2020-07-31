@@ -29,6 +29,7 @@ impl Element {
     }
 
     #[allow(clippy::cast_ptr_alignment)]
+    #[allow(clippy::many_single_char_names)]
     pub(crate) fn mul_sum(&mut self, a: &Block, b: &Block) {
         unsafe {
             let bs_mask = _mm_set_epi64x(BS_MASK1, BS_MASK2);

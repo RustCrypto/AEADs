@@ -111,8 +111,8 @@ where
             return Err(Error);
         }
 
-        let mut enc_counter = nonce.clone();
-        let mut tag_counter = nonce.clone();
+        let mut enc_counter = *nonce;
+        let mut tag_counter = *nonce;
         enc_counter[0] &= 0b0111_1111;
         tag_counter[0] |= 0b1000_0000;
 
@@ -182,8 +182,8 @@ where
             return Err(Error);
         }
 
-        let mut enc_counter = nonce.clone();
-        let mut tag_counter = nonce.clone();
+        let mut enc_counter = *nonce;
+        let mut tag_counter = *nonce;
         enc_counter[0] &= 0b0111_1111;
         tag_counter[0] |= 0b1000_0000;
 

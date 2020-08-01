@@ -25,7 +25,8 @@ fn encrypt_aad_only_16kb(b: &mut Bencher) {
     let mut buf = [];
 
     b.iter(|| {
-        let res = c.encrypt_in_place_detached(nonce, &aad, &mut buf).unwrap();
+        let (aad, buf) = test::black_box((&aad, &mut buf));
+        let res = c.encrypt_in_place_detached(nonce, aad, buf).unwrap();
         test::black_box(res);
     });
 
@@ -40,7 +41,8 @@ fn encrypt_msg_only_16kb(b: &mut Bencher) {
     let mut buf = vec![0; 16 * 1024];
 
     b.iter(|| {
-        let res = c.encrypt_in_place_detached(nonce, &aad, &mut buf).unwrap();
+        let (aad, buf) = test::black_box((&aad, &mut buf));
+        let res = c.encrypt_in_place_detached(nonce, aad, buf).unwrap();
         test::black_box(res);
     });
 
@@ -57,7 +59,8 @@ fn decrypt_aad_only_16kb(b: &mut Bencher) {
 
     #[allow(unused_must_use)]
     b.iter(|| {
-        let res = c.decrypt_in_place_detached(nonce, &aad, &mut buf, &tag);
+        let (aad, buf, tag) = test::black_box((&aad, &mut buf, &tag));
+        let res = c.decrypt_in_place_detached(nonce, aad, buf, tag);
         test::black_box(res);
     });
 
@@ -74,7 +77,8 @@ fn decrypt_msg_only_16kb(b: &mut Bencher) {
 
     #[allow(unused_must_use)]
     b.iter(|| {
-        let res = c.decrypt_in_place_detached(nonce, &aad, &mut buf, &tag);
+        let (aad, buf, tag) = test::black_box((&aad, &mut buf, &tag));
+        let res = c.decrypt_in_place_detached(nonce, aad, buf, tag);
         test::black_box(res);
     });
 

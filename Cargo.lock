@@ -557,6 +557,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kuznyechik"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdff22963ec3dc62268296251753303cc2f72e988ae73783cfdd3f4d2e6c343b"
+dependencies = [
+ "block-cipher",
+ "opaque-debug",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -596,6 +606,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c198b026e1bbf08a937e94c6c60f9ec4a2267f5b0d2eec9c1b21b061ce2be55f"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "mgm"
+version = "0.1.0"
+dependencies = [
+ "aead",
+ "block-cipher",
+ "cfg-if",
+ "hex-literal",
+ "kuznyechik",
+ "subtle",
 ]
 
 [[package]]

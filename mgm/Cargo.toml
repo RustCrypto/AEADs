@@ -1,0 +1,30 @@
+[package]
+name = "mgm"
+version = "0.1.0"
+description = "Generic implementation of the Multilinear Galois Mode (MGM) cipher"
+authors = ["RustCrypto Developers"]
+edition = "2018"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/mgm"
+homepage = "https://github.com/RustCrypto/AEADs"
+repository = "https://github.com/RustCrypto/AEADs/tree/master/mgm"
+categories = ["cryptography", "no-std"]
+keywords = ["encryption", "aead"]
+
+[dependencies]
+aead = { version = "0.3", default-features = false }
+block-cipher = { version = "0.7", default-features = false }
+subtle = { version = "2", default-features = false }
+cfg-if = "0.1"
+hex-literal = "0.2"
+
+[dev-dependencies]
+aead = { version = "0.3.2", features = ["dev"], default-features = false }
+kuznyechik = "0.4"
+hex-literal = "0.2"
+
+[features]
+default = ["alloc"]
+alloc = ["aead/alloc"]
+heapless = ["aead/heapless"]

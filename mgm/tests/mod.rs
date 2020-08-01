@@ -43,7 +43,6 @@ fn ietf_draft() {
     let c = Mgm::<Kuznyechik>::new(key);
 
     let mut buf = pt.clone();
-
     let calc_tag = c.encrypt_in_place_detached(nonce, &aad, &mut buf).unwrap();
     assert_eq!(&buf[..], &ct[..]);
     assert_eq!(&calc_tag[..], &tag[..]);
@@ -72,14 +71,16 @@ fn ietf_draft() {
     bad_tag[0] = 0;
     let res = c.decrypt_in_place_detached(nonce, &aad, &mut buf, &(bad_tag.into()));
     assert!(res.is_err());
-}
-
-/// Check that implementation panics on a nonce with the first bit equal to 1
-#[test]
-fn nonce_check() {
-    let key = GenericArray::default();
-    let nonce = GenericArray::from_slice(&[0x80; 16]);
-    let c = Mgm::<Kuznyechik>::new(&key);
-    let res = c.encrypt_in_place_detached(nonce, &[], &mut []);
+    
+    // Check that implementation returns an error for nonces with the first bit equal to 1
+    let bad_nonce = GenericArray::from_slice(&hex!("
+        80000000000000000000000000000000
+    "));
+    let mut buf = pt.clone();
+    let res = c.encrypt_in_place_detached(bad_nonce, &aad, &mut buf);
+    assert!(res.is_err());
+    
+    let mut buf = ct.clone();
+    let res = c.decrypt_in_place_detached(bad_nonce, &aad, &mut buf, &(tag.into()));
     assert!(res.is_err());
 }

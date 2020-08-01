@@ -1,16 +1,16 @@
-name: aes-siv
+name: eax
 
 on:
   pull_request:
     paths:
-      - "aes-siv/**"
+      - "eax/**"
       - "Cargo.*"
   push:
     branches: master
 
 defaults:
   run:
-    working-directory: aes-siv
+    working-directory: eax
 
 env:
   CARGO_INCREMENTAL: 0

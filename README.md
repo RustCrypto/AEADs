@@ -66,8 +66,11 @@ dual licensed as above, without any additional terms or conditions.
 [`aes-gcm`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm
 [`aes-gcm-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm-siv
 [`aes-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-siv
+[`ccm`]: https://github.com/RustCrypto/AEADs/tree/master/ccm
 [`chacha20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
 [`crypto_box`]: https://github.com/RustCrypto/AEADs/tree/master/crypto_box
+[`eax`]: https://github.com/RustCrypto/AEADs/tree/master/eax
+[`mgm`]: https://github.com/RustCrypto/AEADs/tree/master/mgm
 [`xsalsa20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/xsalsa20poly1305 
 
 [//]: # (algorithms)

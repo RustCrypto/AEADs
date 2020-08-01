@@ -1,4 +1,4 @@
-# RustCrypto: CCM
+# RustCrypto: Multilinear Galois Mode
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
@@ -7,11 +7,9 @@
 [![CodeCov Status][codecov-image]][codecov-link]
 [![Build Status][build-image]][build-link]
 
-Pure Rust implementation of the Counter with CBC-MAC ([CCM]) mode ([RFC 3610]): an
+Pure Rust implementation of the Multilinear Galois Mode ([MGM]): an
 Authenticated Encryption with Associated Data ([AEAD]) algorithm generic over
 block ciphers with block size equal to 128 bits.
-
-[Documentation][docs-link]
 
 ## Security Notes
 
@@ -38,19 +36,19 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://img.shields.io/crates/v/ccm.svg
-[crate-link]: https://crates.io/crates/ccm
-[docs-image]: https://docs.rs/ccm/badge.svg
-[docs-link]: https://docs.rs/ccm
+[crate-image]: https://img.shields.io/crates/v/mgm.svg
+[crate-link]: https://crates.io/crates/mgm
+[docs-image]: https://docs.rs/mgm/badge.svg
+[docs-link]: https://docs.rs/mgm
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.41+-blue.svg
 [codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
 [codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/ccm/badge.svg?branch=master&event=push
+[build-image]: https://github.com/RustCrypto/AEADs/workflows/mgm/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)
 
 [RFC 3610]: https://tools.ietf.org/html/rfc3610
-[CCM]: https://en.wikipedia.org/wiki/CCM_mode
+[MGM]: https://eprint.iacr.org/2019/123.pdf
 [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption

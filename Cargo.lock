@@ -610,11 +610,10 @@ dependencies = [
 
 [[package]]
 name = "mgm"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aead",
  "block-cipher",
- "cfg-if",
  "hex-literal",
  "kuznyechik",
  "subtle",

@@ -170,7 +170,7 @@ where
     NonceSize: ArrayLength<u8>,
 {
     /// Encryption cipher
-    cipher: Aes,
+    pub cipher: Aes,
 
     /// GHASH authenticator
     ghash: GHash,
@@ -290,7 +290,7 @@ where
     /// > If len(IV)=96, then J0 = IV || 0{31} || 1.
     /// > If len(IV) ≠ 96, then let s = 128 ⎡len(IV)/128⎤-len(IV), and
     /// >     J0=GHASH(IV||0s+64||[len(IV)]64).
-    fn init_ctr(&self, nonce: &GenericArray<u8, NonceSize>) -> Ctr32<Aes> {
+    pub fn init_ctr(&self, nonce: &GenericArray<u8, NonceSize>) -> Ctr32<Aes> {
         let j0 = if NonceSize::to_usize() == 12 {
             let mut block = GenericArray::default();
             block[..12].copy_from_slice(nonce);
@@ -312,7 +312,7 @@ where
     }
 
     /// Authenticate the given plaintext and associated data using GHASH
-    fn compute_tag(&self, associated_data: &[u8], buffer: &[u8]) -> Tag {
+    pub fn compute_tag(&self, associated_data: &[u8], buffer: &[u8]) -> Tag {
         let mut ghash = self.ghash.clone();
         ghash.update_padded(associated_data);
         ghash.update_padded(buffer);

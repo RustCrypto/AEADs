@@ -14,7 +14,7 @@ type Block128 = GenericArray<u8, U16>;
 pub(crate) const BLOCK_SIZE: usize = 16;
 
 /// CTR mode with a 32-bit big endian counter
-pub(crate) struct Ctr32<Aes>
+pub struct Ctr32<Aes>
 where
     Aes: BlockCipher<BlockSize = U16>,
     Aes::ParBlocks: ArrayLength<GenericArray<u8, Aes::BlockSize>>,

@@ -8,18 +8,16 @@
 //! use kuznyechik::Kuznyechik;
 //! use mgm::aead::{Aead, NewAead, generic_array::GenericArray};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = Mgm::<Kuznyechik>::new(key);;
+//! let key = GenericArray::from_slice(b"very secret key very secret key ");
+//! let cipher = Mgm::<Kuznyechik>::new(key);
 //!
 //! // 127-bit nonce value, since API has to accept 128 bits, first nonce bit
 //! // MUST be equal to zero, otherwise encryption and decryption will fail
 //! let nonce = GenericArray::from_slice(b"unique nonce val");
 //!
-//! // NOTE: handle this error to avoid panics!
+//! // NOTE: handle errors to avoid panics!
 //! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
 //!     .expect("encryption failure!");
-//!
-//! // NOTE: handle this error to avoid panics!
 //! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
 //!     .expect("decryption failure!");
 //!

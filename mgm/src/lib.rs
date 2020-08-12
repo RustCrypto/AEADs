@@ -27,9 +27,12 @@
 //!
 //! [1]: https://eprint.iacr.org/2019/123.pdf
 //! [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption
-#![doc(html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo_small.png")]
-#![warn(missing_docs, rust_2018_idioms)]
 #![no_std]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms)]
 use aead::consts::{U0, U16};
 use aead::generic_array::{typenum::Unsigned, ArrayLength, GenericArray};
 use aead::{AeadInPlace, Error, Key, NewAead, Nonce, Tag};

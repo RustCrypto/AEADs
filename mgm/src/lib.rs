@@ -49,7 +49,7 @@ type Counter = [Wrapping<u64>; 2];
 
 const ONE: Wrapping<u64> = Wrapping(1);
 
-/// Multilinear Galous Mode cipher instance
+/// Multilinear Galous Mode cipher
 pub struct Mgm<C>
 where
     C: BlockCipher<BlockSize = U16> + NewBlockCipher,

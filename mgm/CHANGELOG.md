@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bump `block-cipher` crate dependency to v0.8 ([#191])
 
+### Added
+- `From<BlockCipher>` trait implementation ([#191])
+
 [191]: https://github.com/RustCrypto/AEADs/pull/191
 
 ## 0.1.1 (2020-08-01)

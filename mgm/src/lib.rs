@@ -63,10 +63,6 @@ where
     C: BlockCipher<BlockSize = U16> + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block>,
 {
-    fn from_cipher(cipher: C) -> Self {
-        Self { cipher }
-    }
-
     fn get_h(&self, counter: &Counter) -> Block {
         let mut block = to_bytes(counter);
         self.cipher.encrypt_block(&mut block);
@@ -80,6 +76,16 @@ where
     }
 }
 
+impl<C> From<C> for Mgm<C>
+where
+    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C::ParBlocks: ArrayLength<Block>,
+{
+    fn from(cipher: C) -> Self {
+        Self { cipher }
+    }
+}
+
 impl<C> NewAead for Mgm<C>
 where
     C: BlockCipher<BlockSize = U16> + NewBlockCipher,
@@ -88,7 +94,7 @@ where
     type KeySize = C::KeySize;
 
     fn new(key: &Key<Self>) -> Self {
-        Self::from_cipher(C::new(key))
+        Self::from(C::new(key))
     }
 }
 

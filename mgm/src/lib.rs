@@ -37,8 +37,7 @@ use aead::consts::{U0, U16};
 use aead::generic_array::{typenum::Unsigned, ArrayLength, GenericArray};
 use aead::{AeadInPlace, Error, Key, NewAead, Nonce, Tag};
 use block_cipher::{BlockCipher, NewBlockCipher};
-use core::convert::TryInto;
-use core::num::Wrapping;
+use core::{convert::TryInto, fmt, num::Wrapping};
 
 pub use aead;
 
@@ -50,6 +49,7 @@ type Counter = [Wrapping<u64>; 2];
 const ONE: Wrapping<u64> = Wrapping(1);
 
 /// Multilinear Galous Mode cipher
+#[derive(Clone)]
 pub struct Mgm<C>
 where
     C: BlockCipher<BlockSize = U16> + NewBlockCipher,
@@ -275,4 +275,14 @@ fn to_bytes(v: &Counter) -> Block {
     block[..8].copy_from_slice(&a);
     block[8..].copy_from_slice(&b);
     block
+}
+
+impl<C> fmt::Debug for Mgm<C>
+where
+    C: BlockCipher<BlockSize = U16> + NewBlockCipher + fmt::Debug,
+    C::ParBlocks: ArrayLength<Block>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "Mgm<{:?}>", self.cipher)
+    }
 }

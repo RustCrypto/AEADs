@@ -27,7 +27,7 @@ stream-cipher = { version = "0.4", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
-hex-literal = "0.2"
+hex-literal = "0.3"
 
 [features]
 default = ["alloc"]

@@ -346,7 +346,7 @@ dependencies = [
 
 [[package]]
 name = "crypto_box"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "rand",
  "rand_core",

@@ -1,6 +1,6 @@
 [package]
 name = "crypto_box"
-version = "0.2.0"
+version = "0.3.0"
 description = """
 Pure Rust implementation of NaCl's crypto_box public-key authenticated
 encryption primitive which combines the X25519 Elliptic Curve Diffie-Hellman

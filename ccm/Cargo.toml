@@ -19,7 +19,7 @@ subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.3.2", features = ["dev"], default-features = false }
-aes = "0.4"
+aes = "0.5"
 hex-literal = "0.2"
 
 [features]

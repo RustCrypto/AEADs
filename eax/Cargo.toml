@@ -26,7 +26,7 @@ ctr = "0.4"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
-aes = "0.4"
+aes = "0.5"
 aead = { version = "0.3", features = ["dev"], default-features = false }
 criterion = "0.3.0"
 criterion-cycles-per-byte = "0.1.1"

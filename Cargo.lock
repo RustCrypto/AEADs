@@ -232,12 +232,11 @@ dependencies = [
 
 [[package]]
 name = "cmac"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a681d7c344a6fbe3dcd1565e76dac74eed379c8a9326b29654ae34a718d16a49"
+checksum = "5220604fe5c112e2851b00da795c72cbb71bf112f2cbd532bdcfb4106eeb320b"
 dependencies = [
- "block-cipher 0.7.1",
- "crypto-mac 0.8.0",
+ "crypto-mac 0.9.1",
  "dbl",
 ]
 

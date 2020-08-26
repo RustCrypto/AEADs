@@ -28,7 +28,7 @@ version = "0.6.0"
 dependencies = [
  "aead",
  "aes",
- "block-cipher 0.7.1",
+ "block-cipher 0.8.0",
  "criterion",
  "criterion-cycles-per-byte",
  "ghash",
@@ -43,7 +43,7 @@ version = "0.5.0"
 dependencies = [
  "aead",
  "aes",
- "block-cipher 0.7.1",
+ "block-cipher 0.8.0",
  "criterion",
  "criterion-cycles-per-byte",
  "polyval",
@@ -185,7 +185,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "aes",
- "block-cipher 0.7.1",
+ "block-cipher 0.8.0",
  "hex-literal",
  "subtle",
 ]
@@ -435,7 +435,7 @@ version = "0.2.0"
 dependencies = [
  "aead",
  "aes",
- "block-cipher 0.7.1",
+ "block-cipher 0.8.0",
  "cmac",
  "criterion",
  "criterion-cycles-per-byte",

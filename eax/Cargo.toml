@@ -20,7 +20,7 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.3", default-features = false }
-block-cipher = "0.7"
+block-cipher = "0.8"
 cmac = "0.3"
 ctr = "0.4"
 subtle = { version = "2", default-features = false }

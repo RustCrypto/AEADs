@@ -63,7 +63,7 @@ dependencies = [
  "dbl",
  "hex-literal",
  "pmac",
- "stream-cipher 0.4.1",
+ "stream-cipher 0.7.1",
  "zeroize",
 ]
 
@@ -215,7 +215,7 @@ dependencies = [
  "criterion",
  "criterion-cycles-per-byte",
  "poly1305",
- "stream-cipher 0.4.1",
+ "stream-cipher 0.7.1",
  "zeroize",
 ]
 

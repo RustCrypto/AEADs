@@ -23,7 +23,7 @@ crypto-mac = { version = "0.8", default-features = false }
 ctr = "0.4"
 dbl = { version = "0.3", default-features = false }
 pmac = { version = "0.4", optional = true }
-stream-cipher = { version = "0.4", default-features = false }
+stream-cipher = { version = "0.7", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]

@@ -1,8 +1,10 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use criterion_cycles_per_byte::CyclesPerByte;
 
-use aead::{Aead, NewAead};
-use eax::{EaxAes128, EaxAes256};
+use eax::aead::{Aead, NewAead};
+
+type EaxAes128 = eax::Eax<aes::Aes128>;
+type EaxAes256 = eax::Eax<aes::Aes256>;
 
 const KB: usize = 1024;
 

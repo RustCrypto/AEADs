@@ -9,21 +9,14 @@ publish = false
 
 [workspace]
 
-[dev-dependencies]
+[dependencies]
 criterion = "0.3"
 criterion-cycles-per-byte = "0.1"
+aes = "0.5"
+aes-gcm = { path = "../aes-gcm/" }
+aes-gcm-siv = { path = "../aes-gcm-siv/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
 eax = { path = "../eax/" }
-
-[[bench]]
-name = "chacha20poly1305"
-path = "src/chacha20poly1305.rs"
-harness = false
-
-[[bench]]
-name = "eax"
-path = "src/eax.rs"
-harness = false
 
 [[bench]]
 name = "aes-gcm"
@@ -33,4 +26,14 @@ harness = false
 [[bench]]
 name = "aes-gcm-siv"
 path = "src/aes-gcm-siv.rs"
+harness = false
+
+[[bench]]
+name = "chacha20poly1305"
+path = "src/chacha20poly1305.rs"
+harness = false
+
+[[bench]]
+name = "eax"
+path = "src/eax.rs"
 harness = false

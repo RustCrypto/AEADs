@@ -24,20 +24,12 @@ poly1305 = "0.6"
 stream-cipher = "0.7"
 zeroize = { version = "1", default-features = false }
 
-[dev-dependencies]
-criterion = "0.3.0"
-criterion-cycles-per-byte = "0.1.1"
-
 [features]
 default = ["alloc", "chacha20", "xchacha20poly1305"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 reduced-round = ["chacha20"]
 xchacha20poly1305 = ["chacha20/xchacha20"]
-
-[[bench]]
-name = "chacha20poly1305"
-harness = false
 
 [package.metadata.docs.rs]
 all-features = true

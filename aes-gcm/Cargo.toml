@@ -24,18 +24,12 @@ subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-criterion = "0.3.0"
-criterion-cycles-per-byte = "0.1.1"
 hex-literal = "0.2"
 
 [features]
 default = ["aes", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
-
-[[bench]]
-name = "aes-gcm"
-harness = false
 
 [package.metadata.docs.rs]
 all-features = true

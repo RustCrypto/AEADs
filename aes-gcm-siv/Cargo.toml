@@ -23,18 +23,10 @@ polyval = { version = "0.4", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 
-[dev-dependencies]
-criterion = "0.3.0"
-criterion-cycles-per-byte = "0.1.1"
-
 [features]
 default = ["aes", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
-
-[[bench]]
-name = "aes-gcm-siv"
-harness = false
 
 [package.metadata.docs.rs]
 all-features = true

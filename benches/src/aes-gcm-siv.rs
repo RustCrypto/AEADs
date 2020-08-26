@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use criterion_cycles_per_byte::CyclesPerByte;
 
-use aead::{Aead, NewAead};
+use aes_gcm_siv::aead::{Aead, NewAead};
 use aes_gcm_siv::{Aes128GcmSiv, Aes256GcmSiv};
 
 const KB: usize = 1024;

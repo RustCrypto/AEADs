@@ -17,13 +17,13 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.3", default-features = false }
-aes = "0.4"
-cmac = "0.3"
-crypto-mac = { version = "0.8", default-features = false }
-ctr = "0.4"
+aes = "0.5"
+cmac = "0.4"
+crypto-mac = { version = "0.9", default-features = false }
+ctr = "0.5"
 dbl = { version = "0.3", default-features = false }
 pmac = { version = "0.4", optional = true }
-stream-cipher = { version = "0.4", default-features = false }
+stream-cipher = { version = "0.7", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]

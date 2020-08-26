@@ -58,7 +58,7 @@ dependencies = [
  "aead",
  "aes",
  "cmac",
- "crypto-mac 0.8.0",
+ "crypto-mac 0.9.1",
  "ctr",
  "dbl",
  "hex-literal",

@@ -18,7 +18,7 @@ keywords = ["nacl", "libsodium", "public-key", "x25519", "xsalsa20poly1305"]
 
 [dependencies]
 rand_core = "0.5"
-salsa20 = { version = "0.5", features = ["hsalsa20"] }
+salsa20 = { version = "0.6", features = ["hsalsa20"] }
 x25519-dalek = { version = "1", default-features = false }
 zeroize = { version = "1", default-features = false }
 

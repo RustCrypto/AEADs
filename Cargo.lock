@@ -63,7 +63,7 @@ dependencies = [
  "dbl",
  "hex-literal",
  "pmac",
- "stream-cipher",
+ "stream-cipher 0.4.1",
  "zeroize",
 ]
 
@@ -202,7 +202,7 @@ version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "086c0f07ac275808b7bf9a39f2fd013aae1498be83632814c8c4e0bd53f2dc58"
 dependencies = [
- "stream-cipher",
+ "stream-cipher 0.4.1",
  "zeroize",
 ]
 
@@ -215,7 +215,7 @@ dependencies = [
  "criterion",
  "criterion-cycles-per-byte",
  "poly1305",
- "stream-cipher",
+ "stream-cipher 0.4.1",
  "zeroize",
 ]
 
@@ -384,7 +384,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3592740fd55aaf61dd72df96756bd0d11e6037b89dcf30ae2e1895b267692be"
 dependencies = [
- "stream-cipher",
+ "stream-cipher 0.4.1",
 ]
 
 [[package]]
@@ -844,11 +844,11 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "salsa20"
-version = "0.5.2"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fc17dc5eee5d3040d9f95a2d3ac42fb2c1829a80f417045da6cfd2befa66769"
+checksum = "c7f47b10fa80f6969bbbd9c8e7cc998f082979d402a9e10579e2303a87955395"
 dependencies = [
- "stream-cipher",
+ "stream-cipher 0.7.1",
  "zeroize",
 ]
 
@@ -933,6 +933,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09f8ed9974042b8c3672ff3030a69fcc03b74c47c3d1ecb7755e8a3626011e88"
 dependencies = [
  "block-cipher 0.7.1",
+ "generic-array 0.14.4",
+]
+
+[[package]]
+name = "stream-cipher"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c80e15f898d8d8f25db24c253ea615cc14acf418ff307822995814e7d42cfa89"
+dependencies = [
+ "block-cipher 0.8.0",
  "generic-array 0.14.4",
 ]
 

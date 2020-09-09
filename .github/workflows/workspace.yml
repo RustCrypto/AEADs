@@ -8,6 +8,10 @@ on:
     paths-ignore:
       - README.md
 
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+
 jobs:
   rustfmt:
     runs-on: ubuntu-latest
@@ -70,16 +74,12 @@ jobs:
 
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
-        env:
-          CARGO_INCREMENTAL: 0
         with:
-          version: 0.12.4
+          version: latest
           args: --all -- --test-threads 1
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1.0.2
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
+        uses: codecov/codecov-action@v1
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v1

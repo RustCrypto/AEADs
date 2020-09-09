@@ -78,6 +78,9 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
+#[cfg(feature = "std")]
+extern crate std;
+
 pub use aead::{self, AeadInPlace, Error, NewAead};
 
 use block_cipher::{
@@ -102,6 +105,8 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// EAX tags
 pub type Tag = GenericArray<u8, U16>;
+
+pub mod stream;
 
 /// EAX: generic over an underlying block cipher implementation.
 ///
@@ -146,31 +151,18 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
+        use stream::{EaxStream, Encrypt};
+
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 
-        // https://crypto.stackexchange.com/questions/26948/eax-cipher-mode-with-nonce-equal-header
-        // has an explanation of eax.
+        let mut eax = EaxStream::<Cipher, Encrypt>::with_key_and_nonce(&self.key, nonce);
 
-        // l = block cipher size = 128 (for AES-128) = 16 byte
-        // 1. n ← OMAC(0 || Nonce)
-        // (the 0 means the number zero in l bits)
-        let n = Self::cmac_with_iv(&self.key, 0, nonce);
+        eax.update_assoc(associated_data);
+        eax.encrypt(buffer);
 
-        // 2. h ← OMAC(1 || associated data)
-        let h = Self::cmac_with_iv(&self.key, 1, associated_data);
-
-        // 3. enc ← CTR(M) using n as iv
-        let mut cipher = ctr::Ctr128::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
-        cipher.apply_keystream(buffer);
-
-        // 4. c ← OMAC(2 || enc)
-        let c = Self::cmac_with_iv(&self.key, 2, buffer);
-
-        // 5. tag ← n ^ h ^ c
-        // (^ means xor)
-        Ok(n.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b))
+        Ok(eax.finish())
     }
 
     fn decrypt_in_place_detached(
@@ -180,57 +172,17 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
+        use stream::{Decrypt, EaxStream};
+
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 
-        // 1. n ← OMAC(0 || Nonce)
-        let n = Self::cmac_with_iv(&self.key, 0, nonce);
+        let mut eax = EaxStream::<Cipher, Decrypt>::with_key_and_nonce(&self.key, nonce);
 
-        // 2. h ← OMAC(1 || associated data)
-        let h = Self::cmac_with_iv(&self.key, 1, associated_data);
+        eax.update_assoc(associated_data);
+        eax.decrypt(buffer);
 
-        // 4. c ← OMAC(2 || enc)
-        let c = Self::cmac_with_iv(&self.key, 2, buffer);
-
-        // 5. tag ← n ^ h ^ c
-        // (^ means xor)
-        let expected_tag = n.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
-
-        let expected_tag = &expected_tag[..tag.len()];
-
-        // Check mac using secure comparison
-        use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
-            // Decrypt
-            let mut cipher = ctr::Ctr128::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
-            cipher.apply_keystream(buffer);
-            Ok(())
-        } else {
-            Err(Error)
-        }
-    }
-}
-
-impl<Cipher> Eax<Cipher>
-where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
-{
-    /// CMAC/OMAC1
-    ///
-    /// To avoid constructing new buffers on the heap, an iv encoded into 16
-    /// bytes is prepended inside this function.
-    fn cmac_with_iv(
-        key: &GenericArray<u8, Cipher::KeySize>,
-        iv: u8,
-        data: &[u8],
-    ) -> GenericArray<u8, <Cmac<Cipher> as Mac>::OutputSize> {
-        let mut mac = Cmac::<Cipher>::new(key);
-        mac.update(&[0; 15]);
-        mac.update(&[iv]);
-        mac.update(data);
-
-        mac.finalize().into_bytes()
+        eax.finish(tag)
     }
 }

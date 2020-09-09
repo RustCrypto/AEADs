@@ -81,7 +81,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-pub use aead::{self, AeadInPlace, Error, NewAead};
+pub use aead::{self, AeadInPlace, Error, NewAead, Nonce};
 
 use block_cipher::{
     consts::{U0, U16},
@@ -147,7 +147,7 @@ where
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -167,7 +167,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

@@ -63,8 +63,6 @@
 
 use crate::*;
 
-use aead::Nonce;
-
 use core::marker::PhantomData;
 use core::mem;
 
@@ -194,10 +192,7 @@ where
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
-    pub fn with_key_and_nonce(
-        key: &Key<Cipher>,
-        nonce: &GenericArray<u8, Cipher::BlockSize>,
-    ) -> Self {
+    pub fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
         let prepend_cmac = |key, init_val, data| {
             let mut cmac = Cmac::<Cipher>::new(key);
             cmac.update(&[0; 15]);

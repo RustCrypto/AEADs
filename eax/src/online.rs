@@ -1,4 +1,4 @@
-//! Streaming variant of the EAX mode.
+//! Online[<sup>1</sup>] variant of the EAX mode.
 //!
 //! # Authentication
 //! Due to *AE* (authenticated encryption) nature of EAX, it is vital to verify
@@ -11,13 +11,13 @@
 //! or a `Result` (when decrypting) that signifies whether the data is authentic,
 //! which is when the resulting tag is equal to the one created during encryption.
 //! # Panic
-//! If the `EaxStream` value will not be consumed via [`finish`] the
+//! If the `Eax` value will not be consumed via [`finish`] the
 //! process will abort, when compiled with `std` feature enabled, to prevent
 //! against bugs related to decrypting data without verifying its authenticity.
 //!
 //! ## Example
 //! ```
-//! use eax::{Error, stream::{EaxStream, Decrypt, Encrypt}};
+//! use eax::{Error, online::{Eax, Decrypt, Encrypt}};
 //! use aes::Aes256;
 //! use block_cipher::generic_array::GenericArray;
 //!
@@ -28,7 +28,7 @@
 //! let mut buffer: [u8; 17] = *plaintext;
 //!
 //!// Encrypt a simple message
-//! let mut cipher = EaxStream::<Aes256, Encrypt>::with_key_and_nonce(key, nonce);
+//! let mut cipher = Eax::<Aes256, Encrypt>::with_key_and_nonce(key, nonce);
 //! cipher.update_assoc(&assoc[..]);
 //! cipher.encrypt(&mut buffer[..9]);
 //! cipher.encrypt(&mut buffer[9..]);
@@ -39,7 +39,7 @@
 //! let mut cloned = buffer;
 //!
 //! // Now decrypt it, using the same key and nonce
-//! let mut cipher = EaxStream::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
+//! let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 //! cipher.update_assoc(&assoc[..]);
 //! cipher.decrypt(&mut buffer[..5]);
 //! cipher.decrypt(&mut buffer[5..10]);
@@ -50,13 +50,14 @@
 //! assert_eq!(buffer, *plaintext);
 //!
 //! // Decrypting the ciphertext with tampered associated data should fail
-//! let mut cipher = EaxStream::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
+//! let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 //! cipher.update_assoc(b"tampered");
 //! cipher.decrypt(&mut cloned);
 //! let res = cipher.finish(&tag);
 //!
 //! assert_eq!(res, Err(Error));
 //! ```
+//! [<sup>1</sup>]: https://en.wikipedia.org/wiki/Online_algorithm
 //! [`Eax`]: struct.Eax.html
 //! [`Decrypt`]: struct.Decrypt.html
 //! [`finish`]: #method.finish
@@ -66,22 +67,24 @@ use crate::*;
 use core::marker::PhantomData;
 use core::mem;
 
-/// Auto trait denoting whether the EAX stream is used for encryption/decryption.
+pub use Eax as EaxOnline;
+
+/// Marker trait denoting whether the EAX stream is used for encryption/decryption.
 pub trait CipherOp {}
-/// EAX stream is used in encryption mode.
+/// Marker struct for EAX stream used in encryption mode.
 pub struct Encrypt;
 impl CipherOp for Encrypt {}
-/// EAX stream is used in decryption mode.
+/// Marker struct for EAX stream used in decryption mode.
 pub struct Decrypt;
 impl CipherOp for Decrypt {}
 
-/// EAX: generic over an underlying block cipher implementation.
+/// Online[<sup>1</sup>] variant of the EAX mode.
 ///
 /// This type is generic to support substituting alternative cipher
 /// implementations.
 ///
-/// NOTE: This type, in contrast to [`Eax`], can be used in a streaming fashion
-/// and operates in-place.
+/// In contrast to [`Eax`], can be used in an online[<sup>1</sup>] fashion and
+/// operates in-place.
 ///
 /// # Authentication
 /// Due to *AE* (authenticated encryption) nature of EAX, it is vital to verify
@@ -95,12 +98,12 @@ impl CipherOp for Decrypt {}
 /// which is when the resulting tag is equal to the one created during encryption.
 ///
 /// # Panic
-/// If the `EaxStream` value will not be consumed via [`finish`] the
+/// If the `Eax` value will not be consumed via [`finish`] the
 /// process will abort, when compiled with `std` feature enabled, to prevent
 /// against bugs related to decrypting data without verifying its authenticity.
 /// ## Example
 /// ```
-/// use eax::{Error, stream::{EaxStream, Decrypt, Encrypt}};
+/// use eax::{Error, online::{Eax, Decrypt, Encrypt}};
 /// use aes::Aes256;
 /// use block_cipher::generic_array::GenericArray;
 ///
@@ -114,7 +117,7 @@ impl CipherOp for Decrypt {}
 /// let mut buffer: [u8; 17] = *plaintext;
 ///
 /// // Encrypt a simple message
-/// let mut cipher = EaxStream::<Aes256, Encrypt>::with_key_and_nonce(key, nonce);
+/// let mut cipher = Eax::<Aes256, Encrypt>::with_key_and_nonce(key, nonce);
 /// cipher.update_assoc(&assoc[..]);
 /// cipher.encrypt(&mut buffer[..9]);
 /// cipher.encrypt(&mut buffer[9..]);
@@ -125,7 +128,7 @@ impl CipherOp for Decrypt {}
 /// let mut cloned = buffer;
 ///
 /// // Now decrypt it, using the same key and nonce
-/// let mut cipher = EaxStream::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
+/// let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 /// cipher.update_assoc(&assoc[..]);
 /// cipher.decrypt(&mut buffer[..5]);
 /// cipher.decrypt(&mut buffer[5..10]);
@@ -136,7 +139,7 @@ impl CipherOp for Decrypt {}
 /// assert_eq!(buffer, *plaintext);
 ///
 /// // Decrypting the ciphertext with tampered associated data should fail
-/// let mut cipher = EaxStream::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
+/// let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 ///
 /// cipher.update_assoc(b"tampered");
 /// cipher.decrypt(&mut cloned);
@@ -145,10 +148,11 @@ impl CipherOp for Decrypt {}
 /// assert_eq!(res, Err(Error));
 /// ```
 ///
-/// [`Eax`]: struct.Eax.html
+/// [<sup>1</sup>]: https://en.wikipedia.org/wiki/Online_algorithm
+/// [`Eax`]: ../struct.Eax.html
 /// [`Decrypt`]: struct.Decrypt.html
 /// [`finish`]: #method.finish
-pub struct EaxStream<Cipher, Op>
+pub struct Eax<Cipher, Op>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
@@ -161,7 +165,7 @@ where
     /// Denotes whether this stream is used for encryption or decryption.
     marker: PhantomData<Op>,
     /// Verifies at run-time whether the type has been properly consumed via
-    /// `EaxStream::finish`, otherwise aborts.
+    /// `Eax::finish`, otherwise aborts.
     bomb: DropBomb,
 }
 
@@ -184,7 +188,7 @@ impl DropBomb {
     }
 }
 
-impl<Cipher, Op> EaxStream<Cipher, Op>
+impl<Cipher, Op> Eax<Cipher, Op>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
@@ -218,7 +222,7 @@ where
 
         let cipher = ctr::Ctr128::<Cipher>::from_block_cipher(Cipher::new(&key), &n);
 
-        EaxStream {
+        Eax {
             nonce: n,
             data: h,
             message: c,
@@ -229,7 +233,7 @@ where
     }
 }
 
-impl<Cipher, Op> EaxStream<Cipher, Op>
+impl<Cipher, Op> Eax<Cipher, Op>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
@@ -255,8 +259,11 @@ where
     }
 
     /// Derives the tag from the encrypted/decrypted message so far.
-    //
-    /// Prefer using `EaxStream::tag` if `EaxStream` value will not be needed anymore.
+    ///
+    /// If the encryption/decryption operation is finished, [`finish`] method
+    /// *must* be called instead.
+    ///
+    ///[`finish`]: #method.finish
     #[inline]
     pub fn tag_clone(&self) -> Tag {
         let h = self.data.clone().finalize().into_bytes();
@@ -266,7 +273,7 @@ where
     }
 }
 
-impl<Cipher> EaxStream<Cipher, Encrypt>
+impl<Cipher> Eax<Cipher, Encrypt>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
@@ -278,7 +285,9 @@ where
         self.message.update(msg);
     }
 
-    /// Derives the tag from the encrypted/decrypted message so far.
+    /// Finishes the encryption stream, returning the derived tag.
+    ///
+    /// This *must* be called after the stream encryption is finished.
     #[must_use = "tag must be saved to later verify decrypted data"]
     #[inline]
     pub fn finish(self) -> Tag {
@@ -286,7 +295,7 @@ where
     }
 }
 
-impl<Cipher> EaxStream<Cipher, Decrypt>
+impl<Cipher> Eax<Cipher, Decrypt>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
@@ -301,7 +310,7 @@ where
     /// Finishes the decryption stream, verifying whether the associated and
     /// decrypted data stream has not been tampered with.
     ///
-    /// This *has* to be called after every stream decryption operation.
+    /// This *must* be called after the stream decryption is finished.
     #[must_use = "decrypted data stream must be verified for authenticity"]
     pub fn finish(self, expected: &Tag) -> Result<(), Error> {
         // Check mac using secure comparison

@@ -106,7 +106,7 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 /// EAX tags
 pub type Tag = GenericArray<u8, U16>;
 
-pub mod stream;
+pub mod online;
 
 /// EAX: generic over an underlying block cipher implementation.
 ///
@@ -151,13 +151,13 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
-        use stream::{EaxStream, Encrypt};
+        use online::{EaxOnline, Encrypt};
 
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 
-        let mut eax = EaxStream::<Cipher, Encrypt>::with_key_and_nonce(&self.key, nonce);
+        let mut eax = EaxOnline::<Cipher, Encrypt>::with_key_and_nonce(&self.key, nonce);
 
         eax.update_assoc(associated_data);
         eax.encrypt(buffer);
@@ -172,13 +172,13 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        use stream::{Decrypt, EaxStream};
+        use online::{Decrypt, EaxOnline};
 
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 
-        let mut eax = EaxStream::<Cipher, Decrypt>::with_key_and_nonce(&self.key, nonce);
+        let mut eax = EaxOnline::<Cipher, Decrypt>::with_key_and_nonce(&self.key, nonce);
 
         eax.update_assoc(associated_data);
         eax.decrypt(buffer);

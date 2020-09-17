@@ -33,6 +33,7 @@ aead = { version = "0.3", features = ["dev"], default-features = false }
 default = ["alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
+std = ["aead/std", "alloc"]
 
 [package.metadata.docs.rs]
 all-features = true

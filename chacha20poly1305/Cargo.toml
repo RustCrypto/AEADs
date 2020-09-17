@@ -29,6 +29,7 @@ default = ["alloc", "chacha20", "xchacha20poly1305"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 reduced-round = ["chacha20"]
+std = ["aead/std", "alloc"]
 xchacha20poly1305 = ["chacha20/xchacha20"]
 
 [package.metadata.docs.rs]

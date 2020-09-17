@@ -35,5 +35,6 @@ rand = "0.7"
 default = ["alloc", "u64_backend"]
 alloc = ["xsalsa20poly1305/alloc"]
 heapless = ["xsalsa20poly1305/heapless"]
+std = ["xsalsa20poly1305/std"]
 u32_backend = ["x25519-dalek/u32_backend"]
 u64_backend = ["x25519-dalek/u64_backend"]

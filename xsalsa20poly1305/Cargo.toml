@@ -26,6 +26,7 @@ zeroize = { version = "1", default-features = false }
 default = ["alloc", "rand_core"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
+std = ["aead/std", "alloc"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -30,6 +30,7 @@ hex-literal = "0.2"
 default = ["aes", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
+std = ["aead/std", "alloc"]
 
 [package.metadata.docs.rs]
 all-features = true

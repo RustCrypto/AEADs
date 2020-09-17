@@ -10,10 +10,6 @@
 //! This will either return a *tag* (when encrypting) used to authenticate data
 //! or a `Result` (when decrypting) that signifies whether the data is authentic,
 //! which is when the resulting tag is equal to the one created during encryption.
-//! # Panic
-//! If the `Eax` value will not be consumed via [`finish`] the
-//! process will abort, when compiled with `std` feature enabled, to prevent
-//! against bugs related to decrypting data without verifying its authenticity.
 //!
 //! ## Example
 //! ```
@@ -65,7 +61,6 @@
 use crate::*;
 
 use core::marker::PhantomData;
-use core::mem;
 
 pub use Eax as EaxOnline;
 
@@ -97,10 +92,6 @@ impl CipherOp for Decrypt {}
 /// or a `Result` (when decrypting) that signifies whether the data is authentic,
 /// which is when the resulting tag is equal to the one created during encryption.
 ///
-/// # Panic
-/// If the `Eax` value will not be consumed via [`finish`] the
-/// process will abort, when compiled with `std` feature enabled, to prevent
-/// against bugs related to decrypting data without verifying its authenticity.
 /// ## Example
 /// ```
 /// use eax::{Error, online::{Eax, Decrypt, Encrypt}};
@@ -164,28 +155,6 @@ where
     ctr: ctr::Ctr128<Cipher>,
     /// Denotes whether this stream is used for encryption or decryption.
     marker: PhantomData<Op>,
-    /// Verifies at run-time whether the type has been properly consumed via
-    /// `Eax::finish`, otherwise aborts.
-    bomb: DropBomb,
-}
-
-/// Runtime-enforced linear-ish type.
-///
-/// This type is useful to enforce that a value is correctly explicitly consumed.
-/// Otherwise, this will abort (only when `std` feature is enabled).
-struct DropBomb;
-#[cfg(feature = "std")]
-impl Drop for DropBomb {
-    fn drop(&mut self) {
-        std::eprintln!("Drop bomb says buh-bye");
-        std::process::abort();
-    }
-}
-
-impl DropBomb {
-    fn defuse(self) {
-        mem::forget(self);
-    }
 }
 
 impl<Cipher, Op> Eax<Cipher, Op>
@@ -228,7 +197,6 @@ where
             message: c,
             ctr: cipher,
             marker: PhantomData,
-            bomb: DropBomb,
         }
     }
 }
@@ -250,8 +218,6 @@ where
     /// NOTE: This has to be called when the value is consumed.
     #[inline]
     fn finish_inner(self) -> Tag {
-        self.bomb.defuse();
-
         let h = self.data.finalize().into_bytes();
         let c = self.message.finalize().into_bytes();
 

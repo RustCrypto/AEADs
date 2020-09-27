@@ -37,9 +37,9 @@
 //! // Now decrypt it, using the same key and nonce
 //! let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 //! cipher.update_assoc(&assoc[..]);
-//! cipher.decrypt_unauthenticated(&mut buffer[..5]);
-//! cipher.decrypt_unauthenticated(&mut buffer[5..10]);
-//! cipher.decrypt_unauthenticated(&mut buffer[10..]);
+//! cipher.decrypt_unauthenticated_hazmat(&mut buffer[..5]);
+//! cipher.decrypt_unauthenticated_hazmat(&mut buffer[5..10]);
+//! cipher.decrypt_unauthenticated_hazmat(&mut buffer[10..]);
 //! let res = cipher.finish(&tag);
 //!
 //! assert_eq!(res, Ok(()));
@@ -48,7 +48,7 @@
 //! // Decrypting the ciphertext with tampered associated data should fail
 //! let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 //! cipher.update_assoc(b"tampered");
-//! cipher.decrypt_unauthenticated(&mut cloned);
+//! cipher.decrypt_unauthenticated_hazmat(&mut cloned);
 //! let res = cipher.finish(&tag);
 //!
 //! assert_eq!(res, Err(Error));
@@ -121,9 +121,9 @@ impl CipherOp for Decrypt {}
 /// // Now decrypt it, using the same key and nonce
 /// let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 /// cipher.update_assoc(&assoc[..]);
-/// cipher.decrypt_unauthenticated(&mut buffer[..5]);
-/// cipher.decrypt_unauthenticated(&mut buffer[5..10]);
-/// cipher.decrypt_unauthenticated(&mut buffer[10..]);
+/// cipher.decrypt_unauthenticated_hazmat(&mut buffer[..5]);
+/// cipher.decrypt_unauthenticated_hazmat(&mut buffer[5..10]);
+/// cipher.decrypt_unauthenticated_hazmat(&mut buffer[10..]);
 /// let res = cipher.finish(&tag);
 ///
 /// assert_eq!(res, Ok(()));
@@ -133,7 +133,7 @@ impl CipherOp for Decrypt {}
 /// let mut cipher = Eax::<Aes256, Decrypt>::with_key_and_nonce(key, nonce);
 ///
 /// cipher.update_assoc(b"tampered");
-/// cipher.decrypt_unauthenticated(&mut cloned);
+/// cipher.decrypt_unauthenticated_hazmat(&mut cloned);
 /// let res = cipher.finish(&tag);
 ///
 /// assert_eq!(res, Err(Error));
@@ -221,9 +221,25 @@ where
     /// To correctly verify the authenticity, use the [`finish`] associated
     /// function.
     ///
+    /// # ☣️ BEWARE! ☣️
+    /// This is a low-level operation that simultaneously decrypts the data and
+    /// calculates an intermediate tag used to verify the authenticity of the
+    /// data (used when the online decryption is finished).
+    ///
+    /// Because this is exposed solely as a building block operation, an extra
+    /// care must be taken when using this function.
+    ///
+    /// Specifically, when misused this may be vulnerable to a chosen-ciphertext
+    /// attack (IND-CCA). Due to online nature of this function, the decryption
+    /// and partial tag calculation is done simultaneously, per chunk.
+    /// An attacker might choose ciphertexts to be decrypted and, while the
+    /// final decryption will fail because the attacker can't calculate tag
+    /// authenticating the message, obtained decryptions may leak information
+    /// about the decryption scheme (e.g. leaking parts of the secret key).
+    ///
     /// [`finish`]: #method.finish
     #[inline]
-    pub fn decrypt_unauthenticated(&mut self, msg: &mut [u8]) {
+    pub fn decrypt_unauthenticated_hazmat(&mut self, msg: &mut [u8]) {
         self.imp.decrypt(msg)
     }
 

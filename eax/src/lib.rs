@@ -78,7 +78,7 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead::{self, AeadInPlace, Error, NewAead};
+pub use aead::{self, AeadInPlace, Error, NewAead, Nonce};
 
 use block_cipher::{
     consts::{U0, U16},
@@ -102,6 +102,8 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// EAX tags
 pub type Tag = GenericArray<u8, U16>;
+
+pub mod online;
 
 /// EAX: generic over an underlying block cipher implementation.
 ///
@@ -142,7 +144,7 @@ where
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -175,7 +177,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,

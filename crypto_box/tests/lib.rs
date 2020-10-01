@@ -5,6 +5,9 @@
 
 use crypto_box::aead::{generic_array::GenericArray, Aead, AeadInPlace};
 use crypto_box::{ChaChaBox, PublicKey, SalsaBox, SecretKey};
+use std::any::TypeId;
+
+const SALSABOX_TYPE: TypeId = TypeId::of::<SalsaBox>();
 
 // Alice's keypair
 const ALICE_SECRET_KEY: [u8; 32] = [
@@ -86,7 +89,14 @@ macro_rules! impl_tests {
                 .encrypt_in_place_detached(nonce, b"", &mut buffer)
                 .unwrap();
 
-            let (expected_tag, expected_ciphertext) = $ciphertext.split_at(16);
+            let (expected_tag, expected_ciphertext) = match TypeId::of::<$box>() {
+                SALSABOX_TYPE => $ciphertext.split_at(16), // xsalsa20poly1035 use prefix tag
+                _ => {
+                    // for xchacha20poly1035 and others use standard postfix tag
+                    let (ct, tag) = $ciphertext.split_at($ciphertext.len() - 16);
+                    (tag, ct)
+                }
+            };
             assert_eq!(expected_tag, &tag[..]);
             assert_eq!(expected_ciphertext, &buffer[..]);
         }
@@ -109,8 +119,20 @@ macro_rules! impl_tests {
             let secret_key = SecretKey::from(BOB_SECRET_KEY);
             let public_key = PublicKey::from(ALICE_PUBLIC_KEY);
             let nonce = GenericArray::from_slice(NONCE);
-            let tag = GenericArray::clone_from_slice(&$ciphertext[..16]);
-            let mut buffer = $ciphertext[16..].to_vec();
+            let (tag, mut buffer) = match TypeId::of::<$box>() {
+                SALSABOX_TYPE => {
+                    // xsalsa20poly1035 use prefix tag
+                    (
+                        GenericArray::clone_from_slice(&$ciphertext[..16]),
+                        $ciphertext[16..].to_vec(),
+                    )
+                }
+                _ => (
+                    // for xchacha20poly1035 and others use standard postfix tag
+                    GenericArray::clone_from_slice(&$ciphertext[$ciphertext.len() - 16..]),
+                    $ciphertext[..$ciphertext.len() - 16].to_vec(),
+                ),
+            };
 
             <$box>::new(&public_key, &secret_key)
                 .decrypt_in_place_detached(nonce, b"", &mut buffer, &tag)

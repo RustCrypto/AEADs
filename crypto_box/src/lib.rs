@@ -138,9 +138,9 @@ use salsa20::hsalsa20;
 use xsalsa20poly1305::aead::{
     consts::{U0, U16, U24},
     generic_array::GenericArray,
-    AeadInPlace, Buffer, Error, NewAead,
+    AeadInPlace, Buffer, Error, NewAead, Tag,
 };
-use xsalsa20poly1305::{Tag, XSalsa20Poly1305};
+use xsalsa20poly1305::XSalsa20Poly1305;
 use zeroize::Zeroize;
 
 /// Size of a `crypto_box` public or secret key in bytes.
@@ -209,7 +209,7 @@ macro_rules! impl_aead_in_place {
                 nonce: &GenericArray<u8, Self::NonceSize>,
                 associated_data: &[u8],
                 buffer: &mut [u8],
-            ) -> Result<Tag, Error> {
+            ) -> Result<Tag<Self::TagSize>, Error> {
                 self.0
                     .encrypt_in_place_detached(nonce, associated_data, buffer)
             }
@@ -228,7 +228,7 @@ macro_rules! impl_aead_in_place {
                 nonce: &GenericArray<u8, Self::NonceSize>,
                 associated_data: &[u8],
                 buffer: &mut [u8],
-                tag: &Tag,
+                tag: &Tag<Self::TagSize>,
             ) -> Result<(), Error> {
                 self.0
                     .decrypt_in_place_detached(nonce, associated_data, buffer, tag)

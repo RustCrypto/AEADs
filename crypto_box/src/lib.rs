@@ -128,6 +128,7 @@
 )]
 #![warn(missing_docs, rust_2018_idioms)]
 
+use chacha20poly1305::XChaCha20Poly1305;
 pub use x25519_dalek::PublicKey;
 pub use xsalsa20poly1305::{aead, generate_nonce};
 
@@ -187,6 +188,55 @@ impl From<&SecretKey> for PublicKey {
     }
 }
 
+macro_rules! impl_aead_in_place {
+    ($box:ty, $nonce_size:ty, $tag_size:ty, $ct_overhead:ty) => {
+        impl AeadInPlace for $box {
+            type NonceSize = $nonce_size;
+            type TagSize = $tag_size;
+            type CiphertextOverhead = $ct_overhead;
+
+            fn encrypt_in_place(
+                &self,
+                nonce: &GenericArray<u8, Self::NonceSize>,
+                associated_data: &[u8],
+                buffer: &mut dyn Buffer,
+            ) -> Result<(), Error> {
+                self.0.encrypt_in_place(nonce, associated_data, buffer)
+            }
+
+            fn encrypt_in_place_detached(
+                &self,
+                nonce: &GenericArray<u8, Self::NonceSize>,
+                associated_data: &[u8],
+                buffer: &mut [u8],
+            ) -> Result<Tag, Error> {
+                self.0
+                    .encrypt_in_place_detached(nonce, associated_data, buffer)
+            }
+
+            fn decrypt_in_place(
+                &self,
+                nonce: &GenericArray<u8, Self::NonceSize>,
+                associated_data: &[u8],
+                buffer: &mut dyn Buffer,
+            ) -> Result<(), Error> {
+                self.0.decrypt_in_place(nonce, associated_data, buffer)
+            }
+
+            fn decrypt_in_place_detached(
+                &self,
+                nonce: &GenericArray<u8, Self::NonceSize>,
+                associated_data: &[u8],
+                buffer: &mut [u8],
+                tag: &Tag,
+            ) -> Result<(), Error> {
+                self.0
+                    .decrypt_in_place_detached(nonce, associated_data, buffer, tag)
+            }
+        }
+    };
+}
+
 /// Alias for [`SalsaBox`].
 pub type Box = SalsaBox;
 
@@ -221,47 +271,29 @@ impl SalsaBox {
     }
 }
 
-impl AeadInPlace for SalsaBox {
-    type NonceSize = U24;
-    type TagSize = U16;
-    type CiphertextOverhead = U0;
+impl_aead_in_place!(SalsaBox, U24, U16, U0);
 
-    fn encrypt_in_place(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut dyn Buffer,
-    ) -> Result<(), Error> {
-        self.0.encrypt_in_place(nonce, associated_data, buffer)
-    }
+/// Public-key encryption scheme based on the [X25519] Elliptic Curve
+/// Diffie-Hellman function and the [XChaCha20Poly1305] authenticated encryption
+/// cipher.
+///
+/// This type impls the [`aead::Aead`] trait, and otherwise functions as a
+/// symmetric Authenticated Encryption with Associated Data (AEAD) cipher
+/// once instantiated.
+///
+/// [X25519]: https://cr.yp.to/ecdh.html
+/// [XChaCha20Poly1305]: https://github.com/RustCrypto/AEADs/blob/master/chacha20poly1305/
+pub struct ChaChaBox(XChaCha20Poly1305);
 
-    fn encrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-    ) -> Result<Tag, Error> {
-        self.0
-            .encrypt_in_place_detached(nonce, associated_data, buffer)
-    }
-
-    fn decrypt_in_place(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut dyn Buffer,
-    ) -> Result<(), Error> {
-        self.0.decrypt_in_place(nonce, associated_data, buffer)
-    }
-
-    fn decrypt_in_place_detached(
-        &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-        tag: &Tag,
-    ) -> Result<(), Error> {
-        self.0
-            .decrypt_in_place_detached(nonce, associated_data, buffer, tag)
+impl ChaChaBox {
+    /// Create a new [`ChaChaBox`], performing X25519 Diffie-Hellman to derive
+    /// a shared secret from the provided public and secret keys.
+    pub fn new(public_key: &PublicKey, secret_key: &SecretKey) -> Self {
+        let shared_secret = secret_key.0.diffie_hellman(public_key);
+        let cipher =
+            XChaCha20Poly1305::new(&GenericArray::clone_from_slice(&shared_secret.to_bytes()));
+        ChaChaBox(cipher)
     }
 }
+
+impl_aead_in_place!(ChaChaBox, U24, U16, U0);

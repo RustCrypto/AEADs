@@ -7,8 +7,6 @@ use crypto_box::aead::{generic_array::GenericArray, Aead, AeadInPlace, Payload};
 use crypto_box::{ChaChaBox, PublicKey, SalsaBox, SecretKey};
 use std::any::TypeId;
 
-const SALSABOX_TYPE: TypeId = TypeId::of::<SalsaBox>();
-
 // Alice's keypair
 const ALICE_SECRET_KEY: [u8; 32] = [
     0x68, 0xf2, 0x8, 0x41, 0x2d, 0x8d, 0xd5, 0xdb, 0x9d, 0xc, 0x6d, 0x18, 0x51, 0x2e, 0x86, 0xf0,
@@ -89,14 +87,15 @@ macro_rules! impl_tests {
                 .encrypt_in_place_detached(nonce, b"", &mut buffer)
                 .unwrap();
 
-            let (expected_tag, expected_ciphertext) = match TypeId::of::<$box>() {
-                SALSABOX_TYPE => $ciphertext.split_at(16), // xsalsa20poly1035 use prefix tag
-                _ => {
+            let (expected_tag, expected_ciphertext) =
+                if TypeId::of::<$box>() == TypeId::of::<SalsaBox>() {
+                    // xsalsa20poly1035 use prefix tag
+                    $ciphertext.split_at(16)
+                } else {
                     // for xchacha20poly1035 and others use standard postfix tag
                     let (ct, tag) = $ciphertext.split_at($ciphertext.len() - 16);
                     (tag, ct)
-                }
-            };
+                };
             assert_eq!(expected_tag, &tag[..]);
             assert_eq!(expected_ciphertext, &buffer[..]);
         }
@@ -119,19 +118,18 @@ macro_rules! impl_tests {
             let secret_key = SecretKey::from(BOB_SECRET_KEY);
             let public_key = PublicKey::from(ALICE_PUBLIC_KEY);
             let nonce = GenericArray::from_slice(NONCE);
-            let (tag, mut buffer) = match TypeId::of::<$box>() {
-                SALSABOX_TYPE => {
-                    // xsalsa20poly1035 use prefix tag
-                    (
-                        GenericArray::clone_from_slice(&$ciphertext[..16]),
-                        $ciphertext[16..].to_vec(),
-                    )
-                }
-                _ => (
+            let (tag, mut buffer) = if TypeId::of::<$box>() == TypeId::of::<SalsaBox>() {
+                // xsalsa20poly1035 use prefix tag
+                (
+                    GenericArray::clone_from_slice(&$ciphertext[..16]),
+                    $ciphertext[16..].to_vec(),
+                )
+            } else {
+                (
                     // for xchacha20poly1035 and others use standard postfix tag
                     GenericArray::clone_from_slice(&$ciphertext[$ciphertext.len() - 16..]),
                     $ciphertext[..$ciphertext.len() - 16].to_vec(),
-                ),
+                )
             };
 
             <$box>::new(&public_key, &secret_key)
@@ -210,7 +208,7 @@ mod xchacha20poly1305 {
 
         let ct_len = ciphertext.len() - 16; // only the ciphertext, excluding the tag
         assert_eq!(CIPHERTEXT[..ct_len], ciphertext[..ct_len]);
-        assert_eq!(CIPHERTEXT_WITH_AAD, ciphertext);
+        assert_eq!(CIPHERTEXT_WITH_AAD, &ciphertext[..]);
     }
 
     #[test]

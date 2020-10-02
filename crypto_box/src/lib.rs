@@ -94,6 +94,58 @@
 //! assert_eq!(&plaintext[..], &decrypted_plaintext[..]);
 //! ```
 //!
+//! ## Customized Associated Data Usage
+//!
+//! Currently, `crypto_box::Box` is default to use `xsalsa20poly1305` which doesn't support non-empty associated data
+//! field. To specify customized AD, you can use `crypto_box::ChaChaBox` instead.
+//!
+//! ```rust
+//! use crypto_box::{ChaChaBox, PublicKey, SecretKey, aead::{Aead, Payload}};
+//!
+//! let mut rng = rand::thread_rng();
+//! let alice_secret_key = SecretKey::generate(&mut rng);
+//! let alice_public_key_bytes = alice_secret_key.public_key().as_bytes().clone();
+//! let bob_public_key = PublicKey::from([
+//!    0xe8, 0x98, 0xc, 0x86, 0xe0, 0x32, 0xf1, 0xeb,
+//!    0x29, 0x75, 0x5, 0x2e, 0x8d, 0x65, 0xbd, 0xdd,
+//!    0x15, 0xc3, 0xb5, 0x96, 0x41, 0x17, 0x4e, 0xc9,
+//!    0x67, 0x8a, 0x53, 0x78, 0x9d, 0x92, 0xc7, 0x54,
+//! ]);
+//! let alice_box = ChaChaBox::new(&bob_public_key, &alice_secret_key);
+//! let nonce = crypto_box::generate_nonce(&mut rng);
+//!
+//! // Message to encrypt
+//! let plaintext = b"Top secret message we're encrypting".as_ref();
+//! let associated_data = b"customized associated data here".as_ref();
+//!
+//! // Encrypt the message using the box
+//! let ciphertext = alice_box.encrypt(&nonce, Payload {
+//!   msg: plaintext, // your message to encrypt
+//!   aad: associated_data, // not encrypted, but authenticated in tag
+//! }).unwrap();
+//!
+//! //
+//! // Decryption
+//! //
+//!
+//! let bob_secret_key = SecretKey::from([
+//!     0xb5, 0x81, 0xfb, 0x5a, 0xe1, 0x82, 0xa1, 0x6f,
+//!     0x60, 0x3f, 0x39, 0x27, 0xd, 0x4e, 0x3b, 0x95,
+//!     0xbc, 0x0, 0x83, 0x10, 0xb7, 0x27, 0xa1, 0x1d,
+//!     0xd4, 0xe7, 0x84, 0xa0, 0x4, 0x4d, 0x46, 0x1b
+//! ]);
+//! let alice_public_key = PublicKey::from(alice_public_key_bytes);
+//! let bob_box = ChaChaBox::new(&alice_public_key, &bob_secret_key);
+//!
+//! // Decrypt the message, using the same randomly generated nonce
+//! let decrypted_plaintext = bob_box.decrypt(&nonce, Payload {
+//!   msg: &ciphertext,
+//!   aad: associated_data, // tag authentication will fail if associated data doesn't match, which fails the decryption
+//! }).unwrap();
+//!
+//! assert_eq!(&plaintext[..], &decrypted_plaintext[..]);
+//! ```
+//!
 //! ## In-place Usage (eliminates `alloc` requirement)
 //!
 //! This crate has an optional `alloc` feature which can be disabled in e.g.

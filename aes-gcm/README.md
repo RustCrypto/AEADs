@@ -5,6 +5,7 @@
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
 [![CodeCov Status][codecov-image]][codecov-link]
+[![Project Chat][chat-image]][chat-link]
 [![Build Status][build-image]][build-link]
 
 Pure Rust implementation of the AES-GCM
@@ -51,6 +52,8 @@ dual licensed as above, without any additional terms or conditions.
 [rustc-image]: https://img.shields.io/badge/rustc-1.41+-blue.svg
 [codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
 [codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
+[chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
+[chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/aes-gcm/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 

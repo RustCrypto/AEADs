@@ -94,7 +94,7 @@
 //! assert_eq!(&plaintext[..], &decrypted_plaintext[..]);
 //! ```
 //!
-//! ## Choosing XChaCha20Poly1305 vs XSalsa20Poly1305
+//! ## Choosing `ChaChaBox` vs `SalasaBox`
 //!
 //! Currently, `crypto_box::Box` is default to use `xsalsa20poly1305` which doesn't support non-empty associated data
 //! field. To specify customized AD, you can use `crypto_box::ChaChaBox` instead.

@@ -127,16 +127,17 @@
 )]
 #![warn(missing_docs, rust_2018_idioms)]
 
-mod ctr;
-
 pub use aead;
 
-use self::ctr::{Ctr32, BLOCK_SIZE};
 use aead::{AeadInPlace, Error, NewAead};
 use block_cipher::{
     consts::{U0, U12, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
     Block, BlockCipher, NewBlockCipher,
+};
+use ctr::{
+    stream_cipher::{FromBlockCipher, SyncStreamCipher},
+    Ctr32LE,
 };
 use polyval::{
     universal_hash::{NewUniversalHash, UniversalHash},
@@ -320,7 +321,7 @@ where
         }
 
         let tag = self.compute_tag(associated_data, buffer);
-        Ctr32::new(&tag).apply_keystream(&self.enc_cipher, buffer);
+        Ctr32LE::from_block_cipher(&self.enc_cipher, &tag).apply_keystream(buffer);
         Ok(tag)
     }
 
@@ -337,10 +338,10 @@ where
         }
 
         self.polyval.update_padded(associated_data);
-        let mut ctr = Ctr32::new(tag);
+        let mut ctr = Ctr32LE::from_block_cipher(&self.enc_cipher, tag);
 
-        for chunk in buffer.chunks_mut(BLOCK_SIZE * B::ParBlocks::to_usize()) {
-            ctr.apply_keystream(&self.enc_cipher, chunk);
+        for chunk in buffer.chunks_mut(B::ParBlocks::to_usize() * B::ParBlocks::to_usize()) {
+            ctr.apply_keystream(chunk);
             self.polyval.update_padded(chunk);
         }
 
@@ -352,7 +353,7 @@ where
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
             // prevent accidental exposure.
-            Ctr32::new(tag).apply_keystream(&self.enc_cipher, buffer);
+            Ctr32LE::from_block_cipher(&self.enc_cipher, tag).apply_keystream(buffer);
             Err(Error)
         }
     }

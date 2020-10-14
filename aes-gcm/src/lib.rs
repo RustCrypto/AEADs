@@ -105,20 +105,21 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-mod ctr;
-
 pub use aead::{self, AeadInPlace, Error, NewAead};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
-use self::ctr::Ctr32;
 use block_cipher::{
     consts::{U0, U16},
     generic_array::{ArrayLength, GenericArray},
     Block, BlockCipher, Key, NewBlockCipher,
 };
 use core::marker::PhantomData;
+use ctr::{
+    stream_cipher::{FromBlockCipher, SyncStreamCipher},
+    Ctr32BE,
+};
 use ghash::{
     universal_hash::{NewUniversalHash, UniversalHash},
     GHash,
@@ -197,7 +198,7 @@ where
 
 impl<Aes, NonceSize> From<Aes> for AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16>,
+    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
@@ -220,7 +221,7 @@ where
 
 impl<Aes, NonceSize> AeadInPlace for AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16>,
+    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
@@ -241,12 +242,12 @@ where
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let mut ctr = self.init_ctr(nonce);
-        ctr.seek(1);
-        ctr.apply_keystream(&self.cipher, buffer);
+        ctr.seek_ctr(1);
+        ctr.apply_keystream(buffer);
 
         let mut tag = self.compute_tag(associated_data, buffer);
-        ctr.seek(0);
-        ctr.apply_keystream(&self.cipher, tag.as_mut_slice());
+        ctr.seek_ctr(0);
+        ctr.apply_keystream(tag.as_mut_slice());
 
         Ok(tag)
     }
@@ -266,11 +267,11 @@ where
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let mut expected_tag = self.compute_tag(associated_data, buffer);
         let mut ctr = self.init_ctr(nonce);
-        ctr.apply_keystream(&self.cipher, expected_tag.as_mut_slice());
+        ctr.apply_keystream(expected_tag.as_mut_slice());
 
         use subtle::ConstantTimeEq;
         if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
-            ctr.apply_keystream(&self.cipher, buffer);
+            ctr.apply_keystream(buffer);
             Ok(())
         } else {
             Err(Error)
@@ -280,7 +281,7 @@ where
 
 impl<Aes, NonceSize> AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16>,
+    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
@@ -293,7 +294,7 @@ where
     /// > If len(IV)=96, then J0 = IV || 0{31} || 1.
     /// > If len(IV) ≠ 96, then let s = 128 ⎡len(IV)/128⎤-len(IV), and
     /// >     J0=GHASH(IV||0s+64||[len(IV)]64).
-    fn init_ctr(&self, nonce: &GenericArray<u8, NonceSize>) -> Ctr32<Aes> {
+    fn init_ctr(&self, nonce: &GenericArray<u8, NonceSize>) -> Ctr32BE<&Aes> {
         let j0 = if NonceSize::to_usize() == 12 {
             let mut block = GenericArray::default();
             block[..12].copy_from_slice(nonce);
@@ -311,7 +312,7 @@ where
             ghash.finalize().into_bytes()
         };
 
-        Ctr32::new(j0)
+        Ctr32BE::from_block_cipher(&self.cipher, &j0)
     }
 
     /// Authenticate the given plaintext and associated data using GHASH

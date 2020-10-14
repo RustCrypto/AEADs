@@ -38,7 +38,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: 1.41.0 # MSRV
           components: clippy
       - run: cargo clippy --all --exclude crypto_box --all-features -- -D warnings
 

@@ -19,7 +19,7 @@ categories = ["cryptography", "no-std"]
 aead = { version = "0.3", default-features = false }
 aes = "0.5"
 cmac = "0.4"
-crypto-mac = { version = "0.9", default-features = false }
+crypto-mac = { version = "0.10", default-features = false }
 ctr = "0.5"
 dbl = { version = "0.3", default-features = false }
 pmac = { version = "0.4", optional = true }

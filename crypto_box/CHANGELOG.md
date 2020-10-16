@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.0 (2020-10-16)
+### Added
+- `ChaChaBox` ([#225])
+
+### Changed
+- Replace `block-cipher`/`stream-cipher` with `cipher` crate ([#229])
+- Bump `xsalsa20poly1305` dependency to v0.6 ([#229])
+
+[#229]: https://github.com/RustCrypto/AEADs/pull/229
+[#225]: https://github.com/RustCrypto/AEADs/pull/225
+
 ## 0.4.0 (2020-09-17)
 ### Added
 - Optional `std` feature; disabled by default ([#217])

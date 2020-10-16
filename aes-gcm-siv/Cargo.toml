@@ -1,6 +1,6 @@
 [package]
 name = "aes-gcm-siv"
-version = "0.9.0-pre"
+version = "0.9.0"
 description = """
 Pure Rust implementation of the AES-GCM-SIV Misuse-Resistant Authenticated
 Encryption Cipher (RFC 8452) with optional architecture-specific

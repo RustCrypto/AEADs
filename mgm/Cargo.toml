@@ -1,6 +1,6 @@
 [package]
 name = "mgm"
-version = "0.2.1"
+version = "0.3.0-pre"
 description = "Generic implementation of the Multilinear Galois Mode (MGM) cipher"
 authors = ["RustCrypto Developers"]
 edition = "2018"
@@ -14,12 +14,12 @@ keywords = ["encryption", "aead"]
 
 [dependencies]
 aead = { version = "0.3", default-features = false }
-block-cipher = { version = "0.8", default-features = false }
+cipher = "0.2"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.3.2", features = ["dev"], default-features = false }
-kuznyechik = "0.5"
+kuznyechik = "0.6"
 hex-literal = "0.2"
 
 [features]

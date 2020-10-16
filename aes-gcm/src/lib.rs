@@ -110,16 +110,14 @@ pub use aead::{self, AeadInPlace, Error, NewAead};
 #[cfg(feature = "aes")]
 pub use aes;
 
-use block_cipher::{
+use cipher::{
+    block::{Block, BlockCipher, Key, NewBlockCipher},
     consts::{U0, U16},
     generic_array::{ArrayLength, GenericArray},
-    Block, BlockCipher, Key, NewBlockCipher,
+    stream::{FromBlockCipher, SyncStreamCipher},
 };
 use core::marker::PhantomData;
-use ctr::{
-    stream_cipher::{FromBlockCipher, SyncStreamCipher},
-    Ctr32BE,
-};
+use ctr::Ctr32BE;
 use ghash::{
     universal_hash::{NewUniversalHash, UniversalHash},
     GHash,
@@ -129,7 +127,7 @@ use ghash::{
 use zeroize::Zeroize;
 
 #[cfg(feature = "aes")]
-use aes::{block_cipher::generic_array::typenum::U12, Aes128, Aes256};
+use aes::{cipher::consts::U12, Aes128, Aes256};
 
 /// Maximum length of associated data
 pub const A_MAX: u64 = 1 << 36;

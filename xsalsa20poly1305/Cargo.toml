@@ -1,6 +1,6 @@
 [package]
 name = "xsalsa20poly1305"
-version = "0.5.0"
+version = "0.6.0-pre"
 description = """
 Pure Rust implementation of the XSalsa20Poly1305 (a.k.a. NaCl crypto_secretbox)
 authenticated encryption algorithm
@@ -16,7 +16,7 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.3", default-features = false }
-salsa20 = { version = "0.6.0", features = ["xsalsa20", "zeroize"] }
+salsa20 = { version = "0.7", features = ["xsalsa20", "zeroize"] }
 poly1305 = "0.6"
 rand_core = { version = "0.5", optional = true }
 subtle = { version = "2", default-features = false }

@@ -92,11 +92,11 @@ use aead::{
     AeadInPlace, Buffer, Error, NewAead,
 };
 use aes::{Aes128, Aes256};
+use cipher::{NewStreamCipher, SyncStreamCipher};
 use cmac::Cmac;
 use core::{marker::PhantomData, ops::Add};
 use crypto_mac::{Mac, NewMac};
 use ctr::Ctr128;
-use stream_cipher::{NewStreamCipher, SyncStreamCipher};
 
 #[cfg(feature = "pmac")]
 use pmac::Pmac;

@@ -79,16 +79,15 @@
 #![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead::{self, AeadInPlace, Error, NewAead, Nonce};
+pub use cipher;
 
-use block_cipher::{
+use cipher::{
+    block::{Block, BlockCipher, Key, NewBlockCipher},
     consts::{U0, U16},
-    generic_array::functional::FunctionalSequence,
-    generic_array::{ArrayLength, GenericArray},
-    Block, BlockCipher, Key, NewBlockCipher,
+    generic_array::{functional::FunctionalSequence, ArrayLength, GenericArray},
+    stream::{FromBlockCipher, SyncStreamCipher},
 };
-use cmac::crypto_mac::NewMac;
-use cmac::{Cmac, Mac};
-use ctr::stream_cipher::{FromBlockCipher, SyncStreamCipher};
+use cmac::{crypto_mac::NewMac, Cmac, Mac};
 
 // TODO Max values?
 /// Maximum length of associated data

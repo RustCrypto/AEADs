@@ -1,6 +1,6 @@
 [package]
 name = "chacha20poly1305"
-version = "0.6.0"
+version = "0.7.0-pre"
 description = """
 Pure Rust implementation of the ChaCha20Poly1305 Authenticated Encryption
 with Additional Data Cipher (RFC 8439) with optional architecture-specific
@@ -19,9 +19,9 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.3", default-features = false }
-chacha20 = { version = "0.5", features = ["zeroize"], optional = true }
+chacha20 = { version = "0.6", features = ["zeroize"], optional = true }
+cipher = "0.2"
 poly1305 = "0.6"
-stream-cipher = "0.7"
 zeroize = { version = "1", default-features = false }
 
 [features]

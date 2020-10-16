@@ -10,12 +10,12 @@ use aead::generic_array::{
 };
 use aead::{Buffer, Error};
 use aes::{Aes128, Aes256};
+use cipher::{NewStreamCipher, SyncStreamCipher};
 use cmac::Cmac;
 use core::ops::Add;
 use crypto_mac::{Mac, NewMac};
 use ctr::Ctr128;
 use dbl::Dbl;
-use stream_cipher::{NewStreamCipher, SyncStreamCipher};
 use zeroize::Zeroize;
 
 #[cfg(feature = "alloc")]

@@ -13,9 +13,8 @@
 //!
 //! ## Example
 //! ```
-//! use eax::{Error, online::{Eax, Decrypt, Encrypt}};
+//! use eax::{Error, online::{Eax, Decrypt, Encrypt}, cipher::generic_array::GenericArray};
 //! use aes::Aes256;
-//! use block_cipher::generic_array::GenericArray;
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
@@ -94,9 +93,8 @@ impl CipherOp for Decrypt {}
 ///
 /// ## Example
 /// ```
-/// use eax::{Error, online::{Eax, Decrypt, Encrypt}};
+/// use eax::{Error, online::{Eax, Decrypt, Encrypt}, cipher::generic_array::GenericArray};
 /// use aes::Aes256;
-/// use block_cipher::generic_array::GenericArray;
 ///
 /// let key = GenericArray::from_slice(b"an example very very secret key.");
 ///

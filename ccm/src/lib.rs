@@ -44,11 +44,12 @@
 pub use aead;
 pub use aead::consts;
 
-use aead::consts::{U0, U16};
-use aead::generic_array::typenum::Unsigned;
-use aead::generic_array::ArrayLength;
-use aead::{AeadInPlace, Error, Key, NewAead, Nonce, Tag};
-use block_cipher::{Block, BlockCipher, NewBlockCipher};
+use aead::{
+    consts::{U0, U16},
+    generic_array::{typenum::Unsigned, ArrayLength},
+    AeadInPlace, Error, Key, NewAead, Nonce, Tag,
+};
+use cipher::block::{Block, BlockCipher, NewBlockCipher};
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
 

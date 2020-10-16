@@ -24,7 +24,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.8.0-pre"
+version = "0.8.0"
 dependencies = [
  "aead",
  "aes",
@@ -38,7 +38,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.9.0-pre"
+version = "0.9.0"
 dependencies = [
  "aead",
  "aes",
@@ -51,7 +51,7 @@ dependencies = [
 
 [[package]]
 name = "aes-siv"
-version = "0.5.0-pre"
+version = "0.5.0"
 dependencies = [
  "aead",
  "aes",
@@ -111,7 +111,7 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "ccm"
-version = "0.3.0-pre"
+version = "0.3.0"
 dependencies = [
  "aead",
  "aes",
@@ -138,7 +138,7 @@ dependencies = [
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.7.0-pre"
+version = "0.7.0"
 dependencies = [
  "aead",
  "chacha20",
@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "crypto_box"
-version = "0.5.0-pre"
+version = "0.5.0"
 dependencies = [
  "chacha20poly1305",
  "rand",
@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "eax"
-version = "0.3.0-pre"
+version = "0.3.0"
 dependencies = [
  "aead",
  "aes",
@@ -348,7 +348,7 @@ checksum = "755456fae044e6fa1ebbbd1b3e902ae19e73097ed4ed87bb79934a867c007bc3"
 
 [[package]]
 name = "mgm"
-version = "0.3.0-pre"
+version = "0.3.0"
 dependencies = [
  "aead",
  "cipher",
@@ -555,7 +555,7 @@ dependencies = [
 
 [[package]]
 name = "xsalsa20poly1305"
-version = "0.6.0-pre"
+version = "0.6.0"
 dependencies = [
  "aead",
  "poly1305",

@@ -1,6 +1,6 @@
 [package]
 name = "xsalsa20poly1305"
-version = "0.6.0-pre"
+version = "0.6.0"
 description = """
 Pure Rust implementation of the XSalsa20Poly1305 (a.k.a. NaCl crypto_secretbox)
 authenticated encryption algorithm

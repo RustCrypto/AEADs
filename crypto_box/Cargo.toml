@@ -1,6 +1,6 @@
 [package]
 name = "crypto_box"
-version = "0.5.0-pre"
+version = "0.5.0"
 description = """
 Pure Rust implementation of NaCl's crypto_box public-key authenticated
 encryption primitive which combines the X25519 Elliptic Curve Diffie-Hellman
@@ -23,13 +23,13 @@ x25519-dalek = { version = "1", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [dependencies.chacha20poly1305]
-version = "0.7.0-pre"
+version = "0.7"
 default-features = false
 features = ["xchacha20poly1305"]
 path = "../chacha20poly1305"
 
 [dependencies.xsalsa20poly1305]
-version = "0.6.0-pre"
+version = "0.6"
 default-features = false
 features = ["rand_core"]
 path = "../xsalsa20poly1305"

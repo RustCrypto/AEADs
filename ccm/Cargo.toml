@@ -1,6 +1,6 @@
 [package]
 name = "ccm"
-version = "0.2.0"
+version = "0.3.0-pre"
 description = "Generic implementation of the Counter with CBC-MAC (CCM) mode"
 authors = ["RustCrypto Developers"]
 edition = "2018"
@@ -14,12 +14,12 @@ keywords = ["encryption", "aead"]
 
 [dependencies]
 aead = { version = "0.3", default-features = false }
-block-cipher = { version = "0.8", default-features = false }
+cipher = { version = "0.2", default-features = false }
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.3.2", features = ["dev"], default-features = false }
-aes = "0.5"
+aes = "0.6"
 hex-literal = "0.2"
 
 [features]

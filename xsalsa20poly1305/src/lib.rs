@@ -101,12 +101,16 @@
 pub use aead;
 pub use salsa20::{Key, XNonce as Nonce};
 
-use aead::consts::{U0, U16, U24, U32};
-use aead::generic_array::GenericArray;
-use aead::{AeadInPlace, Buffer, Error, NewAead};
+use aead::{
+    consts::{U0, U16, U24, U32},
+    generic_array::GenericArray,
+    AeadInPlace, Buffer, Error, NewAead,
+};
 use poly1305::{universal_hash::NewUniversalHash, Poly1305};
-use salsa20::stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
-use salsa20::XSalsa20;
+use salsa20::{
+    cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek},
+    XSalsa20,
+};
 use zeroize::Zeroize;
 
 #[cfg(feature = "rand_core")]

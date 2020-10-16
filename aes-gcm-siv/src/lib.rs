@@ -130,15 +130,13 @@
 pub use aead;
 
 use aead::{AeadInPlace, Error, NewAead};
-use block_cipher::{
+use cipher::{
+    block::{Block, BlockCipher, NewBlockCipher},
     consts::{U0, U12, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    Block, BlockCipher, NewBlockCipher,
+    stream::{FromBlockCipher, SyncStreamCipher},
 };
-use ctr::{
-    stream_cipher::{FromBlockCipher, SyncStreamCipher},
-    Ctr32LE,
-};
+use ctr::Ctr32LE;
 use polyval::{
     universal_hash::{NewUniversalHash, UniversalHash},
     Polyval,

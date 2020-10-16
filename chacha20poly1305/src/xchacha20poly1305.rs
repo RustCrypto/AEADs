@@ -5,12 +5,12 @@
 pub use chacha20::XNonce;
 
 use crate::{cipher::Cipher, Key, Tag};
+use ::cipher::NewStreamCipher;
 use aead::{
     consts::{U0, U16, U24, U32},
     AeadInPlace, Error, NewAead,
 };
 use chacha20::XChaCha20;
-use stream_cipher::NewStreamCipher;
 use zeroize::Zeroize;
 
 /// ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.

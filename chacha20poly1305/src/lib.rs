@@ -132,13 +132,13 @@ pub use aead;
 pub use xchacha20poly1305::{XChaCha20Poly1305, XNonce};
 
 use self::cipher::Cipher;
+use ::cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use aead::{
     consts::{U0, U12, U16, U32},
     generic_array::GenericArray,
     AeadInPlace, Error, NewAead,
 };
 use core::marker::PhantomData;
-use stream_cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
 use zeroize::Zeroize;
 
 #[cfg(feature = "chacha20")]

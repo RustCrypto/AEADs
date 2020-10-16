@@ -33,10 +33,12 @@
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
 #![warn(missing_docs, rust_2018_idioms)]
-use aead::consts::{U0, U16};
-use aead::generic_array::{typenum::Unsigned, ArrayLength, GenericArray};
-use aead::{AeadInPlace, Error, Key, NewAead, Nonce, Tag};
-use block_cipher::{BlockCipher, NewBlockCipher};
+use aead::{
+    consts::{U0, U16},
+    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
+    AeadInPlace, Error, Key, NewAead, Nonce, Tag,
+};
+use cipher::{BlockCipher, NewBlockCipher};
 use core::{convert::TryInto, fmt, num::Wrapping};
 
 pub use aead;

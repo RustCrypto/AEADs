@@ -67,6 +67,42 @@
 //! # }
 //! ```
 //!
+//! ## Custom Tag Length
+//!
+//! The tag for eax is usually 16 bytes long but it can be shortened if needed.
+//! The second generic argument of `Eax` can be set to the tag length:
+//!
+//! ```
+//! # #[cfg(feature = "heapless")]
+//! # {
+//! use aes::Aes256;
+//! use eax::Eax;
+//! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use eax::aead::heapless::{Vec, consts::U8, consts::U128};
+//!
+//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let cipher = Eax::<Aes256, U8>::new(key);
+//!
+//! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
+//!
+//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! buffer.extend_from_slice(b"plaintext message");
+//!
+//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
+//! let tag = cipher.encrypt_in_place_detached(nonce, b"", &mut buffer).expect("encryption failure!");
+//!
+//! // The tag has only 8 bytes, compared to the usual 16 bytes
+//! assert_eq!(tag.len(), 8);
+//!
+//! // `buffer` now contains the message ciphertext
+//! assert_ne!(&buffer, b"plaintext message");
+//!
+//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
+//! cipher.decrypt_in_place_detached(nonce, b"", &mut buffer, &tag).expect("decryption failure!");
+//! assert_eq!(&buffer, b"plaintext message");
+//! # }
+//! ```
+//!
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 
 #![no_std]
@@ -88,6 +124,11 @@ use cipher::{
     stream::{FromBlockCipher, SyncStreamCipher},
 };
 use cmac::{crypto_mac::NewMac, Cmac, Mac};
+use core::marker::PhantomData;
+
+mod traits;
+
+use traits::TagSize;
 
 // TODO Max values?
 /// Maximum length of associated data
@@ -100,7 +141,7 @@ pub const P_MAX: u64 = 1 << 36;
 pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// EAX tags
-pub type Tag = GenericArray<u8, U16>;
+pub type Tag = aead::Tag<U16>;
 
 pub mod online;
 
@@ -110,35 +151,46 @@ pub mod online;
 /// implementations.
 ///
 /// If in doubt, use the built-in [`Aes128Eax`] and [`Aes256Eax`] type aliases.
+///
+/// Type parameters:
+/// - `Cipher`: block cipher.
+/// - `M`: size of MAC tag, valid values: up to `U16`.
 #[derive(Clone)]
-pub struct Eax<Cipher>
+pub struct Eax<Cipher, M = U16>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     /// Encryption key
     key: Key<Cipher>,
+    _tag_size: PhantomData<M>,
 }
 
-impl<Cipher> NewAead for Eax<Cipher>
+impl<Cipher, M> NewAead for Eax<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     type KeySize = Cipher::KeySize;
 
     fn new(key: &Key<Cipher>) -> Self {
-        Self { key: key.clone() }
+        Self {
+            key: key.clone(),
+            _tag_size: Default::default(),
+        }
     }
 }
 
-impl<Cipher> AeadInPlace for Eax<Cipher>
+impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     type NonceSize = Cipher::BlockSize;
-    type TagSize = <Cmac<Cipher> as Mac>::OutputSize;
+    type TagSize = M;
     type CiphertextOverhead = U0;
 
     fn encrypt_in_place_detached(
@@ -146,7 +198,7 @@ where
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-    ) -> Result<Tag, Error> {
+    ) -> Result<aead::Tag<M>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
@@ -171,7 +223,9 @@ where
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
-        Ok(n.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b))
+        let full_tag = n.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
+        let tag = aead::Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()]);
+        Ok(tag)
     }
 
     fn decrypt_in_place_detached(
@@ -179,7 +233,7 @@ where
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &Tag,
+        tag: &aead::Tag<M>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -213,10 +267,11 @@ where
     }
 }
 
-impl<Cipher> Eax<Cipher>
+impl<Cipher, M> Eax<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     /// CMAC/OMAC1
     ///

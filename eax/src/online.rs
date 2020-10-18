@@ -59,6 +59,7 @@
 
 use crate::*;
 
+use aead::Tag;
 use core::marker::PhantomData;
 
 pub use Eax as EaxOnline;
@@ -141,27 +142,29 @@ impl CipherOp for Decrypt {}
 /// [`Eax`]: ../struct.Eax.html
 /// [`Decrypt`]: struct.Decrypt.html
 /// [`finish`]: #method.finish
-pub struct Eax<Cipher, Op>
+pub struct Eax<Cipher, Op, M = U16>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     Op: CipherOp,
+    M: TagSize,
 {
-    imp: EaxImpl<Cipher>,
+    imp: EaxImpl<Cipher, M>,
     /// Denotes whether this stream is used for encryption or decryption.
     marker: PhantomData<Op>,
 }
 
-impl<Cipher, Op> Eax<Cipher, Op>
+impl<Cipher, Op, M> Eax<Cipher, Op, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     Op: CipherOp,
+    M: TagSize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
     pub fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
-        let imp = EaxImpl::<Cipher>::with_key_and_nonce(key, nonce);
+        let imp = EaxImpl::<Cipher, M>::with_key_and_nonce(key, nonce);
 
         Self {
             imp,
@@ -182,15 +185,16 @@ where
     ///
     ///[`finish`]: #method.finish
     #[inline]
-    pub fn tag_clone(&self) -> Tag {
+    pub fn tag_clone(&self) -> Tag<M> {
         self.imp.tag_clone()
     }
 }
 
-impl<Cipher> Eax<Cipher, Encrypt>
+impl<Cipher, M> Eax<Cipher, Encrypt, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     /// Applies encryption to the plaintext.
     #[inline]
@@ -203,15 +207,16 @@ where
     /// This *must* be called after the stream encryption is finished.
     #[must_use = "tag must be saved to later verify decrypted data"]
     #[inline]
-    pub fn finish(self) -> Tag {
+    pub fn finish(self) -> Tag<M> {
         self.imp.tag()
     }
 }
 
-impl<Cipher> Eax<Cipher, Decrypt>
+impl<Cipher, M> Eax<Cipher, Decrypt, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     /// Applies decryption to the ciphertext **without** verifying the
     /// authenticity of decrypted message.
@@ -246,7 +251,7 @@ where
     ///
     /// This *must* be called after the stream decryption is finished.
     #[must_use = "decrypted data stream must be verified for authenticity"]
-    pub fn finish(self, expected: &Tag) -> Result<(), Error> {
+    pub fn finish(self, expected: &Tag<M>) -> Result<(), Error> {
         self.imp.verify_ct(expected)
     }
 }
@@ -256,10 +261,11 @@ where
 /// Main reason behind extracting the logic to a single, separate type is to
 /// facilitate testing of the internal logic.
 #[doc(hidden)]
-struct EaxImpl<Cipher>
+struct EaxImpl<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     nonce: Nonce<Cipher::BlockSize>,
     data: Cmac<Cipher>,
@@ -268,12 +274,14 @@ where
     // HACK: Needed for the test harness due to AEAD trait online/offline interface mismatch
     #[cfg(test)]
     key: Key<Cipher>,
+    _tag_size: PhantomData<M>,
 }
 
-impl<Cipher> EaxImpl<Cipher>
+impl<Cipher, M> EaxImpl<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
@@ -310,6 +318,7 @@ where
             ctr: cipher,
             #[cfg(test)]
             key: key.clone(),
+            _tag_size: Default::default(),
         }
     }
 
@@ -335,25 +344,27 @@ where
 
     /// Derives the tag from the encrypted/decrypted message so far.
     #[inline]
-    fn tag(self) -> Tag {
+    fn tag(self) -> Tag<M> {
         let h = self.data.finalize().into_bytes();
         let c = self.message.finalize().into_bytes();
 
-        self.nonce.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b)
+        let full_tag = self.nonce.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
+        Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()])
     }
 
     /// Derives the tag from the encrypted/decrypted message so far.
     #[inline]
-    fn tag_clone(&self) -> Tag {
+    fn tag_clone(&self) -> Tag<M> {
         let h = self.data.clone().finalize().into_bytes();
         let c = self.message.clone().finalize().into_bytes();
 
-        self.nonce.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b)
+        let full_tag = self.nonce.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
+        Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()])
     }
 
     /// Finishes the decryption stream, verifying whether the associated and
     /// decrypted data stream has not been tampered with.
-    fn verify_ct(self, expected: &Tag) -> Result<(), Error> {
+    fn verify_ct(self, expected: &Tag<M>) -> Result<(), Error> {
         // Check MAC using secure comparison
         use subtle::ConstantTimeEq;
 
@@ -376,10 +387,11 @@ mod test_impl {
     use super::*;
     use aead::AeadMutInPlace;
 
-    impl<Cipher> NewAead for EaxImpl<Cipher>
+    impl<Cipher, M> NewAead for EaxImpl<Cipher, M>
     where
         Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
         Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        M: TagSize,
     {
         type KeySize = Cipher::KeySize;
 
@@ -395,13 +407,14 @@ mod test_impl {
         }
     }
 
-    impl<Cipher> AeadMutInPlace for super::EaxImpl<Cipher>
+    impl<Cipher, M> AeadMutInPlace for super::EaxImpl<Cipher, M>
     where
         Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
         Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        M: TagSize,
     {
         type NonceSize = Cipher::BlockSize;
-        type TagSize = <Cmac<Cipher> as Mac>::OutputSize;
+        type TagSize = M;
         type CiphertextOverhead = U0;
 
         fn encrypt_in_place_detached(
@@ -409,7 +422,7 @@ mod test_impl {
             nonce: &Nonce<Self::NonceSize>,
             associated_data: &[u8],
             buffer: &mut [u8],
-        ) -> Result<Tag, Error> {
+        ) -> Result<Tag<M>, Error> {
             // HACK: Reinitialize the instance
             *self = Self::with_key_and_nonce(&self.key.clone(), nonce);
 
@@ -424,7 +437,7 @@ mod test_impl {
             nonce: &Nonce<Self::NonceSize>,
             associated_data: &[u8],
             buffer: &mut [u8],
-            expected_tag: &Tag,
+            expected_tag: &Tag<M>,
         ) -> Result<(), Error> {
             // HACK: Reinitialize the instance
             *self = Self::with_key_and_nonce(&self.key.clone(), nonce);

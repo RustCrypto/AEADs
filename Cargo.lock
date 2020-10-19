@@ -465,9 +465,9 @@ dependencies = [
 
 [[package]]
 name = "salsa20"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b900cdff5593338502f2dde9217add4a687c3b9d6fe2cd130a5b28fe2b39e04c"
+checksum = "803bc218af7bc955c5ae0e0cf3a7af4331fefd1fc78cde0371853c634a358125"
 dependencies = [
  "cipher",
  "zeroize",

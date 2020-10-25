@@ -18,6 +18,33 @@ of ChaCha20Poly1305 with an extended 192-bit (24-byte) nonce.
 
 [Documentation][docs-link]
 
+## About
+
+ChaCha20Poly1305 is notable for being simple and fast when implemented in pure
+software. The underlying ChaCha20 stream cipher uses a simple combination of
+add, rotate, and XOR instructions (a.k.a. "ARX"), and the Poly1305 hash
+function is likewise extremely simple.
+
+While it hasn't received approval from certain standards bodies (i.e. NIST)
+the algorithm is widely used and deployed. Notably it's mandatory to implement
+in the Transport Layer Security (TLS) protocol. The underlying ChaCha20 cipher
+is also widely used as a cryptographically secure random number generator,
+including internal use by the Rust standard library.
+
+## Performance Notes
+
+By default this crate will use portable software implementations of the
+underlying ChaCha20 and Poly1305 ciphers it's based on.
+
+When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
+take advantage of AVX2 acceleration:
+
+    RUSTFLAGS="-Ctarget-feature=+avx2"
+
+Ideally target the `haswell` or `skylake` architectures as a baseline:
+
+    RUSTFLAGS="-Ctarget-cpu=haswell -Ctarget-feature=+avx2"
+
 ## Security Notes
 
 This crate has received one [security audit by NCC Group][5], with no significant

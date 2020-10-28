@@ -338,7 +338,7 @@ where
         self.polyval.update_padded(associated_data);
         let mut ctr = Ctr32LE::from_block_cipher(&self.enc_cipher, tag);
 
-        for chunk in buffer.chunks_mut(B::ParBlocks::to_usize() * B::ParBlocks::to_usize()) {
+        for chunk in buffer.chunks_mut(B::BlockSize::to_usize() * B::ParBlocks::to_usize()) {
             ctr.apply_keystream(chunk);
             self.polyval.update_padded(chunk);
         }

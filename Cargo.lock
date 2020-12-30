@@ -13,18 +13,18 @@ dependencies = [
 
 [[package]]
 name = "aes"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "884391ef1066acaa41e766ba8f596341b96e93ce34f9a43e7d24bf0a0eaf0561"
+version = "0.7.0-pre"
+source = "git+https://github.com/RustCrypto/block-ciphers.git#3215a921f894f533882dc1a3cf55242237fca4ed"
 dependencies = [
- "aes-soft",
- "aesni",
+ "cfg-if 1.0.0",
  "cipher",
+ "cpuid-bool",
+ "opaque-debug",
 ]
 
 [[package]]
 name = "aes-gcm"
-version = "0.8.0"
+version = "0.9.0-pre"
 dependencies = [
  "aead",
  "aes",
@@ -38,7 +38,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.9.0"
+version = "0.10.0-pre"
 dependencies = [
  "aead",
  "aes",
@@ -51,7 +51,7 @@ dependencies = [
 
 [[package]]
 name = "aes-siv"
-version = "0.5.0"
+version = "0.6.0-pre"
 dependencies = [
  "aead",
  "aes",
@@ -63,26 +63,6 @@ dependencies = [
  "hex-literal",
  "pmac",
  "zeroize",
-]
-
-[[package]]
-name = "aes-soft"
-version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be14c7498ea50828a38d0e24a765ed2effe92a705885b57d029cd67d45744072"
-dependencies = [
- "cipher",
- "opaque-debug",
-]
-
-[[package]]
-name = "aesni"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea2e11f5e94c2f7d386164cc2aa1f97823fed6f259e486940a71c174dd01b0ce"
-dependencies = [
- "cipher",
- "opaque-debug",
 ]
 
 [[package]]
@@ -111,7 +91,7 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "ccm"
-version = "0.3.0"
+version = "0.4.0-pre"
 dependencies = [
  "aead",
  "aes",
@@ -127,18 +107,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
-name = "chacha20"
-version = "0.6.0"
+name = "cfg-if"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed8738f14471a99f0e316c327e68fc82a3611cc2895fcb604b89eedaf8f39d95"
+checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "chacha20"
+version = "0.7.0-pre"
+source = "git+https://github.com/RustCrypto/stream-ciphers.git#e6b08f9709ed37caa8796906d987377772701bdb"
 dependencies = [
+ "cfg-if 1.0.0",
  "cipher",
+ "cpuid-bool",
  "zeroize",
 ]
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.7.1"
+version = "0.8.0-pre"
 dependencies = [
  "aead",
  "chacha20",
@@ -149,18 +136,17 @@ dependencies = [
 
 [[package]]
 name = "cipher"
-version = "0.2.5"
+version = "0.3.0-pre.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12f8e7987cbd042a63249497f41aed09f8e65add917ea6566effbc56578d6801"
+checksum = "e1db53c34251ece12ba40366dd5ece6dc5672296d7fb34f7b1791e8f0d449e69"
 dependencies = [
  "generic-array 0.14.4",
 ]
 
 [[package]]
 name = "cmac"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73d4de4f7724e5fe70addfb2bd37c2abd2f95084a429d7773b0b9645499b4272"
+version = "0.6.0-pre"
+source = "git+https://github.com/RustCrypto/MACs.git#daf6c12a118206aab3f131749d0baeca15942268"
 dependencies = [
  "crypto-mac",
  "dbl",
@@ -174,9 +160,9 @@ checksum = "dcb25d077389e53838a8158c8e99174c5a9d902dee4904320db714f3c653ffba"
 
 [[package]]
 name = "crypto-mac"
-version = "0.10.0"
+version = "0.11.0-pre"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4857fd85a0c34b3c3297875b747c1e02e06b6a0ea32dd892d8192b9ce0813ea6"
+checksum = "e84f879755fdae65b8692c89c96ed2848c762049e9daa132b145162a88a62887"
 dependencies = [
  "cipher",
  "generic-array 0.14.4",
@@ -185,7 +171,7 @@ dependencies = [
 
 [[package]]
 name = "crypto_box"
-version = "0.5.0"
+version = "0.6.0-pre"
 dependencies = [
  "chacha20poly1305",
  "rand",
@@ -198,9 +184,9 @@ dependencies = [
 
 [[package]]
 name = "ctr"
-version = "0.6.0"
+version = "0.7.0-pre.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb4a30d54f7443bf3d6191dcd486aca19e67cb3c49fa7a06a319966346707e7f"
+checksum = "fa78b1c3f6ce4edd238882705f9589c9f2443bf541dd98d7b75aaa7ca91d4ba6"
 dependencies = [
  "cipher",
 ]
@@ -238,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "eax"
-version = "0.3.0"
+version = "0.4.0-pre"
 dependencies = [
  "aead",
  "aes",
@@ -282,7 +268,7 @@ version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc587bc0ec293155d5bfa6b9891ec18a1e330c234f896ea47fbada4cadbe47e6"
 dependencies = [
- "cfg-if",
+ "cfg-if 0.1.10",
  "libc",
  "wasi",
 ]
@@ -339,9 +325,8 @@ dependencies = [
 
 [[package]]
 name = "kuznyechik"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "221139eedf77a90801f17be9f605bb63452436fc4bb5cac0f5b0cd358045115e"
+version = "0.7.0-pre"
+source = "git+https://github.com/RustCrypto/block-ciphers.git#3215a921f894f533882dc1a3cf55242237fca4ed"
 dependencies = [
  "cipher",
  "opaque-debug",
@@ -355,7 +340,7 @@ checksum = "1482821306169ec4d07f6aca392a4681f66c75c9918aa49641a2595db64053cb"
 
 [[package]]
 name = "mgm"
-version = "0.3.0"
+version = "0.4.0-pre"
 dependencies = [
  "aead",
  "cipher",
@@ -372,9 +357,8 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "pmac"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1c257eb89109a7e6115f40d44ca6d1816ecf9e90a1b38f6d477c78c1de505cb"
+version = "0.6.0-pre"
+source = "git+https://github.com/RustCrypto/MACs.git#daf6c12a118206aab3f131749d0baeca15942268"
 dependencies = [
  "crypto-mac",
  "dbl",
@@ -474,9 +458,8 @@ dependencies = [
 
 [[package]]
 name = "salsa20"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "399f290ffc409596022fce5ea5d4138184be4784f2b28c62c59f0d8389059a15"
+version = "0.8.0-pre"
+source = "git+https://github.com/RustCrypto/stream-ciphers.git#e6b08f9709ed37caa8796906d987377772701bdb"
 dependencies = [
  "cipher",
  "zeroize",
@@ -496,9 +479,9 @@ checksum = "1e81da0851ada1f3e9d4312c704aa4f8806f0f9d69faaf8df2f3464b4a9437c2"
 
 [[package]]
 name = "syn"
-version = "1.0.55"
+version = "1.0.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a571a711dddd09019ccc628e1b17fe87c59b09d513c06c026877aa708334f37a"
+checksum = "a9802ddde94170d186eeee5005b798d9c159fa970403f1be19976d0cfb939b72"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -564,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "xsalsa20poly1305"
-version = "0.6.0"
+version = "0.7.0-pre"
 dependencies = [
  "aead",
  "poly1305",

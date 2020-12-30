@@ -32,13 +32,13 @@
 //! Simple usage (allocating, no associated data):
 //!
 //! ```
-//! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
-//! use aes_gcm::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use aes_gcm::{Aes256Gcm, Key, Nonce}; // Or `Aes128Gcm`
+//! use aes_gcm::aead::{Aead, NewAead};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256Gcm::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
 //! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
 //!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
@@ -67,16 +67,16 @@
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
-//! use aes_gcm::Aes256Gcm; // Or `Aes128Gcm`
-//! use aes_gcm::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use aes_gcm::{Aes256Gcm, Key, Nonce}; // Or `Aes128Gcm`
+//! use aes_gcm::aead::{AeadInPlace, NewAead};
 //! use aes_gcm::aead::heapless::{Vec, consts::U128};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256Gcm::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! let mut buffer: Vec<u8, U128> = Vec::new(); // Buffer needs 16-bytes overhead for GCM tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
@@ -105,16 +105,16 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead::{self, AeadInPlace, Error, NewAead};
+pub use aead::{self, AeadInPlace, Error, NewAead, Nonce};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
 use cipher::{
-    block::{Block, BlockCipher, Key, NewBlockCipher},
     consts::{U0, U16},
-    generic_array::{ArrayLength, GenericArray},
-    stream::{FromBlockCipher, SyncStreamCipher},
+    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
+    Block, BlockCipher, BlockCipherKey, BlockEncrypt, FromBlockCipher, NewBlockCipher,
+    StreamCipher, StreamCipherSeek,
 };
 use core::marker::PhantomData;
 use ctr::Ctr32BE;
@@ -137,6 +137,9 @@ pub const P_MAX: u64 = 1 << 36;
 
 /// Maximum length of ciphertext
 pub const C_MAX: u64 = (1 << 36) + 16;
+
+/// AES-GCM keys
+pub type Key<KeySize> = GenericArray<u8, KeySize>;
 
 /// AES-GCM tags
 pub type Tag = GenericArray<u8, U16>;
@@ -167,7 +170,7 @@ pub type Aes256Gcm = AesGcm<Aes256, U12>;
 #[derive(Clone)]
 pub struct AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
@@ -183,25 +186,25 @@ where
 
 impl<Aes, NonceSize> NewAead for AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
     type KeySize = Aes::KeySize;
 
-    fn new(key: &Key<Aes>) -> Self {
+    fn new(key: &BlockCipherKey<Aes>) -> Self {
         Aes::new(key).into()
     }
 }
 
 impl<Aes, NonceSize> From<Aes> for AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
     fn from(cipher: Aes) -> Self {
-        let mut ghash_key = GenericArray::default();
+        let mut ghash_key = ghash::Key::default();
         cipher.encrypt_block(&mut ghash_key);
 
         let ghash = GHash::new(&ghash_key);
@@ -219,7 +222,7 @@ where
 
 impl<Aes, NonceSize> AeadInPlace for AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
@@ -229,7 +232,7 @@ where
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, NonceSize>,
+        nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -240,11 +243,11 @@ where
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let mut ctr = self.init_ctr(nonce);
-        ctr.seek_ctr(1);
+        ctr.seek(Aes::BlockSize::to_usize());
         ctr.apply_keystream(buffer);
 
         let mut tag = self.compute_tag(associated_data, buffer);
-        ctr.seek_ctr(0);
+        ctr.seek(0);
         ctr.apply_keystream(tag.as_mut_slice());
 
         Ok(tag)
@@ -252,7 +255,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, NonceSize>,
+        nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
@@ -279,7 +282,7 @@ where
 
 impl<Aes, NonceSize> AesGcm<Aes, NonceSize>
 where
-    Aes: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
     NonceSize: ArrayLength<u8>,
 {
@@ -292,9 +295,9 @@ where
     /// > If len(IV)=96, then J0 = IV || 0{31} || 1.
     /// > If len(IV) ≠ 96, then let s = 128 ⎡len(IV)/128⎤-len(IV), and
     /// >     J0=GHASH(IV||0s+64||[len(IV)]64).
-    fn init_ctr(&self, nonce: &GenericArray<u8, NonceSize>) -> Ctr32BE<&Aes> {
+    fn init_ctr(&self, nonce: &Nonce<NonceSize>) -> Ctr32BE<&Aes> {
         let j0 = if NonceSize::to_usize() == 12 {
-            let mut block = GenericArray::default();
+            let mut block = ghash::Block::default();
             block[..12].copy_from_slice(nonce);
             block[15] = 1;
             block
@@ -302,11 +305,10 @@ where
             let mut ghash = self.ghash.clone();
             ghash.update_padded(nonce);
 
-            let mut block = GenericArray::default();
+            let mut block = ghash::Block::default();
             let nonce_bits = (NonceSize::to_usize() as u64) * 8;
             block[8..].copy_from_slice(&nonce_bits.to_be_bytes());
             ghash.update(&block);
-
             ghash.finalize().into_bytes()
         };
 
@@ -322,11 +324,10 @@ where
         let associated_data_bits = (associated_data.len() as u64) * 8;
         let buffer_bits = (buffer.len() as u64) * 8;
 
-        let mut block = GenericArray::default();
+        let mut block = ghash::Block::default();
         block[..8].copy_from_slice(&associated_data_bits.to_be_bytes());
         block[8..].copy_from_slice(&buffer_bits.to_be_bytes());
         ghash.update(&block);
-
         ghash.finalize().into_bytes()
     }
 }

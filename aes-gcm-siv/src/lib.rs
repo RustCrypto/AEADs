@@ -52,13 +52,13 @@
 //! Simple usage (allocating, no associated data):
 //!
 //! ```
-//! use aes_gcm_siv::Aes256GcmSiv; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
+//! use aes_gcm_siv::aead::{Aead, NewAead};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256GcmSiv::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
 //! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
 //!     .expect("encryption failure!");  // NOTE: handle this error to avoid panics!
@@ -88,14 +88,14 @@
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
-//! use aes_gcm_siv::Aes256GcmSiv; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
+//! use aes_gcm_siv::aead::{AeadInPlace, NewAead};
 //! use aes_gcm_siv::aead::heapless::{Vec, consts::U128};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256GcmSiv::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"unique nonce"); // 96-bits; unique per message
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, U128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
@@ -131,10 +131,9 @@ pub use aead;
 
 use aead::{AeadInPlace, Error, NewAead};
 use cipher::{
-    block::{Block, BlockCipher, NewBlockCipher},
     consts::{U0, U12, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    stream::{FromBlockCipher, SyncStreamCipher},
+    Block, BlockCipher, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher,
 };
 use ctr::Ctr32LE;
 use polyval::{
@@ -156,6 +155,12 @@ pub const P_MAX: u64 = 1 << 36;
 /// Maximum length of ciphertext (from RFC 8452 Section 6)
 pub const C_MAX: u64 = (1 << 36) + 16;
 
+/// AES-GCM-SIV keys
+pub type Key<KeySize> = GenericArray<u8, KeySize>;
+
+/// AES-GCM-SIV nonces
+pub type Nonce = aead::Nonce<U12>;
+
 /// AES-GCM-SIV tags
 pub type Tag = GenericArray<u8, U16>;
 
@@ -169,43 +174,43 @@ pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
-pub struct AesGcmSiv<B>
+pub struct AesGcmSiv<Aes>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<Block<B>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     /// Key generating key used to derive AES-GCM-SIV subkeys
-    key_generating_key: B,
+    key_generating_key: Aes,
 }
 
-impl<B> NewAead for AesGcmSiv<B>
+impl<Aes> NewAead for AesGcmSiv<Aes>
 where
-    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
-    B::ParBlocks: ArrayLength<Block<B>>,
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
-    type KeySize = B::KeySize;
+    type KeySize = Aes::KeySize;
 
-    fn new(key_bytes: &GenericArray<u8, B::KeySize>) -> Self {
+    fn new(key_bytes: &Key<Aes::KeySize>) -> Self {
         Self {
-            key_generating_key: B::new(key_bytes),
+            key_generating_key: Aes::new(key_bytes),
         }
     }
 }
 
-impl<B> From<B> for AesGcmSiv<B>
+impl<Aes> From<Aes> for AesGcmSiv<Aes>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<Block<B>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
-    fn from(key_generating_key: B) -> Self {
+    fn from(key_generating_key: Aes) -> Self {
         Self { key_generating_key }
     }
 }
 
-impl<B> AeadInPlace for AesGcmSiv<B>
+impl<Aes> AeadInPlace for AesGcmSiv<Aes>
 where
-    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
-    B::ParBlocks: ArrayLength<Block<B>>,
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -213,22 +218,22 @@ where
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
-        Cipher::<B>::new(&self.key_generating_key, nonce)
+        Cipher::<Aes>::new(&self.key_generating_key, nonce)
             .encrypt_in_place_detached(associated_data, buffer)
     }
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::<B>::new(&self.key_generating_key, nonce).decrypt_in_place_detached(
+        Cipher::<Aes>::new(&self.key_generating_key, nonce).decrypt_in_place_detached(
             associated_data,
             buffer,
             tag,
@@ -237,32 +242,32 @@ where
 }
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
-struct Cipher<B>
+struct Cipher<Aes>
 where
-    B: BlockCipher<BlockSize = U16>,
-    B::ParBlocks: ArrayLength<Block<B>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     /// Encryption cipher
-    enc_cipher: B,
+    enc_cipher: Aes,
 
     /// POLYVAL universal hash
     polyval: Polyval,
 
     /// Nonce
-    nonce: GenericArray<u8, U12>,
+    nonce: Nonce,
 }
 
-impl<B> Cipher<B>
+impl<Aes> Cipher<Aes>
 where
-    B: BlockCipher<BlockSize = U16> + NewBlockCipher,
-    B::ParBlocks: ArrayLength<Block<B>>,
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
-    pub(crate) fn new(key_generating_key: &B, nonce: &GenericArray<u8, U12>) -> Self {
-        let mut mac_key = GenericArray::default();
-        let mut enc_key = GenericArray::default();
-        let mut block = GenericArray::default();
+    pub(crate) fn new(key_generating_key: &Aes, nonce: &Nonce) -> Self {
+        let mut mac_key = polyval::Key::default();
+        let mut enc_key = Key::default();
+        let mut block = cipher::Block::<Aes>::default();
         let mut counter = 0u32;
 
         // Derive subkeys from the master key-generating-key in counter mode.
@@ -294,7 +299,7 @@ where
         }
 
         let result = Self {
-            enc_cipher: B::new(&enc_key),
+            enc_cipher: Aes::new(&enc_key),
             polyval: Polyval::new(&mac_key),
             nonce: *nonce,
         };
@@ -319,7 +324,7 @@ where
         }
 
         let tag = self.compute_tag(associated_data, buffer);
-        Ctr32LE::from_block_cipher(&self.enc_cipher, &tag).apply_keystream(buffer);
+        init_ctr(&self.enc_cipher, &tag).apply_keystream(buffer);
         Ok(tag)
     }
 
@@ -336,9 +341,9 @@ where
         }
 
         self.polyval.update_padded(associated_data);
-        let mut ctr = Ctr32LE::from_block_cipher(&self.enc_cipher, tag);
+        let mut ctr = init_ctr(&self.enc_cipher, tag);
 
-        for chunk in buffer.chunks_mut(B::BlockSize::to_usize() * B::ParBlocks::to_usize()) {
+        for chunk in buffer.chunks_mut(Aes::BlockSize::to_usize() * Aes::ParBlocks::to_usize()) {
             ctr.apply_keystream(chunk);
             self.polyval.update_padded(chunk);
         }
@@ -351,7 +356,7 @@ where
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
             // prevent accidental exposure.
-            Ctr32LE::from_block_cipher(&self.enc_cipher, tag).apply_keystream(buffer);
+            init_ctr(&self.enc_cipher, tag).apply_keystream(buffer);
             Err(Error)
         }
     }
@@ -368,7 +373,7 @@ where
         let associated_data_bits = (associated_data_len as u64) * 8;
         let buffer_bits = (buffer_len as u64) * 8;
 
-        let mut block = GenericArray::default();
+        let mut block = polyval::Block::default();
         block[..8].copy_from_slice(&associated_data_bits.to_le_bytes());
         block[8..].copy_from_slice(&buffer_bits.to_le_bytes());
         self.polyval.update(&block);
@@ -386,4 +391,21 @@ where
         self.enc_cipher.encrypt_block(&mut tag);
         tag
     }
+}
+
+/// Initialize counter mode.
+///
+/// From RFC 8452 Section 4:
+/// <https://tools.ietf.org/html/rfc8452#section-4>
+///
+/// > The initial counter block is the tag with the most significant bit
+/// > of the last byte set to one.
+fn init_ctr<Aes>(cipher: Aes, nonce: &cipher::Block<Aes>) -> Ctr32LE<Aes>
+where
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+{
+    let mut counter_block = *nonce;
+    counter_block[15] |= 0x80;
+    Ctr32LE::from_block_cipher(cipher, &counter_block)
 }

@@ -108,7 +108,7 @@ use aead::{
 };
 use poly1305::{universal_hash::NewUniversalHash, Poly1305};
 use salsa20::{
-    cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek},
+    cipher::{NewCipher, StreamCipher, StreamCipherSeek},
     XSalsa20,
 };
 use zeroize::Zeroize;
@@ -246,7 +246,7 @@ impl Drop for XSalsa20Poly1305 {
 /// Salsa20Poly1305 instantiated with a particular nonce
 pub(crate) struct Cipher<C>
 where
-    C: SyncStreamCipher + SyncStreamCipherSeek,
+    C: StreamCipher + StreamCipherSeek,
 {
     cipher: C,
     mac: Poly1305,
@@ -254,7 +254,7 @@ where
 
 impl<C> Cipher<C>
 where
-    C: SyncStreamCipher + SyncStreamCipherSeek,
+    C: StreamCipher + StreamCipherSeek,
 {
     /// Instantiate the underlying cipher with a particular nonce
     pub(crate) fn new(mut cipher: C) -> Self {

@@ -10,11 +10,11 @@ use aead::generic_array::{
 };
 use aead::{Buffer, Error};
 use aes::{Aes128, Aes256};
-use cipher::{NewStreamCipher, SyncStreamCipher};
+use cipher::{NewCipher, StreamCipher};
 use cmac::Cmac;
 use core::ops::Add;
 use crypto_mac::{Mac, NewMac};
-use ctr::Ctr128;
+use ctr::Ctr128BE;
 use dbl::Dbl;
 use zeroize::Zeroize;
 
@@ -34,19 +34,19 @@ pub const MAX_HEADERS: usize = 126;
 /// authenticated encryption (MRAE).
 pub struct Siv<C, M>
 where
-    C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
+    C: NewCipher<NonceSize = U16> + StreamCipher,
     M: Mac<OutputSize = U16>,
 {
-    encryption_key: GenericArray<u8, <C as NewStreamCipher>::KeySize>,
+    encryption_key: GenericArray<u8, <C as NewCipher>::KeySize>,
     mac: M,
 }
 
 /// SIV modes based on CMAC
-pub type CmacSiv<BlockCipher> = Siv<Ctr128<BlockCipher>, Cmac<BlockCipher>>;
+pub type CmacSiv<BlockCipher> = Siv<Ctr128BE<BlockCipher>, Cmac<BlockCipher>>;
 
 /// SIV modes based on PMAC
 #[cfg(feature = "pmac")]
-pub type PmacSiv<BlockCipher> = Siv<Ctr128<BlockCipher>, Pmac<BlockCipher>>;
+pub type PmacSiv<BlockCipher> = Siv<Ctr128BE<BlockCipher>, Pmac<BlockCipher>>;
 
 /// AES-CMAC-SIV with a 128-bit key
 pub type Aes128Siv = CmacSiv<Aes128>;
@@ -64,9 +64,9 @@ pub type Aes256PmacSiv = PmacSiv<Aes256>;
 
 impl<C, M> Siv<C, M>
 where
-    C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
+    C: NewCipher<NonceSize = U16> + StreamCipher,
     M: Mac<OutputSize = U16> + NewMac,
-    <C as NewStreamCipher>::KeySize: Add,
+    <C as NewCipher>::KeySize: Add,
     KeySize<C>: ArrayLength<u8>,
 {
     /// Create a new AES-SIV instance
@@ -86,7 +86,7 @@ where
 
 impl<C, M> Siv<C, M>
 where
-    C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
+    C: NewCipher<NonceSize = U16> + StreamCipher,
     M: Mac<OutputSize = U16> + NewMac,
 {
     /// Encrypt the given plaintext, allocating and returning a `Vec<u8>` for
@@ -241,7 +241,7 @@ where
 
 impl<C, M> Drop for Siv<C, M>
 where
-    C: NewStreamCipher<NonceSize = U16> + SyncStreamCipher,
+    C: NewCipher<NonceSize = U16> + StreamCipher,
     M: Mac<OutputSize = U16>,
 {
     fn drop(&mut self) {

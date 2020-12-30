@@ -1,6 +1,6 @@
 //! Core AEAD cipher implementation for (X)ChaCha20Poly1305.
 
-use ::cipher::{SyncStreamCipher, SyncStreamCipherSeek};
+use ::cipher::{StreamCipher, StreamCipherSeek};
 use aead::generic_array::GenericArray;
 use aead::Error;
 use core::convert::TryInto;
@@ -22,7 +22,7 @@ const MAX_BLOCKS: usize = core::u32::MAX as usize;
 /// ChaCha20Poly1305 instantiated with a particular nonce
 pub(crate) struct Cipher<C>
 where
-    C: SyncStreamCipher + SyncStreamCipherSeek,
+    C: StreamCipher + StreamCipherSeek,
 {
     cipher: C,
     mac: Poly1305,
@@ -30,7 +30,7 @@ where
 
 impl<C> Cipher<C>
 where
-    C: SyncStreamCipher + SyncStreamCipherSeek,
+    C: StreamCipher + StreamCipherSeek,
 {
     /// Instantiate the underlying cipher with a particular nonce
     pub(crate) fn new(mut cipher: C) -> Self {

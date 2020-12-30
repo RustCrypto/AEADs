@@ -144,7 +144,7 @@ impl CipherOp for Decrypt {}
 /// [`finish`]: #method.finish
 pub struct Eax<Cipher, Op, M = U16>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     Op: CipherOp,
     M: TagSize,
@@ -156,14 +156,17 @@ where
 
 impl<Cipher, Op, M> Eax<Cipher, Op, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     Op: CipherOp,
     M: TagSize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
-    pub fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
+    pub fn with_key_and_nonce(
+        key: &BlockCipherKey<Cipher>,
+        nonce: &Nonce<Cipher::BlockSize>,
+    ) -> Self {
         let imp = EaxImpl::<Cipher, M>::with_key_and_nonce(key, nonce);
 
         Self {
@@ -192,7 +195,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, Encrypt, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
@@ -214,7 +217,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, Decrypt, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
@@ -263,29 +266,29 @@ where
 #[doc(hidden)]
 struct EaxImpl<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
     nonce: Nonce<Cipher::BlockSize>,
     data: Cmac<Cipher>,
     message: Cmac<Cipher>,
-    ctr: ctr::Ctr128<Cipher>,
+    ctr: ctr::Ctr128BE<Cipher>,
     // HACK: Needed for the test harness due to AEAD trait online/offline interface mismatch
     #[cfg(test)]
-    key: Key<Cipher>,
+    key: BlockCipherKey<Cipher>,
     _tag_size: PhantomData<M>,
 }
 
 impl<Cipher, M> EaxImpl<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
-    fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
+    fn with_key_and_nonce(key: &BlockCipherKey<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
         let prepend_cmac = |key, init_val, data| {
             let mut cmac = Cmac::<Cipher>::new(key);
             cmac.update(&[0; 15]);
@@ -309,7 +312,7 @@ where
         // 3. c ← OMAC(2 || enc)
         let c = prepend_cmac(&key, 2, &[]);
 
-        let cipher = ctr::Ctr128::<Cipher>::from_block_cipher(Cipher::new(&key), &n);
+        let cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(&key), &n);
 
         Self {
             nonce: n,
@@ -389,13 +392,13 @@ mod test_impl {
 
     impl<Cipher, M> NewAead for EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
         Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
         M: TagSize,
     {
         type KeySize = Cipher::KeySize;
 
-        fn new(key: &Key<Cipher>) -> Self {
+        fn new(key: &BlockCipherKey<Cipher>) -> Self {
             // HACK: The nonce will be initialized by the appropriate
             // decrypt/encrypt functions from `AeadMutInPlace` implementation.
             // This is currently done so because that trait only implements
@@ -409,7 +412,7 @@ mod test_impl {
 
     impl<Cipher, M> AeadMutInPlace for super::EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
         Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
         M: TagSize,
     {

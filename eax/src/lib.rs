@@ -118,10 +118,10 @@ pub use aead::{self, AeadInPlace, Error, NewAead, Nonce};
 pub use cipher;
 
 use cipher::{
-    block::{Block, BlockCipher, Key, NewBlockCipher},
     consts::{U0, U16},
     generic_array::{functional::FunctionalSequence, ArrayLength, GenericArray},
-    stream::{FromBlockCipher, SyncStreamCipher},
+    Block, BlockCipher, BlockCipherKey, BlockEncrypt, FromBlockCipher, NewBlockCipher,
+    StreamCipher,
 };
 use cmac::{crypto_mac::NewMac, Cmac, Mac};
 use core::marker::PhantomData;
@@ -158,24 +158,24 @@ pub mod online;
 #[derive(Clone)]
 pub struct Eax<Cipher, M = U16>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
     /// Encryption key
-    key: Key<Cipher>,
+    key: BlockCipherKey<Cipher>,
     _tag_size: PhantomData<M>,
 }
 
 impl<Cipher, M> NewAead for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
     type KeySize = Cipher::KeySize;
 
-    fn new(key: &Key<Cipher>) -> Self {
+    fn new(key: &BlockCipherKey<Cipher>) -> Self {
         Self {
             key: key.clone(),
             _tag_size: Default::default(),
@@ -185,7 +185,7 @@ where
 
 impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
@@ -215,7 +215,7 @@ where
         let h = Self::cmac_with_iv(&self.key, 1, associated_data);
 
         // 3. enc ← CTR(M) using n as iv
-        let mut cipher = ctr::Ctr128::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
+        let mut cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
         cipher.apply_keystream(buffer);
 
         // 4. c ← OMAC(2 || enc)
@@ -258,7 +258,7 @@ where
         use subtle::ConstantTimeEq;
         if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
             // Decrypt
-            let mut cipher = ctr::Ctr128::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
+            let mut cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
             cipher.apply_keystream(buffer);
             Ok(())
         } else {
@@ -269,7 +269,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + NewBlockCipher + Clone,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {

@@ -41,6 +41,7 @@
 )]
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
+
 pub use aead;
 pub use aead::consts;
 
@@ -49,7 +50,7 @@ use aead::{
     generic_array::{typenum::Unsigned, ArrayLength},
     AeadInPlace, Error, Key, NewAead, Nonce, Tag,
 };
-use cipher::block::{Block, BlockCipher, NewBlockCipher};
+use cipher::{Block, BlockCipher, BlockEncrypt, NewBlockCipher};
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
 
@@ -67,7 +68,7 @@ use traits::{NonceSize, TagSize};
 /// `U7`, `U8`, `U9`, `U10`, `U11`, `U12`, `U13`.
 pub struct Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
@@ -79,7 +80,7 @@ where
 
 impl<C, M, N> Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
@@ -188,7 +189,7 @@ where
 
 impl<C, M, N> NewAead for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
@@ -202,7 +203,7 @@ where
 
 impl<C, M, N> AeadInPlace for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
@@ -283,12 +284,15 @@ where
     }
 }
 
-struct CbcMac<'a, C: BlockCipher> {
+struct CbcMac<'a, C: BlockCipher + BlockEncrypt> {
     cipher: &'a C,
     state: Block<C>,
 }
 
-impl<'a, C: BlockCipher> CbcMac<'a, C> {
+impl<'a, C> CbcMac<'a, C>
+where
+    C: BlockCipher + BlockEncrypt,
+{
     fn from_cipher(cipher: &'a C) -> Self {
         Self {
             cipher,

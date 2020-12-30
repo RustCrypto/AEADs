@@ -132,7 +132,7 @@ pub use aead;
 pub use xchacha20poly1305::{XChaCha20Poly1305, XNonce};
 
 use self::cipher::Cipher;
-use ::cipher::{NewStreamCipher, SyncStreamCipher, SyncStreamCipherSeek};
+use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
 use aead::{
     consts::{U0, U12, U16, U32},
     generic_array::GenericArray,
@@ -185,7 +185,7 @@ pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaCha12>;
 /// See the [toplevel documentation](index.html) for a usage example.
 pub struct ChaChaPoly1305<C>
 where
-    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
 {
     /// Secret key
     key: GenericArray<u8, U32>,
@@ -196,7 +196,7 @@ where
 
 impl<C> NewAead for ChaChaPoly1305<C>
 where
-    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
 {
     type KeySize = U32;
 
@@ -210,7 +210,7 @@ where
 
 impl<C> AeadInPlace for ChaChaPoly1305<C>
 where
-    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -242,7 +242,7 @@ where
 
 impl<C> Clone for ChaChaPoly1305<C>
 where
-    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
 {
     fn clone(&self) -> Self {
         Self {
@@ -254,7 +254,7 @@ where
 
 impl<C> Drop for ChaChaPoly1305<C>
 where
-    C: NewStreamCipher<KeySize = U32, NonceSize = U12> + SyncStreamCipher + SyncStreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
 {
     fn drop(&mut self) {
         self.key.as_mut_slice().zeroize();

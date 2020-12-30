@@ -5,7 +5,7 @@
 pub use chacha20::XNonce;
 
 use crate::{cipher::Cipher, Key, Tag};
-use ::cipher::NewStreamCipher;
+use ::cipher::NewCipher;
 use aead::{
     consts::{U0, U16, U24, U32},
     AeadInPlace, Error, NewAead,

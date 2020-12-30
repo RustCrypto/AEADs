@@ -12,7 +12,7 @@ publish = false
 [dependencies]
 criterion = "0.3"
 criterion-cycles-per-byte = "0.1"
-aes = "0.5"
+aes = "0.7.0-pre"
 aes-gcm = { path = "../aes-gcm/" }
 aes-gcm-siv = { path = "../aes-gcm-siv/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
@@ -37,3 +37,8 @@ harness = false
 name = "eax"
 path = "src/eax.rs"
 harness = false
+
+[patch.crates-io]
+aes = { git = "https://github.com/RustCrypto/block-ciphers.git" }
+chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
+cmac = { git = "https://github.com/RustCrypto/MACs.git" }

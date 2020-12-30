@@ -38,7 +38,7 @@ use aead::{
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
     AeadInPlace, Error, Key, NewAead, Nonce, Tag,
 };
-use cipher::{BlockCipher, NewBlockCipher};
+use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
 use core::{convert::TryInto, fmt, num::Wrapping};
 
 pub use aead;
@@ -54,7 +54,7 @@ const ONE: Wrapping<u64> = Wrapping(1);
 #[derive(Clone)]
 pub struct Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block>,
 {
     cipher: C,
@@ -62,7 +62,7 @@ where
 
 impl<C> Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block>,
 {
     fn get_h(&self, counter: &Counter) -> Block {
@@ -80,7 +80,7 @@ where
 
 impl<C> From<C> for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block>,
 {
     fn from(cipher: C) -> Self {
@@ -90,7 +90,7 @@ where
 
 impl<C> NewAead for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block>,
 {
     type KeySize = C::KeySize;
@@ -102,7 +102,7 @@ where
 
 impl<C> AeadInPlace for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block>,
 {
     type NonceSize = C::BlockSize;
@@ -281,7 +281,7 @@ fn to_bytes(v: &Counter) -> Block {
 
 impl<C> fmt::Debug for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + NewBlockCipher + fmt::Debug,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + fmt::Debug,
     C::ParBlocks: ArrayLength<Block>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {

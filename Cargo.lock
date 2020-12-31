@@ -269,9 +269,8 @@ dependencies = [
 
 [[package]]
 name = "ghash"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97304e4cd182c3846f7575ced3890c53012ce534ad9114046b0a9e00bb30a375"
+version = "0.4.0-pre"
+source = "git+https://github.com/RustCrypto/universal-hashes.git#751d267560850ebd2bbf3e4edd3105c88ea94af4"
 dependencies = [
  "opaque-debug",
  "polyval",
@@ -370,9 +369,8 @@ dependencies = [
 
 [[package]]
 name = "polyval"
-version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eebcc4aa140b9abd2bc40d9c3f7ccec842679cd79045ac3a7ac698c1a064b7cd"
+version = "0.5.0-pre"
+source = "git+https://github.com/RustCrypto/universal-hashes.git#751d267560850ebd2bbf3e4edd3105c88ea94af4"
 dependencies = [
  "cpuid-bool",
  "opaque-debug",

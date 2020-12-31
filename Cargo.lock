@@ -14,9 +14,9 @@ dependencies = [
 [[package]]
 name = "aes"
 version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/block-ciphers.git#3215a921f894f533882dc1a3cf55242237fca4ed"
+source = "git+https://github.com/RustCrypto/block-ciphers.git#7236bce0b75b7bcf719add5e88890bd667ebb95f"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "cipher",
  "cpuid-bool",
  "opaque-debug",
@@ -102,12 +102,6 @@ dependencies = [
 
 [[package]]
 name = "cfg-if"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
-
-[[package]]
-name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
@@ -115,9 +109,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "chacha20"
 version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#e6b08f9709ed37caa8796906d987377772701bdb"
+source = "git+https://github.com/RustCrypto/stream-ciphers.git#03ecd495ff073bd74713fa21dc246ca5eec52455"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "cipher",
  "cpuid-bool",
  "zeroize",
@@ -146,7 +140,7 @@ dependencies = [
 [[package]]
 name = "cmac"
 version = "0.6.0-pre"
-source = "git+https://github.com/RustCrypto/MACs.git#daf6c12a118206aab3f131749d0baeca15942268"
+source = "git+https://github.com/RustCrypto/MACs.git#74f50ad79bbc4786e9529de455cf4630fca35859"
 dependencies = [
  "crypto-mac",
  "dbl",
@@ -264,11 +258,11 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.1.15"
+version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc587bc0ec293155d5bfa6b9891ec18a1e330c234f896ea47fbada4cadbe47e6"
+checksum = "8fc3cb4d91f53b50155bdcfd23f6a4c39ae1969c2ae85982b135750cccaf5fce"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if",
  "libc",
  "wasi",
 ]
@@ -326,7 +320,7 @@ dependencies = [
 [[package]]
 name = "kuznyechik"
 version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/block-ciphers.git#3215a921f894f533882dc1a3cf55242237fca4ed"
+source = "git+https://github.com/RustCrypto/block-ciphers.git#7236bce0b75b7bcf719add5e88890bd667ebb95f"
 dependencies = [
  "cipher",
  "opaque-debug",
@@ -358,7 +352,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pmac"
 version = "0.6.0-pre"
-source = "git+https://github.com/RustCrypto/MACs.git#daf6c12a118206aab3f131749d0baeca15942268"
+source = "git+https://github.com/RustCrypto/MACs.git#74f50ad79bbc4786e9529de455cf4630fca35859"
 dependencies = [
  "crypto-mac",
  "dbl",
@@ -459,7 +453,7 @@ dependencies = [
 [[package]]
 name = "salsa20"
 version = "0.8.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#e6b08f9709ed37caa8796906d987377772701bdb"
+source = "git+https://github.com/RustCrypto/stream-ciphers.git#03ecd495ff073bd74713fa21dc246ca5eec52455"
 dependencies = [
  "cipher",
  "zeroize",

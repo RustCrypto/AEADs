@@ -37,7 +37,7 @@ dual licensed as above, without any additional terms or conditions.
 [docs-image]: https://docs.rs/crypto_box/badge.svg
 [docs-link]: https://docs.rs/crypto_box/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.41+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.49+-blue.svg
 [codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
 [codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg

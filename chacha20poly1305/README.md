@@ -31,20 +31,6 @@ in the Transport Layer Security (TLS) protocol. The underlying ChaCha20 cipher
 is also widely used as a cryptographically secure random number generator,
 including internal use by the Rust standard library.
 
-## Performance Notes
-
-By default this crate will use portable software implementations of the
-underlying ChaCha20 and Poly1305 ciphers it's based on.
-
-When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
-take advantage of AVX2 acceleration:
-
-    RUSTFLAGS="-Ctarget-feature=+avx2"
-
-Ideally target the `haswell` or `skylake` architectures as a baseline:
-
-    RUSTFLAGS="-Ctarget-cpu=haswell -Ctarget-feature=+avx2"
-
 ## Security Notes
 
 This crate has received one [security audit by NCC Group][5], with no significant
@@ -81,7 +67,7 @@ dual licensed as above, without any additional terms or conditions.
 [docs-image]: https://docs.rs/chacha20poly1305/badge.svg
 [docs-link]: https://docs.rs/chacha20poly1305/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.41+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.49+-blue.svg
 [codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
 [codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg

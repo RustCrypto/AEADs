@@ -25,7 +25,7 @@ jobs:
           - 1.49.0 # MSRV
           - stable
         target:
-          # - armv7-none-eabi TODO: test after MSRV is bumped to 1.42
+          - armv7a-none-eabi
           - thumbv7em-none-eabi
           - wasm32-unknown-unknown
     steps:

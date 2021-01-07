@@ -30,7 +30,7 @@ alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 reduced-round = ["chacha20"]
 std = ["aead/std", "alloc"]
-xchacha20poly1305 = ["chacha20/xchacha20"]
+xchacha20poly1305 = ["chacha20/xchacha"]
 
 [package.metadata.docs.rs]
 all-features = true

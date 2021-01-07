@@ -109,7 +109,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "chacha20"
 version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#d5839255bd89fbe58ee36211deca7c39bc2597d2"
+source = "git+https://github.com/RustCrypto/stream-ciphers.git#131cd4be4934b5858158326fa2d5e658fd16d333"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -451,7 +451,7 @@ dependencies = [
 [[package]]
 name = "salsa20"
 version = "0.8.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#d5839255bd89fbe58ee36211deca7c39bc2597d2"
+source = "git+https://github.com/RustCrypto/stream-ciphers.git#131cd4be4934b5858158326fa2d5e658fd16d333"
 dependencies = [
  "cipher",
  "zeroize",
@@ -471,9 +471,9 @@ checksum = "1e81da0851ada1f3e9d4312c704aa4f8806f0f9d69faaf8df2f3464b4a9437c2"
 
 [[package]]
 name = "syn"
-version = "1.0.57"
+version = "1.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4211ce9909eb971f111059df92c45640aad50a619cf55cd76476be803c4c68e6"
+checksum = "cc60a3d73ea6594cd712d830cc1f0390fd71542d8c8cd24e70cc54cdfd5e05d5"
 dependencies = [
  "proc-macro2",
  "quote",

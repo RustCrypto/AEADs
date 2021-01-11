@@ -31,24 +31,39 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
           target: ${{ matrix.target }}
           override: true
+          profile: minimal
       - run: cargo build --no-default-features --release --target ${{ matrix.target }}
+
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust:
-          - 1.41.0 # MSRV
-          - stable
+        include:
+          # 32-bit Linux
+          - target: i686-unknown-linux-gnu
+            rust: 1.49.0 # MSRV
+            deps: sudo apt update && sudo apt install gcc-multilib
+          - target: i686-unknown-linux-gnu
+            rust: stable
+            deps: sudo apt update && sudo apt install gcc-multilib
+
+          # 64-bit Linux
+          - target: x86_64-unknown-linux-gnu
+            rust: 1.49.0 # MSRV
+          - target: x86_64-unknown-linux-gnu
+            rust: stable
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
           override: true
-      - run: cargo test --lib --release
-      - run: cargo test --all-features --release
+          profile: minimal
+      - run: ${{ matrix.deps }}
+      - run: cargo test --target ${{ matrix.target }} --release
+      - run: cargo test --target ${{ matrix.target }} --release --all-features
+      - run: cargo build --target ${{ matrix.target }} --benches

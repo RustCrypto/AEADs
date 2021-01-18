@@ -1,4 +1,9 @@
-# RustCrypto: Authenticated Encryption with Associated Data (AEAD) Algorithms [![CodeCov Status][codecov-image]][codecov-link] ![Rust Version][rustc-image] [![Project Chat][chat-image]][chat-link] [![dependency status][deps-image]][deps]
+# RustCrypto: Authenticated Encryption with Associated Data (AEAD) Algorithms
+
+[![CodeCov Status][codecov-image]][codecov-link]
+![Rust Version][rustc-image]
+[![Project Chat][chat-image]][chat-link]
+[![dependency status][deps-image]][deps]
 
 Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.

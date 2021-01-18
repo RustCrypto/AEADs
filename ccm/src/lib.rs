@@ -93,13 +93,17 @@ where
         }
     }
 
-    fn gen_enc_block(block: &mut Block<C>, nonce: &Nonce<N>, i: usize) {
+    /// XOR data in `buf` of length equal or smaller than block size with
+    /// a keystream block computed for given `nonce` and `i`.
+    #[inline(always)]
+    fn apply_ks_block(&self, buf: &mut [u8], nonce: &Nonce<N>, i: usize) {
+        let mut block = Block::<C>::default();
         block[0] = N::get_l() - 1;
         let n = 1 + N::to_usize();
         block[1..n].copy_from_slice(nonce);
-        let b = &mut block[n..];
-        let arr = i.to_be_bytes();
-        b.copy_from_slice(&arr[arr.len() - b.len()..])
+        be_copy(&mut block[n..], i);
+        self.cipher.encrypt_block(&mut block);
+        xor(buf, &block);
     }
 
     fn calc_mac(
@@ -116,48 +120,43 @@ where
         if buffer.len() > N::get_max_len() {
             return Err(Error);
         }
-        let l_arr = buffer.len().to_be_bytes();
 
         let mut b0 = Block::<C>::default();
         b0[0] = flags;
         let n = 1 + N::to_usize();
         b0[1..n].copy_from_slice(&nonce);
-        let q = l_arr.len() - l as usize;
-        b0[n..].copy_from_slice(&l_arr[q..]);
+        be_copy(&mut b0[n..], buffer.len());
 
         let la = adata.len();
-        let la_arr = la.to_be_bytes();
-        let b1 = if la == 0 {
-            None
+        let mut b = Block::<C>::default();
+        let n = if la == 0 {
+            0
         } else if la < (1 << 16) - (1 << 8) {
-            let mut b = Block::<C>::default();
-            b[..2].copy_from_slice(&la_arr[la_arr.len() - 2..]);
-            Some((b, 2))
+            be_copy(&mut b[..2], adata.len());
+            2
         } else if la <= core::u32::MAX as usize {
-            let mut b = Block::<C>::default();
             b[0] = 0xFF;
             b[1] = 0xFE;
-            b[2..6].copy_from_slice(&la_arr[la_arr.len() - 4..]);
-            Some((b, 6))
+            be_copy(&mut b[2..6], adata.len());
+            6
         } else {
-            let mut b = Block::<C>::default();
             b[0] = 0xFF;
             b[1] = 0xFF;
-            b[2..10].copy_from_slice(&la_arr[la_arr.len() - 8..]);
-            Some((b, 10))
+            be_copy(&mut b[2..10], adata.len());
+            10
         };
 
         let mut mac = CbcMac::from_cipher(&self.cipher);
         mac.update(&b0);
 
-        if let Some((mut b1, n)) = b1 {
-            if b1.len() - n >= adata.len() {
-                b1[n..n + adata.len()].copy_from_slice(adata);
-                mac.update(&b1);
+        if n != 0 {
+            if b.len() - n >= adata.len() {
+                b[n..n + adata.len()].copy_from_slice(adata);
+                mac.update(&b);
             } else {
-                let (l, r) = adata.split_at(b1.len() - n);
-                b1[n..].copy_from_slice(l);
-                mac.update(&b1);
+                let (l, r) = adata.split_at(b.len() - n);
+                b[n..].copy_from_slice(l);
+                mac.update(&b);
 
                 let mut chunks = r.chunks_exact(bs);
                 for chunk in &mut chunks {
@@ -218,27 +217,19 @@ where
         adata: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag<Self::TagSize>, Error> {
-        let bs = C::BlockSize::to_usize();
-
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
+        self.apply_ks_block(&mut full_tag, nonce, 0);
 
-        let mut s = Default::default();
-        Self::gen_enc_block(&mut s, nonce, 0);
-        self.cipher.encrypt_block(&mut s);
-        xor(&mut full_tag, &s);
-
-        let mut iter = buffer.chunks_exact_mut(bs);
+        let mut iter = buffer.chunks_exact_mut(C::BlockSize::to_usize());
         let mut i = 1;
         for chunk in &mut iter {
-            Self::gen_enc_block(&mut s, nonce, i);
-            self.cipher.encrypt_block(&mut s);
-            xor(chunk, &s);
+            self.apply_ks_block(chunk, nonce, i);
             i += 1;
         }
-        Self::gen_enc_block(&mut s, nonce, i);
-        self.cipher.encrypt_block(&mut s);
         let rem = iter.into_remainder();
-        xor(rem, &s[..rem.len()]);
+        if !rem.is_empty() {
+            self.apply_ks_block(rem, nonce, i);
+        }
 
         let tag = Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()]);
         Ok(tag)
@@ -251,29 +242,19 @@ where
         buffer: &mut [u8],
         tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
-        let bs = C::BlockSize::to_usize();
-
-        let mut s = Default::default();
-        Self::gen_enc_block(&mut s, nonce, 0);
-        self.cipher.encrypt_block(&mut s);
-
-        let s0 = s;
-
-        let mut iter = buffer.chunks_exact_mut(bs);
+        let mut iter = buffer.chunks_exact_mut(C::BlockSize::to_usize());
         let mut i = 1;
         for chunk in &mut iter {
-            Self::gen_enc_block(&mut s, nonce, i);
-            self.cipher.encrypt_block(&mut s);
-            xor(chunk, &s);
+            self.apply_ks_block(chunk, nonce, i);
             i += 1;
         }
-        Self::gen_enc_block(&mut s, nonce, i);
-        self.cipher.encrypt_block(&mut s);
         let rem = iter.into_remainder();
-        xor(rem, &s[..rem.len()]);
+        if !rem.is_empty() {
+            self.apply_ks_block(rem, nonce, i);
+        }
 
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
-        xor(&mut full_tag, &s0);
+        self.apply_ks_block(&mut full_tag, nonce, 0);
         let n = tag.len();
         if full_tag[..n].ct_eq(tag).unwrap_u8() == 0 {
             buffer.iter_mut().for_each(|v| *v = 0);
@@ -310,7 +291,16 @@ where
     }
 }
 
-#[inline]
+#[inline(always)]
+fn be_copy(buf: &mut [u8], n: usize) {
+    let narr = n.to_le_bytes();
+    let iter = buf.iter_mut().rev().zip(narr.iter());
+    for (a, b) in iter {
+        *a = *b;
+    }
+}
+
+#[inline(always)]
 fn xor(v1: &mut [u8], v2: &[u8]) {
     for (a, b) in v1.iter_mut().zip(v2.iter()) {
         *a ^= b;

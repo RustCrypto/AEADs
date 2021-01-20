@@ -200,9 +200,9 @@ dependencies = [
 
 [[package]]
 name = "dbl"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2735145c3b9ba15f2d7a3ae8cdafcbc8c98a7bef7f62afe9d08bd99fbf7130de"
+checksum = "37e797687b5f09528a48fcb63b6914d0255b8a6c760699a919af37042f09d9b3"
 dependencies = [
  "generic-array 0.14.4",
 ]

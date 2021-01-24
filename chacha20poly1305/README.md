@@ -4,8 +4,8 @@
 [![Docs][docs-image]][docs-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
-[![CodeCov Status][codecov-image]][codecov-link]
 [![Project Chat][chat-image]][chat-link]
+[![Crates.io Downloads][downloads-image]][crate-link]
 [![Build Status][build-image]][build-link]
 
 Pure Rust implementation of **ChaCha20Poly1305** ([RFC 8439][1]): an
@@ -68,10 +68,9 @@ dual licensed as above, without any additional terms or conditions.
 [docs-link]: https://docs.rs/chacha20poly1305/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.49+-blue.svg
-[codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
-[codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
+[downloads-image]: https://img.shields.io/crates/d/chacha20poly1305.svg
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/chacha20poly1305/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 

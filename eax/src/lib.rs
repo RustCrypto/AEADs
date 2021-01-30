@@ -114,7 +114,7 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead::{self, AeadInPlace, Error, NewAead, Nonce};
+pub use aead::{self, AeadCore, AeadInPlace, Error, NewAead};
 pub use cipher;
 
 use cipher::{
@@ -140,8 +140,11 @@ pub const P_MAX: u64 = 1 << 36;
 /// Maximum length of ciphertext
 pub const C_MAX: u64 = (1 << 36) + 16;
 
+/// EAX nonces
+pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+
 /// EAX tags
-pub type Tag = aead::Tag<U16>;
+pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 pub mod online;
 
@@ -183,7 +186,7 @@ where
     }
 }
 
-impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
+impl<Cipher, M> AeadCore for Eax<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
@@ -192,13 +195,20 @@ where
     type NonceSize = Cipher::BlockSize;
     type TagSize = M;
     type CiphertextOverhead = U0;
+}
 
+impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
+where
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
+    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
+{
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-    ) -> Result<aead::Tag<M>, Error> {
+    ) -> Result<Tag<M>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
@@ -224,7 +234,7 @@ where
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
         let full_tag = n.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
-        let tag = aead::Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()]);
+        let tag = Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()]);
         Ok(tag)
     }
 
@@ -233,7 +243,7 @@ where
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &aead::Tag<M>,
+        tag: &Tag<M>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);

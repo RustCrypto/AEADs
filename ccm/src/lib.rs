@@ -34,6 +34,7 @@
 //! [CCM]: https://en.wikipedia.org/wiki/CCM_mode
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
+
 #![no_std]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
@@ -47,8 +48,8 @@ pub use aead::consts;
 
 use aead::{
     consts::{U0, U16},
-    generic_array::{typenum::Unsigned, ArrayLength},
-    AeadInPlace, Error, Key, NewAead, Nonce, Tag,
+    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
+    AeadCore, AeadInPlace, Error, Key, NewAead,
 };
 use cipher::{Block, BlockCipher, BlockEncrypt, NewBlockCipher};
 use core::marker::PhantomData;
@@ -57,6 +58,12 @@ use subtle::ConstantTimeEq;
 mod traits;
 
 use traits::{NonceSize, TagSize};
+
+/// CCM nonces
+pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+
+/// CCM tags
+pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 /// CCM instance generic over an underlying block cipher.
 ///
@@ -200,7 +207,7 @@ where
     }
 }
 
-impl<C, M, N> AeadInPlace for Ccm<C, M, N>
+impl<C, M, N> AeadCore for Ccm<C, M, N>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block<C>>,
@@ -210,10 +217,18 @@ where
     type NonceSize = N;
     type TagSize = M;
     type CiphertextOverhead = U0;
+}
 
+impl<C, M, N> AeadInPlace for Ccm<C, M, N>
+where
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    C::ParBlocks: ArrayLength<Block<C>>,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
+{
     fn encrypt_in_place_detached(
         &self,
-        nonce: &Nonce<Self::NonceSize>,
+        nonce: &Nonce<N>,
         adata: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag<Self::TagSize>, Error> {
@@ -237,7 +252,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &Nonce<Self::NonceSize>,
+        nonce: &Nonce<N>,
         adata: &[u8],
         buffer: &mut [u8],
         tag: &Tag<Self::TagSize>,

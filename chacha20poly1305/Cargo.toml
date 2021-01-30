@@ -18,18 +18,19 @@ keywords = ["aead", "chacha20", "poly1305", "xchacha20", "xchacha20poly1305"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = { version = "0.3", default-features = false }
-chacha20 = { version = "0.7.0-pre", features = ["zeroize"], optional = true }
-cipher = "0.3.0-pre.4"
+aead = { version = "=0.4.0-pre", default-features = false }
+chacha20 = { version = "=0.7.0-pre", features = ["zeroize"], optional = true }
+cipher = "=0.3.0-pre.4"
 poly1305 = "0.6"
 zeroize = { version = "1", default-features = false }
 
 [features]
 default = ["alloc", "chacha20", "xchacha20poly1305"]
+std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 reduced-round = ["chacha20"]
-std = ["aead/std", "alloc"]
+stream = ["aead/stream"]
 xchacha20poly1305 = ["chacha20/xchacha"]
 
 [package.metadata.docs.rs]

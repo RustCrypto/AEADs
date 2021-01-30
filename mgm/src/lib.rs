@@ -36,7 +36,7 @@
 use aead::{
     consts::{U0, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    AeadInPlace, Error, Key, NewAead, Nonce, Tag,
+    AeadCore, AeadInPlace, Error, Key, NewAead,
 };
 use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
 use core::{convert::TryInto, fmt, num::Wrapping};
@@ -44,6 +44,12 @@ use core::{convert::TryInto, fmt, num::Wrapping};
 pub use aead;
 
 mod gf;
+
+/// MGM nonces
+pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+
+/// MGM tags
+pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 type Block = GenericArray<u8, U16>;
 type Counter = [Wrapping<u64>; 2];
@@ -100,7 +106,7 @@ where
     }
 }
 
-impl<C> AeadInPlace for Mgm<C>
+impl<C> AeadCore for Mgm<C>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
     C::ParBlocks: ArrayLength<Block>,
@@ -108,7 +114,13 @@ where
     type NonceSize = C::BlockSize;
     type TagSize = C::BlockSize;
     type CiphertextOverhead = U0;
+}
 
+impl<C> AeadInPlace for Mgm<C>
+where
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
+    C::ParBlocks: ArrayLength<Block>,
+{
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce<Self::NonceSize>,

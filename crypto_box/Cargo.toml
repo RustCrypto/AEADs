@@ -18,18 +18,18 @@ keywords = ["nacl", "libsodium", "public-key", "x25519", "xsalsa20poly1305"]
 
 [dependencies]
 rand_core = "0.5"
-salsa20 = { version = "0.8.0-pre", features = ["hsalsa20"] }
+salsa20 = { version = "=0.8.0-pre", features = ["hsalsa20"] }
 x25519-dalek = { version = "1", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [dependencies.chacha20poly1305]
-version = "0.8.0-pre"
+version = "=0.8.0-pre"
 default-features = false
 features = ["xchacha20poly1305"]
 path = "../chacha20poly1305"
 
 [dependencies.xsalsa20poly1305]
-version = "0.7.0-pre"
+version = "=0.7.0-pre"
 default-features = false
 features = ["rand_core"]
 path = "../xsalsa20poly1305"
@@ -39,8 +39,8 @@ rand = "0.7"
 
 [features]
 default = ["alloc", "u64_backend"]
+std = ["xsalsa20poly1305/std"]
 alloc = ["xsalsa20poly1305/alloc"]
 heapless = ["xsalsa20poly1305/heapless"]
-std = ["xsalsa20poly1305/std"]
 u32_backend = ["x25519-dalek/u32_backend"]
 u64_backend = ["x25519-dalek/u64_backend"]

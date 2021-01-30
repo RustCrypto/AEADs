@@ -8,7 +8,7 @@ use crate::{cipher::Cipher, Key, Tag};
 use ::cipher::NewCipher;
 use aead::{
     consts::{U0, U16, U24, U32},
-    AeadInPlace, Error, NewAead,
+    AeadCore, AeadInPlace, Error, NewAead,
 };
 use chacha20::XChaCha20;
 use zeroize::Zeroize;
@@ -70,11 +70,13 @@ impl NewAead for XChaCha20Poly1305 {
     }
 }
 
-impl AeadInPlace for XChaCha20Poly1305 {
+impl AeadCore for XChaCha20Poly1305 {
     type NonceSize = U24;
     type TagSize = U16;
     type CiphertextOverhead = U0;
+}
 
+impl AeadInPlace for XChaCha20Poly1305 {
     fn encrypt_in_place_detached(
         &self,
         nonce: &XNonce,

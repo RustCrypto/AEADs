@@ -2,9 +2,8 @@
 # It is not intended for manual editing.
 [[package]]
 name = "aead"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fc95d1bdb8e6666b2b217308eeeb09f2d6728d104be3e31916cc74d15420331"
+version = "0.4.0-pre"
+source = "git+https://github.com/RustCrypto/traits.git#252b77f0ee659b146c8aeb711d7372471cd65d0d"
 dependencies = [
  "blobby",
  "generic-array 0.14.4",

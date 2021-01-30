@@ -59,7 +59,7 @@
 
 use crate::*;
 
-use aead::Tag;
+use crate::Tag;
 use core::marker::PhantomData;
 
 pub use Eax as EaxOnline;
@@ -410,7 +410,7 @@ mod test_impl {
         }
     }
 
-    impl<Cipher, M> AeadMutInPlace for super::EaxImpl<Cipher, M>
+    impl<Cipher, M> AeadCore for super::EaxImpl<Cipher, M>
     where
         Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
         Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
@@ -419,7 +419,14 @@ mod test_impl {
         type NonceSize = Cipher::BlockSize;
         type TagSize = M;
         type CiphertextOverhead = U0;
+    }
 
+    impl<Cipher, M> AeadMutInPlace for super::EaxImpl<Cipher, M>
+    where
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
+        Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        M: TagSize,
+    {
         fn encrypt_in_place_detached(
             &mut self,
             nonce: &Nonce<Self::NonceSize>,

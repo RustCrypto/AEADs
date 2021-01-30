@@ -13,17 +13,18 @@ categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
 
 [dependencies]
-aead = { version = "0.3", default-features = false }
-cipher = { version = "0.3.0-pre.4", default-features = false }
+aead = { version = "=0.4.0-pre", default-features = false }
+cipher = { version = "=0.3.0-pre.4", default-features = false }
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.3.2", features = ["dev"], default-features = false }
+aead = { version = "=0.4.0-pre", features = ["dev"], default-features = false }
 aes = { version = "=0.7.0-pre", features = ["force-soft"] } # Uses `force-soft` for MSRV 1.41
 hex-literal = "0.2"
 
 [features]
 default = ["alloc"]
+std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
-std = ["aead/std", "alloc"]
+stream = ["aead/stream"]

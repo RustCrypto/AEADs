@@ -118,7 +118,7 @@ use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
 use aead::{
     consts::{U0, U12, U16, U32},
     generic_array::GenericArray,
-    AeadInPlace, Error, NewAead,
+    AeadCore, AeadInPlace, Error, NewAead,
 };
 use core::marker::PhantomData;
 use zeroize::Zeroize;
@@ -190,14 +190,19 @@ where
     }
 }
 
-impl<C> AeadInPlace for ChaChaPoly1305<C>
+impl<C> AeadCore for ChaChaPoly1305<C>
 where
     C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
 {
     type NonceSize = U12;
     type TagSize = U16;
     type CiphertextOverhead = U0;
+}
 
+impl<C> AeadInPlace for ChaChaPoly1305<C>
+where
+    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
+{
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce,

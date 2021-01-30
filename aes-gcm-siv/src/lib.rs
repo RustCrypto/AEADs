@@ -129,7 +129,7 @@
 
 pub use aead;
 
-use aead::{AeadInPlace, Error, NewAead};
+use aead::{AeadCore, AeadInPlace, Error, NewAead};
 use cipher::{
     consts::{U0, U12, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
@@ -159,7 +159,7 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 pub type Key<KeySize> = GenericArray<u8, KeySize>;
 
 /// AES-GCM-SIV nonces
-pub type Nonce = aead::Nonce<U12>;
+pub type Nonce = GenericArray<u8, U12>;
 
 /// AES-GCM-SIV tags
 pub type Tag = GenericArray<u8, U16>;
@@ -207,7 +207,7 @@ where
     }
 }
 
-impl<Aes> AeadInPlace for AesGcmSiv<Aes>
+impl<Aes> AeadCore for AesGcmSiv<Aes>
 where
     Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
@@ -215,7 +215,13 @@ where
     type NonceSize = U12;
     type TagSize = U16;
     type CiphertextOverhead = U0;
+}
 
+impl<Aes> AeadInPlace for AesGcmSiv<Aes>
+where
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+{
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce,

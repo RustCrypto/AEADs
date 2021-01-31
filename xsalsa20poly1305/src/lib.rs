@@ -104,7 +104,7 @@ pub use salsa20::{Key, XNonce as Nonce};
 use aead::{
     consts::{U0, U16, U24, U32},
     generic_array::GenericArray,
-    AeadInPlace, Buffer, Error, NewAead,
+    AeadCore, AeadInPlace, Buffer, Error, NewAead,
 };
 use poly1305::{universal_hash::NewUniversalHash, Poly1305};
 use salsa20::{
@@ -158,11 +158,13 @@ impl NewAead for XSalsa20Poly1305 {
     }
 }
 
-impl AeadInPlace for XSalsa20Poly1305 {
+impl AeadCore for XSalsa20Poly1305 {
     type NonceSize = U24;
     type TagSize = U16;
     type CiphertextOverhead = U0;
+}
 
+impl AeadInPlace for XSalsa20Poly1305 {
     fn encrypt_in_place(
         &self,
         nonce: &Nonce,

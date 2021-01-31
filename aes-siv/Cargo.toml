@@ -16,14 +16,14 @@ keywords = ["aead", "aes", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = "0.3"
-aes = "0.7.0-pre"
-cipher = "0.3.0-pre.3"
-cmac = "0.6.0-pre"
-crypto-mac = "0.11.0-pre"
-ctr = "0.7.0-pre.2"
+aead = "=0.4.0-pre"
+aes = "=0.7.0-pre"
+cipher = "=0.3.0-pre.4"
+cmac = "=0.6.0-pre"
+crypto-mac = "=0.11.0-pre"
+ctr = "=0.7.0-pre.3"
 dbl = "0.3"
-pmac = "0.6.0-pre"
+pmac = "=0.6.0-pre"
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
@@ -31,9 +31,10 @@ hex-literal = "0.2"
 
 [features]
 default = ["alloc"]
+std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
-std = ["aead/std", "alloc"]
+stream = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true

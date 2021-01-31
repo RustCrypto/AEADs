@@ -16,19 +16,20 @@ keywords = ["aead", "aes", "aes-gcm", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = { version = "0.3", default-features = false }
-aes = { version = "0.7.0-pre", optional = true }
-cipher = "0.3.0-pre.4"
-ctr = "0.7.0-pre.3"
+aead = { version = "=0.4.0-pre", default-features = false }
+aes = { version = "=0.7.0-pre", optional = true }
+cipher = "=0.3.0-pre.4"
+ctr = "=0.7.0-pre.3"
 polyval = { version = "=0.5.0-pre", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [features]
 default = ["aes", "alloc"]
+std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
-std = ["aead/std", "alloc"]
+stream = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -105,7 +105,7 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead::{self, AeadInPlace, Error, NewAead, Nonce};
+pub use aead::{self, AeadCore, AeadInPlace, Error, NewAead};
 
 #[cfg(feature = "aes")]
 pub use aes;
@@ -140,6 +140,9 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// AES-GCM keys
 pub type Key<KeySize> = GenericArray<u8, KeySize>;
+
+/// AES-GCM nonces
+pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// AES-GCM tags
 pub type Tag = GenericArray<u8, U16>;
@@ -220,7 +223,7 @@ where
     }
 }
 
-impl<Aes, NonceSize> AeadInPlace for AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize> AeadCore for AesGcm<Aes, NonceSize>
 where
     Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
     Aes::ParBlocks: ArrayLength<Block<Aes>>,
@@ -229,7 +232,14 @@ where
     type NonceSize = NonceSize;
     type TagSize = U16;
     type CiphertextOverhead = U0;
+}
 
+impl<Aes, NonceSize> AeadInPlace for AesGcm<Aes, NonceSize>
+where
+    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    NonceSize: ArrayLength<u8>,
+{
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce<Self::NonceSize>,

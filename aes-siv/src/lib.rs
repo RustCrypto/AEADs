@@ -7,13 +7,13 @@
 //! Simple usage (allocating, no associated data):
 //!
 //! ```
-//! use aes_siv::Aes128SivAead; // Or `Aes256Siv`
-//! use aes_siv::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use aes_siv::{Aes128SivAead, Key, Nonce}; // Or `Aes256SivAead`
+//! use aes_siv::aead::{Aead, NewAead};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes128SivAead::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
+//! let nonce = Nonce::from_slice(b"any unique nonce"); // 128-bits; unique per message
 //!
 //! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
 //!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
@@ -42,14 +42,14 @@
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
-//! use aes_siv::Aes128SivAead; // Or `Aes256SivAead`
-//! use aes_siv::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use aes_siv::{Aes128SivAead, Key, Nonce}; // Or `Aes256SivAead`
+//! use aes_siv::aead::{AeadInPlace, NewAead};
 //! use aes_siv::aead::heapless::{Vec, consts::U128};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes128SivAead::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"any unique nonce"); // 128-bits; unique per message
+//! let nonce = Nonce::from_slice(b"any unique nonce"); // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, U128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
@@ -89,7 +89,7 @@ use crate::siv::Siv;
 use aead::{
     consts::{U0, U16, U32, U64},
     generic_array::{ArrayLength, GenericArray},
-    AeadInPlace, Buffer, Error, NewAead,
+    AeadCore, AeadInPlace, Buffer, Error, NewAead,
 };
 use aes::{Aes128, Aes256};
 use cipher::{NewCipher, StreamCipher};
@@ -103,6 +103,12 @@ use pmac::Pmac;
 
 /// Size of an AES-SIV key given a particular cipher
 pub type KeySize<C> = <<C as NewCipher>::KeySize as Add>::Output;
+
+/// AES-SIV keys
+pub type Key<KeySize> = GenericArray<u8, KeySize>;
+
+/// AES-SIV nonces
+pub type Nonce = GenericArray<u8, U16>;
 
 /// AES-SIV tags (i.e. the Synthetic Initialization Vector value)
 pub type Tag = GenericArray<u8, U16>;
@@ -170,7 +176,7 @@ where
     }
 }
 
-impl<C, M> AeadInPlace for SivAead<C, M>
+impl<C, M> AeadCore for SivAead<C, M>
 where
     C: NewCipher<NonceSize = U16> + StreamCipher,
     M: Mac<OutputSize = U16> + NewMac,
@@ -179,10 +185,19 @@ where
 {
     // "If the nonce is random, it SHOULD be at least 128 bits in length"
     // https://tools.ietf.org/html/rfc5297#section-3
+    // TODO(tarcieri): generic nonce sizes
     type NonceSize = U16;
     type TagSize = U16;
     type CiphertextOverhead = U0;
+}
 
+impl<C, M> AeadInPlace for SivAead<C, M>
+where
+    C: NewCipher<NonceSize = U16> + StreamCipher,
+    M: Mac<OutputSize = U16> + NewMac,
+    <C as NewCipher>::KeySize: Add,
+    KeySize<C>: ArrayLength<u8>,
+{
     fn encrypt_in_place(
         &self,
         nonce: &GenericArray<u8, Self::NonceSize>,

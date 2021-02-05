@@ -19,14 +19,14 @@ keywords = ["aead", "aes", "encryption"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = { version = "=0.4.0-pre", default-features = false }
+aead = { version = "0.4", default-features = false }
 cipher = "=0.3.0-pre.4"
 cmac = "=0.6.0-pre"
 ctr = "=0.7.0-pre.3"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
-aead = { version = "=0.4.0-pre", features = ["dev"], default-features = false }
+aead = { version = "0.4", features = ["dev"], default-features = false }
 aes = { version = "=0.7.0-pre", features = ["force-soft"] } # Uses `force-soft` for MSRV 1.41
 
 [features]

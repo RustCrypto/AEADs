@@ -13,12 +13,12 @@ categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
 
 [dependencies]
-aead = { version = "=0.4.0-pre", default-features = false }
+aead = { version = "0.4", default-features = false }
 cipher = "=0.3.0-pre.4"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
-aead = { version = "=0.4.0-pre", features = ["dev"], default-features = false }
+aead = { version = "0.4", features = ["dev"], default-features = false }
 kuznyechik = "=0.7.0-pre"
 hex-literal = "0.2"
 

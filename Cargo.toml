@@ -12,7 +12,6 @@ members = [
 ]
 
 [patch.crates-io]
-aead = { git = "https://github.com/RustCrypto/traits.git" }
 aes = { git = "https://github.com/RustCrypto/block-ciphers.git" }
 chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
 cmac = { git = "https://github.com/RustCrypto/MACs.git" }

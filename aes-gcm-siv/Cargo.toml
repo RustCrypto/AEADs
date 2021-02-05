@@ -16,7 +16,7 @@ keywords = ["aead", "aes", "aes-gcm", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = { version = "=0.4.0-pre", default-features = false }
+aead = { version = "0.4", default-features = false }
 aes = { version = "=0.7.0-pre", optional = true }
 cipher = "=0.3.0-pre.4"
 ctr = "=0.7.0-pre.3"

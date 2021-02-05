@@ -16,7 +16,7 @@ keywords = ["aead", "aes", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = "=0.4.0-pre"
+aead = "0.4"
 aes = "=0.7.0-pre"
 cipher = "=0.3.0-pre.4"
 cmac = "=0.6.0-pre"

@@ -3,7 +3,7 @@
 [![CodeCov Status][codecov-image]][codecov-link]
 ![Rust Version][rustc-image]
 [![Project Chat][chat-image]][chat-link]
-[![dependency status][deps-image]][deps]
+[![dependency status][deps-image]][deps-link]
 
 Collection of [Authenticated Encryption with Associated Data (AEAD)][AEAD]
 algorithms written in pure Rust.
@@ -61,7 +61,7 @@ dual licensed as above, without any additional terms or conditions.
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [deps-image]: https://deps.rs/repo/github/RustCrypto/AEADs/status.svg
-[deps]: https://deps.rs/repo/github/AEADs/traits
+[deps-link]: https://deps.rs/repo/github/AEADs/traits
 
 [//]: # (general links)
 

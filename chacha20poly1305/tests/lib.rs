@@ -1,5 +1,20 @@
 //! ChaCha20Poly1305 and XChaCha20Poly1305 tests
 
+use chacha20poly1305::ChaCha20Poly1305;
+use chacha20poly1305::XChaCha20Poly1305;
+
+// Test vectors from Wycheproof
+aead::new_test!(
+    wycheproof_chacha20poly1305,
+    "wycheproof_chacha20poly1305",
+    ChaCha20Poly1305
+);
+aead::new_test!(
+    wycheproof_xchacha20poly1305,
+    "wycheproof_xchacha20poly1305",
+    XChaCha20Poly1305
+);
+
 macro_rules! impl_tests {
     ($cipher:ty, $key:expr, $nonce:expr, $aad:expr, $plaintext:expr, $ciphertext:expr, $tag:expr) => {
         #[test]

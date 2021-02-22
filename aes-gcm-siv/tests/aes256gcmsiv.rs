@@ -181,3 +181,6 @@ const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
 ];
 
 tests!(Aes256GcmSiv, TEST_VECTORS);
+
+// Test vectors from Wycheproof
+aead::new_test!(wycheproof, "wycheproof-256", Aes256GcmSiv);

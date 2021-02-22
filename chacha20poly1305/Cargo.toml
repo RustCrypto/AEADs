@@ -24,6 +24,9 @@ cipher = "=0.3.0-pre.4"
 poly1305 = "0.6"
 zeroize = { version = "1", default-features = false }
 
+[dev-dependencies]
+aead = { version = "0.4", features = ["dev"], default-features = false }
+
 [features]
 default = ["alloc", "chacha20", "xchacha20poly1305"]
 std = ["aead/std", "alloc"]

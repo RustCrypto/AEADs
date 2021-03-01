@@ -50,6 +50,67 @@ macro_rules! tests {
     };
 }
 
+macro_rules! wycheproof_tests {
+    ($siv:ty, $name:ident, $test_name:expr) => {
+        #[test]
+        fn $name() {
+            use blobby::Blob5Iterator;
+
+            let data = include_bytes!(concat!("data/", $test_name, ".blb"));
+            fn run_test(
+                key: &[u8],
+                aad: &[u8],
+                pt: &[u8],
+                ct: &[u8],
+                pass: bool,
+            ) -> Option<&'static str> {
+                let mut cipher = <$siv>::new(GenericArray::clone_from_slice(key));
+                let ciphertext = cipher.encrypt(&[aad], pt).unwrap();
+                if pass && ct != ciphertext.as_slice() {
+                    return Some("encryption mismatch");
+                }
+                if !pass && ct == ciphertext.as_slice() {
+                    return Some("unexpected encryption match");
+                }
+
+                match cipher.decrypt(&[aad], ct) {
+                    Ok(_plaintext) if !pass => Some("unexpected decryption success"),
+                    Ok(plaintext) => {
+                        if pt == plaintext.as_slice() {
+                            None
+                        } else {
+                            Some("decryption mismatch")
+                        }
+                    }
+                    Err(_) if pass => Some("decryption failure"),
+                    Err(_) => None,
+                }
+            }
+
+            for (i, row) in Blob5Iterator::new(data).unwrap().enumerate() {
+                let [key, aad, pt, ct, status] = row.unwrap();
+                let pass = match status[0] {
+                    0 => false,
+                    1 => true,
+                    _ => panic!("invalid value for pass flag"),
+                };
+                if let Some(desc) = run_test(key, aad, pt, ct, pass) {
+                    panic!(
+                        "\n\
+                         Failed test №{}: {}\n\
+                         key:\t{:?}\n\
+                         aad:\t{:?}\n\
+                         pt:\t{:?}\n\
+                         ct:\t{:?}\n\
+                         pass:\t{:?}\n",
+                        i, desc, key, aad, pt, ct, pass,
+                    );
+                }
+            }
+        }
+    };
+}
+
 mod aes128cmacsiv {
     use super::{GenericArray, TestVector};
     use aes_siv::siv::Aes128Siv;
@@ -87,6 +148,8 @@ mod aes128cmacsiv {
     ];
 
     tests!(Aes128Siv, TEST_VECTORS);
+
+    wycheproof_tests!(Aes128Siv, wycheproof, "wycheproof-256");
 }
 
 mod aes256cmacsiv {
@@ -114,6 +177,8 @@ mod aes256cmacsiv {
     ];
 
     tests!(Aes256Siv, TEST_VECTORS);
+
+    wycheproof_tests!(Aes256Siv, wycheproof, "wycheproof-512");
 }
 
 #[cfg(feature = "pmac")]

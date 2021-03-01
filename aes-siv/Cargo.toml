@@ -27,6 +27,7 @@ pmac = "=0.6.0-pre"
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
+blobby = "0.3"
 hex-literal = "0.2"
 
 [features]

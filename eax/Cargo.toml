@@ -22,12 +22,12 @@ categories = ["cryptography", "no-std"]
 aead = { version = "0.4", default-features = false }
 cipher = "0.3"
 cmac = "=0.6.0-pre"
-ctr = "=0.7.0-pre.4"
+ctr = "0.7"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
-aes = { version = "=0.7.0-pre", features = ["force-soft"] } # Uses `force-soft` for MSRV 1.41
+aes = { version = "0.7", features = ["force-soft"] } # Uses `force-soft` for MSRV 1.41
 
 [features]
 default = ["alloc"]

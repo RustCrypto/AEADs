@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wycheproof test vectors ([#274])
 
 ### Changed
+- Bump `aead` crate dependency to v0.4 ([#270])
 - `xchacha` feature name ([#257])
 - MSRV 1.49+ ([#286], [#289])
 - Bump `chacha20` crate dependency to v0.7 ([#286])
 - Bump `poly1305` crate dependency to v0.7 ([#289])
 
 [#257]: https://github.com/RustCrypto/AEADs/pull/257
+[#270]: https://github.com/RustCrypto/AEADs/pull/270
 [#274]: https://github.com/RustCrypto/AEADs/pull/274
 [#286]: https://github.com/RustCrypto/AEADs/pull/286
 [#289]: https://github.com/RustCrypto/AEADs/pull/289

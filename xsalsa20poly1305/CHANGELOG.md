@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.7.0 (2021-04-29)
+### Changed
+- Bump `aead` crate dependency to v0.4 ([#270])
+- MSRV 1.49+ ([#286], [#289])
+- Bump `chacha20` crate dependency to v0.7 ([#286])
+- Bump `poly1305` crate dependency to v0.7 ([#289])
+
+[#270]: https://github.com/RustCrypto/AEADs/pull/270
+[#286]: https://github.com/RustCrypto/AEADs/pull/286
+[#289]: https://github.com/RustCrypto/AEADs/pull/289
+
 ## 0.6.0 (2020-10-16)
 ### Changed
 - Replace `block-cipher`/`stream-cipher` with `cipher` crate ([#229])

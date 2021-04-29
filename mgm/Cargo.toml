@@ -14,7 +14,7 @@ keywords = ["encryption", "aead"]
 
 [dependencies]
 aead = { version = "0.4", default-features = false }
-cipher = "=0.3.0-pre.4"
+cipher = "0.3"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]

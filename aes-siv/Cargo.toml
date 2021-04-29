@@ -19,11 +19,11 @@ categories = ["cryptography", "no-std"]
 aead = "0.4"
 aes = "0.7"
 cipher = "0.3"
-cmac = "=0.6.0-pre"
+cmac = "0.6"
 crypto-mac = "0.11"
 ctr = "0.7"
 dbl = "0.3"
-pmac = "=0.6.0-pre"
+pmac = "0.6"
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]

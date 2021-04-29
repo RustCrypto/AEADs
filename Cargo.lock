@@ -141,8 +141,9 @@ dependencies = [
 
 [[package]]
 name = "cmac"
-version = "0.6.0-pre"
-source = "git+https://github.com/RustCrypto/MACs.git#6aa7c2075833ea7cca284780956720d1fe3dae96"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b70e37282d9624283878ffda1d1e53883bcf868cf441bddda44127620b39572d"
 dependencies = [
  "crypto-mac",
  "dbl",
@@ -359,8 +360,9 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "pmac"
-version = "0.6.0-pre"
-source = "git+https://github.com/RustCrypto/MACs.git#6aa7c2075833ea7cca284780956720d1fe3dae96"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42d8c6aafab3b7131a8be27ae259e545c20c067163c39897419686684de0e013"
 dependencies = [
  "crypto-mac",
  "dbl",

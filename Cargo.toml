@@ -10,8 +10,3 @@ members = [
     "mgm",
     "xsalsa20poly1305"
 ]
-
-[patch.crates-io]
-chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
-kuznyechik = { git = "https://github.com/RustCrypto/block-ciphers.git" }
-salsa20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }

@@ -41,7 +41,7 @@
 //!
 //! // Generate a random secret key.
 //! // NOTE: It can be serialized as bytes by calling `secret_key.to_bytes()`
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand_core::OsRng;
 //! let alice_secret_key = SecretKey::generate(&mut rng);
 //!
 //! // Get the public key for the secret key we just generated
@@ -102,7 +102,7 @@
 //! ```rust
 //! use crypto_box::{ChaChaBox, PublicKey, SecretKey, aead::{Aead, Payload}};
 //!
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand_core::OsRng;
 //! let alice_secret_key = SecretKey::generate(&mut rng);
 //! let alice_public_key_bytes = alice_secret_key.public_key().as_bytes().clone();
 //! let bob_public_key = PublicKey::from([
@@ -181,7 +181,7 @@
 #![warn(missing_docs, rust_2018_idioms)]
 
 use chacha20poly1305::XChaCha20Poly1305;
-pub use x25519_dalek::PublicKey;
+pub use x25519_dalek::{x25519, X25519_BASEPOINT_BYTES};
 pub use xsalsa20poly1305::{aead, generate_nonce};
 
 use core::fmt::{self, Debug};
@@ -193,7 +193,7 @@ use xsalsa20poly1305::aead::{
     AeadCore, AeadInPlace, Buffer, Error, NewAead,
 };
 use xsalsa20poly1305::XSalsa20Poly1305;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 /// Size of a `crypto_box` public or secret key in bytes.
 pub const KEY_SIZE: usize = 32;
@@ -205,7 +205,7 @@ pub type Tag = GenericArray<u8, U16>;
 
 /// `crypto_box` secret key
 #[derive(Clone)]
-pub struct SecretKey(x25519_dalek::StaticSecret);
+pub struct SecretKey([u8; KEY_SIZE]);
 
 impl SecretKey {
     /// Generate a random [`SecretKey`].
@@ -213,23 +213,25 @@ impl SecretKey {
     where
         T: RngCore + CryptoRng,
     {
-        SecretKey(x25519_dalek::StaticSecret::new(csprng))
+        let mut bytes = [0u8; KEY_SIZE];
+        csprng.fill_bytes(&mut bytes);
+        SecretKey(bytes)
     }
 
     /// Get the [`PublicKey`] which corresponds to this [`SecretKey`]
     pub fn public_key(&self) -> PublicKey {
-        self.into()
+        PublicKey(x25519(self.0, X25519_BASEPOINT_BYTES))
     }
 
     /// Get the serialized bytes for this [`SecretKey`]
     pub fn to_bytes(&self) -> [u8; KEY_SIZE] {
-        self.0.to_bytes()
+        self.0
     }
 }
 
 impl From<[u8; KEY_SIZE]> for SecretKey {
     fn from(bytes: [u8; KEY_SIZE]) -> SecretKey {
-        SecretKey(bytes.into())
+        SecretKey(bytes)
     }
 }
 
@@ -239,9 +241,38 @@ impl Debug for SecretKey {
     }
 }
 
+impl Drop for SecretKey {
+    fn drop(&mut self) {
+        self.0.zeroize();
+    }
+}
+
+/// `crypto_box` public key
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PublicKey([u8; KEY_SIZE]);
+
+impl PublicKey {
+    /// Borrow this public key as bytes.
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
+}
+
+impl AsRef<[u8]> for PublicKey {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl From<&SecretKey> for PublicKey {
     fn from(secret_key: &SecretKey) -> PublicKey {
-        PublicKey::from(&secret_key.0)
+        secret_key.public_key()
+    }
+}
+
+impl From<[u8; KEY_SIZE]> for PublicKey {
+    fn from(bytes: [u8; KEY_SIZE]) -> PublicKey {
+        PublicKey(bytes)
     }
 }
 
@@ -315,14 +346,13 @@ impl SalsaBox {
     /// Create a new [`SalsaBox`], performing X25519 Diffie-Hellman to derive
     /// a shared secret from the provided public and secret keys.
     pub fn new(public_key: &PublicKey, secret_key: &SecretKey) -> Self {
-        let shared_secret = secret_key.0.diffie_hellman(public_key);
+        let shared_secret = Zeroizing::new(x25519(secret_key.0, public_key.0));
 
         // Use HSalsa20 to create a uniformly random key from the shared secret
         let mut key = hsalsa20(
-            &GenericArray::clone_from_slice(shared_secret.as_bytes()),
+            GenericArray::from_slice(&*shared_secret),
             &GenericArray::default(),
         );
-
         let cipher = XSalsa20Poly1305::new(&key);
         key.zeroize();
 
@@ -348,9 +378,8 @@ impl ChaChaBox {
     /// Create a new [`ChaChaBox`], performing X25519 Diffie-Hellman to derive
     /// a shared secret from the provided public and secret keys.
     pub fn new(public_key: &PublicKey, secret_key: &SecretKey) -> Self {
-        let shared_secret = secret_key.0.diffie_hellman(public_key);
-        let cipher =
-            XChaCha20Poly1305::new(&GenericArray::clone_from_slice(&shared_secret.to_bytes()));
+        let shared_secret = Zeroizing::new(x25519(secret_key.0, public_key.0));
+        let cipher = XChaCha20Poly1305::new(GenericArray::from_slice(&*shared_secret));
         ChaChaBox(cipher)
     }
 }

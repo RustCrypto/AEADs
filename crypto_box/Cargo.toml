@@ -35,7 +35,7 @@ features = ["rand_core"]
 path = "../xsalsa20poly1305"
 
 [dev-dependencies]
-rand = "0.7"
+rand = "0.8"
 
 [features]
 default = ["alloc", "u64_backend"]

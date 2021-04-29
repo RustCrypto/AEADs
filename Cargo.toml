@@ -14,8 +14,6 @@ members = [
 [patch.crates-io]
 chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
 cmac = { git = "https://github.com/RustCrypto/MACs.git" }
-ghash = { git = "https://github.com/RustCrypto/universal-hashes.git" }
 kuznyechik = { git = "https://github.com/RustCrypto/block-ciphers.git" }
 pmac = { git = "https://github.com/RustCrypto/MACs.git" }
-polyval = { git = "https://github.com/RustCrypto/universal-hashes.git" }
 salsa20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }

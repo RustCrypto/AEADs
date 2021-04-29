@@ -110,12 +110,13 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chacha20"
-version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#6a2d54abb3e96871c158eb5991f3e24529a55ab3"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb7d73af580730a193e74406308c3fa0b29914a434b1db7626998bf4cd9f3087"
 dependencies = [
  "cfg-if",
  "cipher",
- "cpuid-bool",
+ "cpufeatures",
  "zeroize",
 ]
 
@@ -328,8 +329,9 @@ dependencies = [
 
 [[package]]
 name = "kuznyechik"
-version = "0.7.0-pre"
-source = "git+https://github.com/RustCrypto/block-ciphers.git#db3763260d02187f841ee57a51a83ce60045013d"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0865d64349fd4b3aaf478b279af022717585d95780c038919c60fe042aff30b0"
 dependencies = [
  "cipher",
  "opaque-debug",
@@ -462,8 +464,9 @@ dependencies = [
 
 [[package]]
 name = "salsa20"
-version = "0.8.0-pre"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#6a2d54abb3e96871c158eb5991f3e24529a55ab3"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c7c5f10864beba947e1a1b43f3ef46c8cc58d1c2ae549fa471713e8ff60787a"
 dependencies = [
  "cipher",
  "zeroize",

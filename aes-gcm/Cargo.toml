@@ -20,7 +20,7 @@ aead = { version = "0.4", default-features = false }
 aes = { version = "0.7", optional = true }
 cipher = "0.3"
 ctr = "0.7"
-ghash = { version = "=0.4.0-pre", default-features = false }
+ghash = { version = "0.4", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 

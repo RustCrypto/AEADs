@@ -17,7 +17,7 @@ categories = ["cryptography", "no-std"]
 keywords = ["nacl", "libsodium", "public-key", "x25519", "xsalsa20poly1305"]
 
 [dependencies]
-rand_core = "0.5"
+rand_core = "0.6"
 salsa20 = { version = "0.8", features = ["hsalsa20"] }
 x25519-dalek = { version = "1", default-features = false }
 zeroize = { version = "1", default-features = false }
@@ -35,11 +35,11 @@ features = ["rand_core"]
 path = "../xsalsa20poly1305"
 
 [dev-dependencies]
-rand = "0.7"
+rand_core = { version = "0.6", features = ["std"] }
 
 [features]
 default = ["alloc", "u64_backend"]
-std = ["xsalsa20poly1305/std"]
+std = ["rand_core/std", "xsalsa20poly1305/std"]
 alloc = ["xsalsa20poly1305/alloc"]
 heapless = ["xsalsa20poly1305/heapless"]
 u32_backend = ["x25519-dalek/u32_backend"]

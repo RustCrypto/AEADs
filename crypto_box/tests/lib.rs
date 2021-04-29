@@ -46,8 +46,7 @@ const PLAINTEXT: &[u8] = &[
 
 #[test]
 fn generate_secret_key() {
-    let mut rng = rand::thread_rng();
-    SecretKey::generate(&mut rng);
+    SecretKey::generate(&mut rand_core::OsRng);
 }
 
 #[test]

@@ -33,11 +33,6 @@ crate.
 NOTE: the [`aes-ccm`] crate also implements the [`aead`] traits
 used by all of the other crates in this repository.
 
-### Minimum Supported Rust Version
-All crates in this repository support Rust 1.41 or higher. In future minimum
-supported Rust version can be changed, but it will be done with the minor
-version bump.
-
 ## License
 
 All crates licensed under either of

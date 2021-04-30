@@ -170,7 +170,7 @@ dependencies = [
 
 [[package]]
 name = "crypto_box"
-version = "0.6.0-pre"
+version = "0.6.0"
 dependencies = [
  "chacha20",
  "chacha20poly1305",

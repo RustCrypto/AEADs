@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.6.0 (2021-04-29)
+### Changed
+- Bump `chacha20poly1305` crate dependency to v0.8 ([#290])
+- Bump `xsalsa20poly1305` crate dependency to v0.7 ([#291])
+- Bump `rand_core` crate dependency to v0.6 ([#292])
+
+### SECURITY
+- Fix XChaCha20Poly1305 key derivation ([#295])
+
+[#290]: https://github.com/RustCrypto/AEADs/pull/290
+[#291]: https://github.com/RustCrypto/AEADs/pull/291
+[#292]: https://github.com/RustCrypto/AEADs/pull/292
+[#295]: https://github.com/RustCrypto/AEADs/pull/295
+
 ## 0.5.0 (2020-10-16)
 ### Added
 - `ChaChaBox` ([#225])

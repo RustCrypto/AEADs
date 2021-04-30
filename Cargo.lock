@@ -40,7 +40,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.10.0-pre"
+version = "0.10.0"
 dependencies = [
  "aead",
  "aes",

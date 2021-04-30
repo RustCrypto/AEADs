@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.0 (2021-04-29)
+### Added
+- Wycheproof test vectors ([#274])
+
+### Changed
+- Bump `aead` crate dependency to v0.4 ([#270])
+- Bump `aes` and `ctr` crate dependencies to v0.7 ([#283])
+- Bump `polyval` to v0.5 ([#284])
+
+### Fixed
+- Interleaved buffer size ([#235])
+
+[#235]: https://github.com/RustCrypto/AEADs/pull/235
+[#270]: https://github.com/RustCrypto/AEADs/pull/270
+[#274]: https://github.com/RustCrypto/AEADs/pull/274
+[#283]: https://github.com/RustCrypto/AEADs/pull/283
+[#284]: https://github.com/RustCrypto/AEADs/pull/284
+
 ## 0.9.0 (2020-10-16)
 ### Changed
 - Replace `block-cipher`/`stream-cipher` with `cipher` crate ([#229])

@@ -17,6 +17,7 @@ categories = ["cryptography", "no-std"]
 keywords = ["nacl", "libsodium", "public-key", "x25519", "xsalsa20poly1305"]
 
 [dependencies]
+chacha20 = { version = "0.7.1", features = ["expose-core", "hchacha"] }
 rand_core = "0.6"
 salsa20 = { version = "0.8", features = ["hsalsa20"] }
 x25519-dalek = { version = "1", default-features = false }

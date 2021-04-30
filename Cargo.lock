@@ -111,9 +111,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chacha20"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb7d73af580730a193e74406308c3fa0b29914a434b1db7626998bf4cd9f3087"
+checksum = "fee7ad89dc1128635074c268ee661f90c3f7e83d9fd12910608c36b47d6c3412"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -172,6 +172,7 @@ dependencies = [
 name = "crypto_box"
 version = "0.6.0-pre"
 dependencies = [
+ "chacha20",
  "chacha20poly1305",
  "rand_core 0.6.2",
  "salsa20",

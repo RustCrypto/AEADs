@@ -180,13 +180,14 @@
 )]
 #![warn(missing_docs, rust_2018_idioms)]
 
-use chacha20poly1305::XChaCha20Poly1305;
-pub use x25519_dalek::{x25519, X25519_BASEPOINT_BYTES};
 pub use xsalsa20poly1305::{aead, generate_nonce};
 
+use chacha20::hchacha;
+use chacha20poly1305::XChaCha20Poly1305;
 use core::fmt::{self, Debug};
 use rand_core::{CryptoRng, RngCore};
 use salsa20::hsalsa20;
+use x25519_dalek::{x25519, X25519_BASEPOINT_BYTES};
 use xsalsa20poly1305::aead::{
     consts::{U0, U16, U24},
     generic_array::GenericArray,
@@ -353,6 +354,7 @@ impl SalsaBox {
             GenericArray::from_slice(&*shared_secret),
             &GenericArray::default(),
         );
+
         let cipher = XSalsa20Poly1305::new(&key);
         key.zeroize();
 
@@ -379,7 +381,16 @@ impl ChaChaBox {
     /// a shared secret from the provided public and secret keys.
     pub fn new(public_key: &PublicKey, secret_key: &SecretKey) -> Self {
         let shared_secret = Zeroizing::new(x25519(secret_key.0, public_key.0));
-        let cipher = XChaCha20Poly1305::new(GenericArray::from_slice(&*shared_secret));
+
+        // Use HChaCha20 to create a uniformly random key from the shared secret
+        let mut key = hchacha::<chacha20::R20>(
+            GenericArray::from_slice(&*shared_secret),
+            &GenericArray::default(),
+        );
+
+        let cipher = XChaCha20Poly1305::new(&key);
+        key.zeroize();
+
         ChaChaBox(cipher)
     }
 }

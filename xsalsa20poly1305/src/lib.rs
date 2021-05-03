@@ -60,14 +60,14 @@
 //! # {
 //! use xsalsa20poly1305::XSalsa20Poly1305;
 //! use xsalsa20poly1305::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
-//! use xsalsa20poly1305::aead::heapless::{Vec, consts::U128};
+//! use xsalsa20poly1305::aead::heapless::Vec;
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let cipher = XSalsa20Poly1305::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
 //!
-//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext

@@ -65,5 +65,22 @@ jobs:
           profile: minimal
       - run: ${{ matrix.deps }}
       - run: cargo test --target ${{ matrix.target }} --release
-      - run: cargo test --target ${{ matrix.target }} --release --all-features
+      - run: cargo test --target ${{ matrix.target }} --release --features stream,std
       - run: cargo build --target ${{ matrix.target }} --benches
+
+  # TODO(tarcieri): re-unify this with `test` when MSRV is 1.51+
+  heapless:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.51.0 # MSRV for `heapless`
+          - stable
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - run: cargo test --release --all-features

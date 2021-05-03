@@ -54,14 +54,36 @@ jobs:
           override: true
       - run: cargo test --release
 
-  clippy:
+  # TODO(tarcieri): re-unify this with `test` when MSRV is 1.51+
+  heapless:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.51.0 # MSRV for `heapless`
+          - stable
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.49.0 # MSRV
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - run: cargo test --release --features heapless
+
+  clippy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.49.0 # MSRV
+          - stable
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
           components: clippy
           override: true
       - run: cargo clippy -- -D warnings

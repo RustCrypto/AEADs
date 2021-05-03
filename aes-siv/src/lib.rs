@@ -44,14 +44,14 @@
 //! # {
 //! use aes_siv::{Aes128SivAead, Key, Nonce}; // Or `Aes256SivAead`
 //! use aes_siv::aead::{AeadInPlace, NewAead};
-//! use aes_siv::aead::heapless::{Vec, consts::U128};
+//! use aes_siv::aead::heapless::Vec;
 //!
 //! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes128SivAead::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"any unique nonce"); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext

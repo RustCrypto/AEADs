@@ -65,14 +65,14 @@
 //! # {
 //! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
 //! use chacha20poly1305::aead::{AeadInPlace, NewAead};
-//! use chacha20poly1305::aead::heapless::{Vec, consts::U128};
+//! use chacha20poly1305::aead::heapless::Vec;
 //!
 //! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = ChaCha20Poly1305::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext

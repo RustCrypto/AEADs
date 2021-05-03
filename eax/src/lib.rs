@@ -45,14 +45,14 @@
 //! use aes::Aes256;
 //! use eax::Eax;
 //! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
-//! use eax::aead::heapless::{Vec, consts::U128};
+//! use eax::aead::heapless::Vec;
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let cipher = Eax::<Aes256>::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
@@ -78,14 +78,15 @@
 //! use aes::Aes256;
 //! use eax::Eax;
 //! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
-//! use eax::aead::heapless::{Vec, consts::U8, consts::U128};
+//! use eax::aead::heapless::Vec;
+//! use eax::aead::consts::{U8, U128};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let cipher = Eax::<Aes256, U8>::new(key);
 //!
 //! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, U128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext

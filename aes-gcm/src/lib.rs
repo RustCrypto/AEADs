@@ -69,14 +69,14 @@
 //! # {
 //! use aes_gcm::{Aes256Gcm, Key, Nonce}; // Or `Aes128Gcm`
 //! use aes_gcm::aead::{AeadInPlace, NewAead};
-//! use aes_gcm::aead::heapless::{Vec, consts::U128};
+//! use aes_gcm::aead::heapless::Vec;
 //!
 //! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256Gcm::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, U128> = Vec::new(); // Buffer needs 16-bytes overhead for GCM tag
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Buffer needs 16-bytes overhead for GCM tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext

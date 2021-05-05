@@ -20,7 +20,7 @@ aead = { version = "0.4", default-features = false }
 aes = { version = "0.7", optional = true }
 cipher = "0.3"
 ctr = "0.7"
-ghash = { version = "0.4", default-features = false }
+ghash = { version = "0.4.1", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
@@ -32,6 +32,7 @@ hex-literal = "0.2"
 default = ["aes", "alloc"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
+force-soft = ["aes/force-soft", "ghash/force-soft"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
 

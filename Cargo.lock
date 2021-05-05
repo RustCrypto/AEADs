@@ -290,9 +290,9 @@ dependencies = [
 
 [[package]]
 name = "ghash"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90df9c2964d71ba6591379cc3bff5127cc19dcbe6a62088a1b3718d6cbfe08cf"
+checksum = "5f6fb2a26dd2ebd268a68bc8e9acc9e67e487952f33384055a1cbe697514c64e"
 dependencies = [
  "opaque-debug",
  "polyval",

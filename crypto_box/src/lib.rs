@@ -341,6 +341,7 @@ pub type Box = SalsaBox;
 ///
 /// [X25519]: https://cr.yp.to/ecdh.html
 /// [XSalsa20Poly1305]: https://github.com/RustCrypto/AEADs/tree/master/xsalsa20poly1305
+#[derive(Clone)]
 pub struct SalsaBox(XSalsa20Poly1305);
 
 impl SalsaBox {
@@ -374,6 +375,7 @@ impl_aead_in_place!(SalsaBox, U24, U16, U0);
 ///
 /// [X25519]: https://cr.yp.to/ecdh.html
 /// [XChaCha20Poly1305]: https://github.com/RustCrypto/AEADs/blob/master/chacha20poly1305/
+#[derive(Clone)]
 pub struct ChaChaBox(XChaCha20Poly1305);
 
 impl ChaChaBox {

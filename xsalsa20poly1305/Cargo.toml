@@ -23,7 +23,7 @@ subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [features]
-default = ["alloc", "rand_core"]
+default = ["alloc", "rand_core", "aead/rand_core"]
 std = ["aead/std", "alloc", "rand_core/std"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]

@@ -249,7 +249,7 @@ impl Drop for SecretKey {
 }
 
 /// `crypto_box` public key
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct PublicKey([u8; KEY_SIZE]);
 
 impl PublicKey {

@@ -10,13 +10,14 @@ dependencies = [
  "blobby",
  "generic-array",
  "heapless",
+ "rand_core 0.6.2",
 ]
 
 [[package]]
 name = "aes"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99446914425f48a667458b33c7fb920e24cf9e7c149a072a9fc420731b353835"
+checksum = "32380222440685202b62f23002e668519a6bf2d8df5e7655ed96223b6482b4be"
 dependencies = [
  "cfg-if",
  "cipher",

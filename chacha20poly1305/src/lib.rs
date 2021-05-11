@@ -113,6 +113,12 @@ pub use aead;
 #[cfg(feature = "xchacha20poly1305")]
 pub use xchacha20poly1305::{XChaCha20Poly1305, XNonce};
 
+#[cfg(feature = "legacy")]
+mod chacha20poly1305legacy;
+
+#[cfg(feature = "legacy")]
+pub use chacha20poly1305legacy::{ChaCha20Poly1305Legacy, LegacyNonce};
+
 use self::cipher::Cipher;
 use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
 use aead::{

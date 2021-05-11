@@ -23,6 +23,7 @@ chacha20 = { version = "0.7", features = ["zeroize"], optional = true }
 cipher = "0.3"
 poly1305 = "0.7"
 zeroize = { version = "1", default-features = false }
+subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
@@ -35,6 +36,7 @@ heapless = ["aead/heapless"]
 reduced-round = ["chacha20"]
 stream = ["aead/stream"]
 xchacha20poly1305 = ["chacha20/xchacha"]
+legacy = ["chacha20/legacy"]
 
 [package.metadata.docs.rs]
 all-features = true

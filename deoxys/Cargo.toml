@@ -1,0 +1,33 @@
+[package]
+name = "deoxys"
+version = "0.1.0"
+authors = ["RustCrypto Developers, zer0x64"]
+edition = "2018"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/deoxys"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["aead", "deoxys", "deoxys-i", "deoxys-ii"]
+categories = ["cryptography", "no-std"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aead = { version = "0.4", default-features = false }
+subtle = "2.4.0"
+zeroize = { version = "1", default-features = false }
+
+[dev-dependencies]
+aead = { version = "0.4", features = ["dev"], default-features = false }
+hex = "0.4.3"
+
+[features]
+default = ["alloc"]
+std = ["aead/std", "alloc"]
+alloc = ["aead/alloc"]
+heapless = ["aead/heapless"]
+stream = ["aead/stream"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

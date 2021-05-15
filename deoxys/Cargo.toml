@@ -19,7 +19,7 @@ zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
-hex = "0.4.3"
+hex-literal = "0.3.1"
 
 [features]
 default = ["alloc"]

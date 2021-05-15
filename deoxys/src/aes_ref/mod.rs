@@ -137,21 +137,13 @@ fn mix_columns(block: &mut [u8], matrix: &[[u8; 4]; 4]) {
 // Test data used comes from here: http://www.herongyang.com/Cryptography/AES-Example-Vector-of-AES-Encryption.html
 #[test]
 fn test_encrypt_round() {
-    use core::convert::TryInto;
-    use hex;
+    use hex_literal::hex;
 
-    let mut block: [u8; 16] = hex::decode("00102030405060708090a0b0c0d0e0f0")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let key: [u8; 16] = hex::decode("d6aa74fdd2af72fadaa678f1d6ab76fe")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let result: [u8; 16] = hex::decode("89d810e8855ace682d1843d8cb128fe4")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let mut block: [u8; 16] = hex!("00102030405060708090a0b0c0d0e0f0");
+
+    let key: [u8; 16] = hex!("d6aa74fdd2af72fadaa678f1d6ab76fe");
+
+    let result: [u8; 16] = hex!("89d810e8855ace682d1843d8cb128fe4");
 
     encrypt_round(&mut block, &key);
 
@@ -161,21 +153,13 @@ fn test_encrypt_round() {
 #[test]
 fn test_decrypt_round() {
     // This test is lazy and based on the assumption that it encryption is correct and you can decrypt, it's good
-    use core::convert::TryInto;
-    use hex;
+    use hex_literal::hex;
 
-    let mut block: [u8; 16] = hex::decode("00102030405060708090a0b0c0d0e0f0")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let key: [u8; 16] = hex::decode("d6aa74fdd2af72fadaa678f1d6ab76fe")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let result: [u8; 16] = hex::decode("89d810e8855ace682d1843d8cb128fe4")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let mut block: [u8; 16] = hex!("00102030405060708090a0b0c0d0e0f0");
+
+    let key: [u8; 16] = hex!("d6aa74fdd2af72fadaa678f1d6ab76fe");
+
+    let result: [u8; 16] = hex!("89d810e8855ace682d1843d8cb128fe4");
 
     let plaintext = block.clone();
 
@@ -190,21 +174,13 @@ fn test_decrypt_round() {
 
 #[test]
 fn test_add_round_key() {
-    use core::convert::TryInto;
-    use hex;
+    use hex_literal::hex;
 
-    let mut block: [u8; 16] = hex::decode("00112233445566778899aabbccddeeff")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let key: [u8; 16] = hex::decode("000102030405060708090a0b0c0d0e0f")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let result: [u8; 16] = hex::decode("00102030405060708090a0b0c0d0e0f0")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let mut block: [u8; 16] = hex!("00112233445566778899aabbccddeeff");
+
+    let key: [u8; 16] = hex!("000102030405060708090a0b0c0d0e0f");
+
+    let result: [u8; 16] = hex!("00102030405060708090a0b0c0d0e0f0");
 
     add_round_key(&mut block, &key);
 
@@ -213,17 +189,11 @@ fn test_add_round_key() {
 
 #[test]
 fn test_sub_bytes() {
-    use core::convert::TryInto;
-    use hex;
+    use hex_literal::hex;
 
-    let mut block: [u8; 16] = hex::decode("00102030405060708090a0b0c0d0e0f0")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let result: [u8; 16] = hex::decode("63cab7040953d051cd60e0e7ba70e18c")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let mut block: [u8; 16] = hex!("00102030405060708090a0b0c0d0e0f0");
+
+    let result: [u8; 16] = hex!("63cab7040953d051cd60e0e7ba70e18c");
 
     let initial = block.clone();
 
@@ -238,17 +208,11 @@ fn test_sub_bytes() {
 
 #[test]
 fn test_shift_rows() {
-    use core::convert::TryInto;
-    use hex;
+    use hex_literal::hex;
 
-    let mut block: [u8; 16] = hex::decode("63cab7040953d051cd60e0e7ba70e18c")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let result: [u8; 16] = hex::decode("6353e08c0960e104cd70b751bacad0e7")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let mut block: [u8; 16] = hex!("63cab7040953d051cd60e0e7ba70e18c");
+
+    let result: [u8; 16] = hex!("6353e08c0960e104cd70b751bacad0e7");
 
     let initial = block.clone();
 
@@ -263,17 +227,10 @@ fn test_shift_rows() {
 
 #[test]
 fn test_mix_columns() {
-    use core::convert::TryInto;
-    use hex;
+    use hex_literal::hex;
 
-    let mut block: [u8; 16] = hex::decode("6353e08c0960e104cd70b751bacad0e7")
-        .unwrap()
-        .try_into()
-        .unwrap();
-    let result: [u8; 16] = hex::decode("5f72641557f5bc92f7be3b291db9f91a")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let mut block: [u8; 16] = hex!("6353e08c0960e104cd70b751bacad0e7");
+    let result: [u8; 16] = hex!("5f72641557f5bc92f7be3b291db9f91a");
 
     mix_columns(&mut block, &MIX_COLUMNS_MATRIX);
 

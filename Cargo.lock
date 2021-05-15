@@ -36,7 +36,7 @@ dependencies = [
  "cipher",
  "ctr",
  "ghash",
- "hex-literal",
+ "hex-literal 0.2.1",
  "subtle",
  "zeroize",
 ]
@@ -66,7 +66,7 @@ dependencies = [
  "crypto-mac",
  "ctr",
  "dbl",
- "hex-literal",
+ "hex-literal 0.2.1",
  "pmac",
  "zeroize",
 ]
@@ -114,7 +114,7 @@ dependencies = [
  "aead",
  "aes",
  "cipher",
- "hex-literal",
+ "hex-literal 0.2.1",
  "subtle",
 ]
 
@@ -247,7 +247,7 @@ name = "deoxys"
 version = "0.1.0"
 dependencies = [
  "aead",
- "hex",
+ "hex-literal 0.3.1",
  "subtle",
  "zeroize",
 ]
@@ -335,12 +335,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hex"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-
-[[package]]
 name = "hex-literal"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -349,6 +343,12 @@ dependencies = [
  "hex-literal-impl",
  "proc-macro-hack",
 ]
+
+[[package]]
+name = "hex-literal"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5af1f635ef1bc545d78392b136bfe1c9809e029023c84a3638a864a10b8819c8"
 
 [[package]]
 name = "hex-literal-impl"
@@ -380,7 +380,7 @@ version = "0.4.1"
 dependencies = [
  "aead",
  "cipher",
- "hex-literal",
+ "hex-literal 0.2.1",
  "kuznyechik",
  "subtle",
 ]

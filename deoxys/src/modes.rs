@@ -1,5 +1,5 @@
 use aead::{
-    consts::{U16, U8},
+    consts::{U15, U8},
     generic_array::GenericArray,
 };
 use subtle::ConstantTimeEq;
@@ -8,8 +8,6 @@ use zeroize::Zeroize;
 use super::DeoxysBcType;
 use super::DeoxysMode;
 
-const TWEAK_AD_N1: u8 = 0x30;
-const TWEAK_AD_N2: u8 = 0x70;
 const TWEAK_AD: u8 = 0x20;
 const TWEAK_AD_LAST: u8 = 0x60;
 const TWEAK_M: u8 = 0x00;
@@ -294,7 +292,7 @@ impl<B> DeoxysMode<B> for DeoxysII
 where
     B: DeoxysBcType,
 {
-    type NonceSize = U16;
+    type NonceSize = U15;
 
     fn encrypt_in_place(
         nonce: &[u8],

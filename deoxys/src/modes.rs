@@ -15,8 +15,10 @@ const TWEAK_TAG: u8 = 0x10;
 const TWEAK_M_LAST: u8 = 0x40;
 const TWEAK_CHKSUM: u8 = 0x50;
 
+/// Implementation of the Deoxys-I mode of operation.
 pub struct DeoxysI;
 
+/// Implementation of the Deoxys-II mode of operation.
 pub struct DeoxysII;
 
 impl<B> DeoxysMode<B> for DeoxysI

@@ -14,7 +14,10 @@ const RCON: [u8; 17] = [
     0x72,
 ];
 
+/// Implementation of the Deoxys-BC256 block cipher
 pub struct DeoxysBc256;
+
+/// Implementation of the Deoxys-BC384 block cipher
 pub struct DeoxysBc384;
 
 impl DeoxysBc256 {

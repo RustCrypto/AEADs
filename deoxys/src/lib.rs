@@ -122,10 +122,10 @@
 #![warn(missing_docs, rust_2018_idioms)]
 
 /// Deoxys-BC implementations.
-pub mod deoxys_bc;
+mod deoxys_bc;
 
 /// Operation modes for Deoxys.
-pub mod modes;
+mod modes;
 
 mod aes_ref;
 
@@ -195,18 +195,31 @@ where
 /// Deoxys-BC trait.
 /// This type contains the public API for Deoxys-BC implementations, which varies depending on the size of the key.
 /// Should not be used directly.
-pub trait DeoxysBcType {
+pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     /// The size of the required key.
     type KeySize: ArrayLength<u8>;
 
-    /// The size of the tweakey required for the block cipher.
-    type TweakKeySize: ArrayLength<u8>;
-
     /// Encrypts a block of data in place.
-    fn encrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>);
+    fn encrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
+        let keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
+
+        aes_ref::add_round_key(block, &keys[0]);
+
+        for k in &keys[1..] {
+            aes_ref::encrypt_round(block, k)
+        }
+    }
 
     /// Decrypts a block of data in place.
-    fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>);
+    fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
+        let keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
+
+        for k in keys[1..].iter().rev() {
+            aes_ref::decrypt_round(block, k)
+        }
+
+        aes_ref::add_round_key(block, &keys[0]);
+    }
 }
 
 /// Generic Deoxys implementation.
@@ -217,7 +230,7 @@ where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
-    key: GenericArray<u8, B::KeySize>,
+    key: Key<B::KeySize>,
     mode: PhantomData<M>,
 }
 

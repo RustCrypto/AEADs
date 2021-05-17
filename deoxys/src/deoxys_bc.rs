@@ -1,9 +1,7 @@
 use aead::{
-    consts::{U16, U32, U48},
-    generic_array::GenericArray,
+    consts::{U15, U16, U17, U32, U48},
+    generic_array::{ArrayLength, GenericArray},
 };
-
-use crate::aes_ref;
 
 use crate::DeoxysBcType;
 
@@ -20,160 +18,114 @@ pub struct DeoxysBc256;
 /// Implementation of the Deoxys-BC384 block cipher
 pub struct DeoxysBc384;
 
-impl DeoxysBc256 {
-    fn key_schedule(tweakey: &[u8]) -> [[u8; 16]; 15] {
-        let mut subkeys: [[u8; 16]; 15] = Default::default();
-        let mut tk1 = [0u8; 16];
-        let mut tk2 = [0u8; 16];
+pub trait DeoxysBcInternal {
+    type SubkeysSize: ArrayLength<[u8; 16]>;
+    type TweakKeySize: ArrayLength<u8>;
 
-        tk2.copy_from_slice(&tweakey[..16]);
-        tk1.copy_from_slice(&tweakey[16..32]);
+    fn generate_subkey(subkey: &mut [u8], tweakey: &[u8], index: usize);
+
+    fn shuffle_tweakey(tweakey: &mut [u8]);
+
+    fn key_schedule(tweakey: &[u8]) -> GenericArray<[u8; 16], Self::SubkeysSize> {
+        let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
+
+        let mut tk: GenericArray<u8, Self::TweakKeySize> = Default::default();
+
+        tk.copy_from_slice(tweakey);
 
         // First key
-        let rcon = [
-            1, 2, 4, 8, RCON[0], RCON[0], RCON[0], RCON[0], 0, 0, 0, 0, 0, 0, 0, 0,
-        ];
-
-        for i in 0..16 {
-            subkeys[0][i] = tk1[i] ^ tk2[i] ^ rcon[i];
-        }
+        Self::generate_subkey(&mut subkeys[0], &tk, 0);
 
         // Other keys
         for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
-            let rcon = [
-                1,
-                2,
-                4,
-                8,
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ];
-            h_substitution(&mut tk1);
-            lfsr2(&mut tk2);
-            h_substitution(&mut tk2);
-
-            for i in 0..16 {
-                subkey[i] = tk1[i] ^ tk2[i] ^ rcon[i];
-            }
+            Self::shuffle_tweakey(&mut tk);
+            Self::generate_subkey(subkey, &tk, index + 1);
         }
 
         subkeys
+    }
+}
+
+impl DeoxysBcInternal for DeoxysBc256 {
+    type SubkeysSize = U15;
+    type TweakKeySize = U32;
+
+    fn generate_subkey(subkey: &mut [u8], tweakey: &[u8], index: usize) {
+        let rcon = [
+            1,
+            2,
+            4,
+            8,
+            RCON[index],
+            RCON[index],
+            RCON[index],
+            RCON[index],
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ];
+
+        for i in 0..16 {
+            subkey[i] = tweakey[i] ^ tweakey[i + 16] ^ rcon[i];
+        }
+    }
+
+    fn shuffle_tweakey(tweakey: &mut [u8]) {
+        h_substitution(&mut tweakey[16..]);
+        lfsr2(&mut tweakey[..16]);
+        h_substitution(&mut tweakey[..16]);
     }
 }
 
 impl DeoxysBcType for DeoxysBc256 {
     type KeySize = U16;
-    type TweakKeySize = U32;
-
-    fn encrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
-        let keys: [[u8; 16]; 15] = Self::key_schedule(tweakey);
-
-        aes_ref::add_round_key(block, &keys[0]);
-
-        for k in &keys[1..15] {
-            aes_ref::encrypt_round(block, k)
-        }
-    }
-
-    fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
-        let keys: [[u8; 16]; 15] = Self::key_schedule(tweakey);
-
-        for k in keys[1..15].iter().rev() {
-            aes_ref::decrypt_round(block, k)
-        }
-
-        aes_ref::add_round_key(block, &keys[0]);
-    }
 }
 
-impl DeoxysBc384 {
-    fn key_schedule(tweakey: &[u8]) -> [[u8; 16]; 17] {
-        let mut subkeys: [[u8; 16]; 17] = Default::default();
-        let mut tk1 = [0u8; 16];
-        let mut tk2 = [0u8; 16];
-        let mut tk3 = [0u8; 16];
+impl DeoxysBcInternal for DeoxysBc384 {
+    type SubkeysSize = U17;
+    type TweakKeySize = U48;
 
-        tk3.copy_from_slice(&tweakey[..16]);
-        tk2.copy_from_slice(&tweakey[16..32]);
-        tk1.copy_from_slice(&tweakey[32..]);
-
-        // First key
+    fn generate_subkey(subkey: &mut [u8], tweakey: &[u8], index: usize) {
         let rcon = [
-            1, 2, 4, 8, RCON[0], RCON[0], RCON[0], RCON[0], 0, 0, 0, 0, 0, 0, 0, 0,
+            1,
+            2,
+            4,
+            8,
+            RCON[index],
+            RCON[index],
+            RCON[index],
+            RCON[index],
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
         ];
 
         for i in 0..16 {
-            subkeys[0][i] = tk1[i] ^ tk2[i] ^ tk3[i] ^ rcon[i];
+            subkey[i] = tweakey[i] ^ tweakey[i + 16] ^ tweakey[i + 32] ^ rcon[i];
         }
+    }
 
-        // Other keys
-        for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
-            let rcon = [
-                1,
-                2,
-                4,
-                8,
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ];
-            h_substitution(&mut tk1);
-            lfsr2(&mut tk2);
-            h_substitution(&mut tk2);
-            lfsr3(&mut tk3);
-            h_substitution(&mut tk3);
-
-            for i in 0..16 {
-                subkey[i] = tk1[i] ^ tk2[i] ^ tk3[i] ^ rcon[i];
-            }
-        }
-
-        subkeys
+    fn shuffle_tweakey(tweakey: &mut [u8]) {
+        h_substitution(&mut tweakey[32..]);
+        lfsr2(&mut tweakey[16..32]);
+        h_substitution(&mut tweakey[16..32]);
+        lfsr3(&mut tweakey[..16]);
+        h_substitution(&mut tweakey[..16]);
     }
 }
 
 impl DeoxysBcType for DeoxysBc384 {
     type KeySize = U32;
-    type TweakKeySize = U48;
-
-    fn encrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
-        let keys: [[u8; 16]; 17] = Self::key_schedule(tweakey);
-
-        aes_ref::add_round_key(block, &keys[0]);
-
-        for k in &keys[1..17] {
-            aes_ref::encrypt_round(block, k)
-        }
-    }
-
-    fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
-        let keys: [[u8; 16]; 17] = Self::key_schedule(tweakey);
-
-        for k in keys[1..17].iter().rev() {
-            aes_ref::decrypt_round(block, k)
-        }
-
-        aes_ref::add_round_key(block, &keys[0]);
-    }
 }
 
 fn h_substitution(tk: &mut [u8]) {

@@ -127,6 +127,7 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
+/// Reference implementation of AES. Should be replaced with the `aes` crate whenever it exposes its round function
 mod aes_ref;
 
 use core::marker::PhantomData;
@@ -164,7 +165,6 @@ pub type Tag = GenericArray<u8, U16>;
 
 /// Deoxys encryption modes.
 /// This type contains the public API for a Deoxys mode, like Deoxys-I and Deoxys-II.
-/// Should not be used directly
 pub trait DeoxysMode<B>
 where
     B: DeoxysBcType,
@@ -194,9 +194,8 @@ where
 
 /// Deoxys-BC trait.
 /// This type contains the public API for Deoxys-BC implementations, which varies depending on the size of the key.
-/// Should not be used directly.
 pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
-    /// The size of the required key.
+    /// The size of the required tweakey.
     type KeySize: ArrayLength<u8>;
 
     /// Encrypts a block of data in place.

@@ -22,9 +22,13 @@ pub trait DeoxysBcInternal {
     type SubkeysSize: ArrayLength<[u8; 16]>;
     type TweakKeySize: ArrayLength<u8>;
 
-    fn generate_subkey(subkey: &mut [u8], tweakey: &[u8], index: usize);
+    fn generate_subkey(
+        subkey: &mut [u8; 16],
+        tweakey: &GenericArray<u8, Self::TweakKeySize>,
+        index: usize,
+    );
 
-    fn shuffle_tweakey(tweakey: &mut [u8]);
+    fn shuffle_tweakey(tweakey: &mut GenericArray<u8, Self::TweakKeySize>);
 
     fn key_schedule(tweakey: &[u8]) -> GenericArray<[u8; 16], Self::SubkeysSize> {
         let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
@@ -50,7 +54,11 @@ impl DeoxysBcInternal for DeoxysBc256 {
     type SubkeysSize = U15;
     type TweakKeySize = U32;
 
-    fn generate_subkey(subkey: &mut [u8], tweakey: &[u8], index: usize) {
+    fn generate_subkey(
+        subkey: &mut [u8; 16],
+        tweakey: &GenericArray<u8, Self::TweakKeySize>,
+        index: usize,
+    ) {
         let rcon = [
             1,
             2,
@@ -75,7 +83,7 @@ impl DeoxysBcInternal for DeoxysBc256 {
         }
     }
 
-    fn shuffle_tweakey(tweakey: &mut [u8]) {
+    fn shuffle_tweakey(tweakey: &mut GenericArray<u8, Self::TweakKeySize>) {
         h_substitution(&mut tweakey[16..]);
         lfsr2(&mut tweakey[..16]);
         h_substitution(&mut tweakey[..16]);
@@ -90,7 +98,11 @@ impl DeoxysBcInternal for DeoxysBc384 {
     type SubkeysSize = U17;
     type TweakKeySize = U48;
 
-    fn generate_subkey(subkey: &mut [u8], tweakey: &[u8], index: usize) {
+    fn generate_subkey(
+        subkey: &mut [u8; 16],
+        tweakey: &GenericArray<u8, Self::TweakKeySize>,
+        index: usize,
+    ) {
         let rcon = [
             1,
             2,
@@ -115,7 +127,7 @@ impl DeoxysBcInternal for DeoxysBc384 {
         }
     }
 
-    fn shuffle_tweakey(tweakey: &mut [u8]) {
+    fn shuffle_tweakey(tweakey: &mut GenericArray<u8, Self::TweakKeySize>) {
         h_substitution(&mut tweakey[32..]);
         lfsr2(&mut tweakey[16..32]);
         h_substitution(&mut tweakey[16..32]);

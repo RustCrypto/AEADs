@@ -213,7 +213,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
         for k in &keys[1..] {
             #[cfg(target_feature = "aes")]
-            aes::round::cipher(block.into(), k.into());
+            aes::hazmat::cipher_round(block.into(), k.into());
 
             #[cfg(not(target_feature = "aes"))]
             aes_ref::encrypt_round(block, k);
@@ -231,26 +231,15 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
             *b ^= k;
         }
 
-        // Will be replaced with the aes crate
-        unsafe {
-            use core::arch::x86_64::*;
-            let b = _mm_loadu_si128(block.as_ptr() as *const __m128i);
-            let out = _mm_aesimc_si128(b);
-            _mm_storeu_si128(block.as_mut_ptr() as *mut __m128i, out);
-        }
+        aes::hazmat::inv_mix_columns(block.into());
 
         for k in keys[..r - 1].iter_mut() {
             // Will be replaced with the aes crate
-            unsafe {
-                use core::arch::x86_64::*;
-                let k2 = _mm_loadu_si128(k.as_ptr() as *const __m128i);
-                let out = _mm_aesimc_si128(k2);
-                _mm_storeu_si128(k.as_mut_ptr() as *mut __m128i, out);
-            }
+            aes::hazmat::inv_mix_columns(k.into());
         }
 
         for k in keys[..r - 1].iter().rev() {
-            aes::round::equiv_inv_cipher(block.into(), k.into());
+            aes::hazmat::equiv_inv_cipher_round(block.into(), k.into());
         }
 
         aes_ref::mix_columns(block, &aes_ref::MIX_COLUMNS_MATRIX);

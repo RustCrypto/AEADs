@@ -149,9 +149,11 @@ pub type DeoxysI128 = Deoxys<modes::DeoxysI, deoxys_bc::DeoxysBc256>;
 pub type DeoxysI256 = Deoxys<modes::DeoxysI, deoxys_bc::DeoxysBc384>;
 
 /// Deoxys-II with 128-bit keys
+#[allow(clippy::upper_case_acronyms)]
 pub type DeoxysII128 = Deoxys<modes::DeoxysII, deoxys_bc::DeoxysBc256>;
 
 /// Deoxys-II with 256-bit keys
+#[allow(clippy::upper_case_acronyms)]
 pub type DeoxysII256 = Deoxys<modes::DeoxysII, deoxys_bc::DeoxysBc384>;
 
 /// Deoxys keys

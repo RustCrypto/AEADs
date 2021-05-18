@@ -19,6 +19,7 @@ const TWEAK_CHKSUM: u8 = 0x50;
 pub struct DeoxysI;
 
 /// Implementation of the Deoxys-II mode of operation.
+#[allow(clippy::upper_case_acronyms)]
 pub struct DeoxysII;
 
 impl<B> DeoxysMode<B> for DeoxysI
@@ -40,7 +41,7 @@ where
         tweakey[..key.len()].copy_from_slice(&key);
 
         // Associated Data
-        if associated_data.len() > 0 {
+        if !associated_data.is_empty() {
             tweakey[key.len()] = TWEAK_AD;
 
             for (index, ad) in associated_data.chunks(16).enumerate() {
@@ -54,7 +55,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -68,7 +69,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 }
             }
@@ -83,7 +84,7 @@ where
         tweakey[key.len() + 8] = nonce[7] << 4;
 
         // Message authentication and encryption
-        if buffer.len() > 0 {
+        if !buffer.is_empty() {
             tweakey[key.len()] = (tweakey[key.len()] & 0xf) | TWEAK_M;
 
             for (index, data) in buffer.chunks_mut(16).enumerate() {
@@ -94,7 +95,7 @@ where
 
                 if data.len() == 16 {
                     for (c, d) in checksum.iter_mut().zip(data.iter()) {
-                        *c = *c ^ d;
+                        *c ^= d;
                     }
 
                     B::encrypt_in_place(data, &tweakey);
@@ -108,7 +109,7 @@ where
                     block[data.len()] = 0x80;
 
                     for (c, d) in checksum.iter_mut().zip(block.iter()) {
-                        *c = *c ^ d;
+                        *c ^= d;
                     }
 
                     block.fill(0);
@@ -117,7 +118,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
-                        *d = *d ^ b;
+                        *d ^= b;
                     }
 
                     // Tag computing.
@@ -130,7 +131,7 @@ where
                     B::encrypt_in_place(&mut checksum, &tweakey);
 
                     for (t, c) in tag.iter_mut().zip(checksum.iter()) {
-                        *t = *t ^ c;
+                        *t ^= c;
                     }
                 }
             }
@@ -147,7 +148,7 @@ where
             B::encrypt_in_place(&mut checksum, &tweakey);
 
             for (t, c) in tag.iter_mut().zip(checksum.iter()) {
-                *t = *t ^ c;
+                *t ^= c;
             }
         }
 
@@ -170,7 +171,7 @@ where
         tweakey[..key.len()].copy_from_slice(&key);
 
         // Associated Data
-        if associated_data.len() > 0 {
+        if !associated_data.is_empty() {
             tweakey[key.len()] = TWEAK_AD;
 
             for (index, ad) in associated_data.chunks(16).enumerate() {
@@ -184,7 +185,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in computed_tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -198,7 +199,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in computed_tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 }
             }
@@ -213,7 +214,7 @@ where
         tweakey[key.len() + 8] = nonce[7] << 4;
 
         // Message authentication and encryption
-        if buffer.len() > 0 {
+        if !buffer.is_empty() {
             tweakey[key.len()] = (tweakey[key.len()] & 0xf) | TWEAK_M;
 
             for (index, data) in buffer.chunks_mut(16).enumerate() {
@@ -226,7 +227,7 @@ where
                     B::decrypt_in_place(data, &tweakey);
 
                     for (c, d) in checksum.iter_mut().zip(data.iter()) {
-                        *c = *c ^ d;
+                        *c ^= d;
                     }
                 } else {
                     // Last block checksum
@@ -236,7 +237,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
-                        *d = *d ^ b;
+                        *d ^= b;
                     }
 
                     block.fill(0);
@@ -245,7 +246,7 @@ where
                     block[data.len()] = 0x80;
 
                     for (c, d) in checksum.iter_mut().zip(block.iter()) {
-                        *c = *c ^ d;
+                        *c ^= d;
                     }
 
                     // Tag computing.
@@ -258,7 +259,7 @@ where
                     B::encrypt_in_place(&mut checksum, &tweakey);
 
                     for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
-                        *t = *t ^ c;
+                        *t ^= c;
                     }
                 }
             }
@@ -275,7 +276,7 @@ where
             B::encrypt_in_place(&mut checksum, &tweakey);
 
             for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
-                *t = *t ^ c;
+                *t ^= c;
             }
         }
 
@@ -308,7 +309,7 @@ where
         tweakey[..key.len()].copy_from_slice(&key);
 
         // Associated Data
-        if associated_data.len() > 0 {
+        if !associated_data.is_empty() {
             tweakey[key.len()] = TWEAK_AD;
 
             for (index, ad) in associated_data.chunks(16).enumerate() {
@@ -322,7 +323,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -336,7 +337,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 }
             }
@@ -344,7 +345,7 @@ where
 
         tweakey[key.len()..].fill(0);
         // Message authentication
-        if buffer.len() > 0 {
+        if !buffer.is_empty() {
             tweakey[key.len()] = TWEAK_M;
 
             for (index, data) in buffer.chunks(16).enumerate() {
@@ -358,7 +359,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -372,7 +373,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 }
             }
@@ -383,7 +384,7 @@ where
         B::encrypt_in_place(&mut tag, &tweakey);
 
         // Message encryption
-        if buffer.len() > 0 {
+        if !buffer.is_empty() {
             tweakey[key.len()..].copy_from_slice(&tag);
             tweakey[key.len()] |= 0x80;
 
@@ -392,7 +393,7 @@ where
 
                 // XOR in block numbers
                 for (t, i) in tweakey[key.len() + 8..].iter_mut().zip(&index_array) {
-                    *t = *t ^ i
+                    *t ^= i
                 }
 
                 if data.len() == 16 {
@@ -402,7 +403,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in data.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -412,13 +413,13 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
-                        *d = *d ^ b;
+                        *d ^= b;
                     }
                 }
 
                 // XOR out block numbers
                 for (t, i) in tweakey[key.len() + 8..].iter_mut().zip(&index_array) {
-                    *t = *t ^ i
+                    *t ^= i
                 }
             }
         }
@@ -441,7 +442,7 @@ where
         tweakey[..key.len()].copy_from_slice(&key);
 
         // Message decryption
-        if buffer.len() > 0 {
+        if !buffer.is_empty() {
             tweakey[key.len()..].copy_from_slice(&tag);
             tweakey[key.len()] |= 0x80;
 
@@ -450,7 +451,7 @@ where
 
                 // XOR in block numbers
                 for (t, i) in tweakey[key.len() + 8..].iter_mut().zip(&index_array) {
-                    *t = *t ^ i
+                    *t ^= i
                 }
 
                 if data.len() == 16 {
@@ -460,7 +461,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in data.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -470,20 +471,20 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
-                        *d = *d ^ b;
+                        *d ^= b;
                     }
                 }
 
                 // XOR out block numbers
                 for (t, i) in tweakey[key.len() + 8..].iter_mut().zip(&index_array) {
-                    *t = *t ^ i
+                    *t ^= i
                 }
             }
         }
 
         tweakey[key.len()..].fill(0);
         // Associated Data
-        if associated_data.len() > 0 {
+        if !associated_data.is_empty() {
             tweakey[key.len()] = TWEAK_AD;
 
             for (index, ad) in associated_data.chunks(16).enumerate() {
@@ -497,7 +498,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in computed_tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -511,7 +512,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in computed_tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 }
             }
@@ -519,7 +520,7 @@ where
 
         tweakey[key.len()..].fill(0);
         // Message authentication
-        if buffer.len() > 0 {
+        if !buffer.is_empty() {
             tweakey[key.len()] = TWEAK_M;
 
             for (index, data) in buffer.chunks(16).enumerate() {
@@ -533,7 +534,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in computed_tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 } else {
                     // Last block
@@ -547,7 +548,7 @@ where
                     B::encrypt_in_place(&mut block, &tweakey);
 
                     for (t, b) in computed_tag.iter_mut().zip(block.iter()) {
-                        *t = *t ^ b;
+                        *t ^= b;
                     }
                 }
             }

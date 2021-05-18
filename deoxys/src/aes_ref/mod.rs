@@ -51,7 +51,7 @@ const MIX_COLUMNS_MATRIX_INV: [[u8; 4]; 4] = [
 
 pub fn add_round_key(block: &mut [u8], key: &[u8]) {
     for (x, k) in block.iter_mut().zip(key) {
-        *x = *x ^ k;
+        *x ^= k;
     }
 }
 
@@ -76,43 +76,35 @@ fn sub_bytes(block: &mut [u8], sbox: &[u8; 256]) {
 }
 
 fn shift_rows_left(block: &mut [u8]) {
-    let tmp = block[0 * 4 + 1];
-    block[0 * 4 + 1] = block[1 * 4 + 1];
-    block[1 * 4 + 1] = block[2 * 4 + 1];
+    let tmp = block[1];
+    block[1] = block[4 + 1];
+    block[4 + 1] = block[2 * 4 + 1];
     block[2 * 4 + 1] = block[3 * 4 + 1];
     block[3 * 4 + 1] = tmp;
 
-    let tmp = block[0 * 4 + 2];
-    block[0 * 4 + 2] = block[2 * 4 + 2];
-    block[2 * 4 + 2] = tmp;
-    let tmp = block[1 * 4 + 2];
-    block[1 * 4 + 2] = block[3 * 4 + 2];
-    block[3 * 4 + 2] = tmp;
+    block.swap(2, 2 * 4 + 2);
+    block.swap(4 + 2, 3 * 4 + 2);
 
     let tmp = block[3 * 4 + 3];
     block[3 * 4 + 3] = block[2 * 4 + 3];
-    block[2 * 4 + 3] = block[1 * 4 + 3];
-    block[1 * 4 + 3] = block[0 * 4 + 3];
-    block[0 * 4 + 3] = tmp;
+    block[2 * 4 + 3] = block[4 + 3];
+    block[4 + 3] = block[3];
+    block[3] = tmp;
 }
 
 fn shift_rows_right(block: &mut [u8]) {
     let tmp = block[3 * 4 + 1];
     block[3 * 4 + 1] = block[2 * 4 + 1];
-    block[2 * 4 + 1] = block[1 * 4 + 1];
-    block[1 * 4 + 1] = block[0 * 4 + 1];
-    block[0 * 4 + 1] = tmp;
+    block[2 * 4 + 1] = block[4 + 1];
+    block[4 + 1] = block[1];
+    block[1] = tmp;
 
-    let tmp = block[0 * 4 + 2];
-    block[0 * 4 + 2] = block[2 * 4 + 2];
-    block[2 * 4 + 2] = tmp;
-    let tmp = block[1 * 4 + 2];
-    block[1 * 4 + 2] = block[3 * 4 + 2];
-    block[3 * 4 + 2] = tmp;
+    block.swap(2, 2 * 4 + 2);
+    block.swap(4 + 2, 3 * 4 + 2);
 
-    let tmp = block[0 * 4 + 3];
-    block[0 * 4 + 3] = block[1 * 4 + 3];
-    block[1 * 4 + 3] = block[2 * 4 + 3];
+    let tmp = block[3];
+    block[3] = block[4 + 3];
+    block[4 + 3] = block[2 * 4 + 3];
     block[2 * 4 + 3] = block[3 * 4 + 3];
     block[3 * 4 + 3] = tmp;
 }
@@ -125,7 +117,7 @@ fn mix_columns(block: &mut [u8], matrix: &[[u8; 4]; 4]) {
             let mut value = 0;
 
             for k in 0..4 {
-                value = value ^ mul(block[i * 4 + k], matrix[j][k])
+                value ^= mul(block[i * 4 + k], matrix[j][k])
             }
             result[i * 4 + j] = value;
         }

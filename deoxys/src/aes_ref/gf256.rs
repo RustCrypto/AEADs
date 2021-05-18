@@ -15,7 +15,7 @@ pub fn mul(a: u8, b: u8) -> u8 {
 
     for i in 0..8 {
         if (b >> i) & 1 == 1 {
-            result = result ^ a;
+            result ^= a;
         }
 
         a = mul_by_2(a);

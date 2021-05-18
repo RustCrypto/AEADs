@@ -40,8 +40,7 @@ const RSBOX: [u8; 256] = [
     0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d,
 ];
 
-pub const MIX_COLUMNS_MATRIX: [[u8; 4]; 4] =
-    [[2, 3, 1, 1], [1, 2, 3, 1], [1, 1, 2, 3], [3, 1, 1, 2]];
+const MIX_COLUMNS_MATRIX: [[u8; 4]; 4] = [[2, 3, 1, 1], [1, 2, 3, 1], [1, 1, 2, 3], [3, 1, 1, 2]];
 
 const MIX_COLUMNS_MATRIX_INV: [[u8; 4]; 4] = [
     [14, 11, 13, 9],
@@ -110,7 +109,7 @@ fn shift_rows_right(block: &mut [u8]) {
     block[3 * 4 + 3] = tmp;
 }
 
-pub fn mix_columns(block: &mut [u8], matrix: &[[u8; 4]; 4]) {
+fn mix_columns(block: &mut [u8], matrix: &[[u8; 4]; 4]) {
     let mut result = [0u8; 16];
 
     for i in 0..4 {

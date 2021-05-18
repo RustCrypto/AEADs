@@ -18,7 +18,7 @@ subtle = "2.4.0"
 zeroize = { version = "1", default-features = false }
 
 [target.'cfg(target_feature="aes")'.dependencies]
-aes = { git = "https://github.com/RustCrypto/block-ciphers", rev="45061f3aafc97e082eb398b368d1f97453465ebd", features=["hazmat"]}
+aes = { git = "https://github.com/RustCrypto/block-ciphers", rev="5e020f14d5fbff531bb6f9f15e9b97c366b8919c", features=["hazmat"]}
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }

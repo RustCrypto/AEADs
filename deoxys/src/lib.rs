@@ -131,6 +131,7 @@ mod modes;
 use aes;
 
 /// Reference implementation of AES. Should be replaced with the `aes` crate whenever it exposes its round function
+#[cfg(not(target_feature = "aes"))]
 mod aes_ref;
 
 use core::marker::PhantomData;
@@ -234,7 +235,6 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
         aes::hazmat::inv_mix_columns(block.into());
 
         for k in keys[..r - 1].iter_mut() {
-            // Will be replaced with the aes crate
             aes::hazmat::inv_mix_columns(k.into());
         }
 
@@ -242,7 +242,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
             aes::hazmat::equiv_inv_cipher_round(block.into(), k.into());
         }
 
-        aes_ref::mix_columns(block, &aes_ref::MIX_COLUMNS_MATRIX);
+        aes::hazmat::mix_columns(block.into());
     }
 
     #[cfg(not(target_feature = "aes"))]

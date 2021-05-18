@@ -127,6 +127,9 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
+#[cfg(target_feature = "aes")]
+use aes;
+
 /// Reference implementation of AES. Should be replaced with the `aes` crate whenever it exposes its round function
 mod aes_ref;
 
@@ -204,22 +207,67 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     fn encrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
         let keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
 
-        aes_ref::add_round_key(block, &keys[0]);
+        for (b, k) in block.iter_mut().zip(keys[0].iter()) {
+            *b ^= k;
+        }
 
         for k in &keys[1..] {
-            aes_ref::encrypt_round(block, k)
+            #[cfg(target_feature = "aes")]
+            aes::round::cipher(block.into(), k.into());
+
+            #[cfg(not(target_feature = "aes"))]
+            aes_ref::encrypt_round(block, k);
         }
     }
 
+    #[cfg(target_feature = "aes")]
+    /// Decrypts a block of data in place.
+    fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
+        let mut keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
+
+        let r = keys.len();
+
+        for (b, k) in block.iter_mut().zip(keys[r - 1].iter()) {
+            *b ^= k;
+        }
+
+        // Will be replaced with the aes crate
+        unsafe {
+            use core::arch::x86_64::*;
+            let b = _mm_loadu_si128(block.as_ptr() as *const __m128i);
+            let out = _mm_aesimc_si128(b);
+            _mm_storeu_si128(block.as_mut_ptr() as *mut __m128i, out);
+        }
+
+        for k in keys[..r - 1].iter_mut() {
+            // Will be replaced with the aes crate
+            unsafe {
+                use core::arch::x86_64::*;
+                let k2 = _mm_loadu_si128(k.as_ptr() as *const __m128i);
+                let out = _mm_aesimc_si128(k2);
+                _mm_storeu_si128(k.as_mut_ptr() as *mut __m128i, out);
+            }
+        }
+
+        for k in keys[..r - 1].iter().rev() {
+            aes::round::equiv_inv_cipher(block.into(), k.into());
+        }
+
+        aes_ref::mix_columns(block, &aes_ref::MIX_COLUMNS_MATRIX);
+    }
+
+    #[cfg(not(target_feature = "aes"))]
     /// Decrypts a block of data in place.
     fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
         let keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
 
         for k in keys[1..].iter().rev() {
-            aes_ref::decrypt_round(block, k)
+            aes_ref::decrypt_round(block, k);
         }
 
-        aes_ref::add_round_key(block, &keys[0]);
+        for (b, k) in block.iter_mut().zip(keys[0].iter()) {
+            *b ^= k;
+        }
     }
 }
 

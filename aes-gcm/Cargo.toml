@@ -35,6 +35,7 @@ alloc = ["aead/alloc"]
 force-soft = ["aes/force-soft", "ghash/force-soft"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
+armv8 = ["aes/armv8"]
 
 [package.metadata.docs.rs]
 all-features = true

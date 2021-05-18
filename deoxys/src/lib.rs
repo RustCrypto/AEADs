@@ -234,12 +234,9 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
         aes::hazmat::inv_mix_columns(block.into());
 
-        for k in keys[..r - 1].iter_mut() {
+        for k in keys[..r - 1].iter_mut().rev() {
             aes::hazmat::inv_mix_columns(k.into());
-        }
-
-        for k in keys[..r - 1].iter().rev() {
-            aes::hazmat::equiv_inv_cipher_round(block.into(), k.into());
+            aes::hazmat::equiv_inv_cipher_round(block.into(), (&*k).into());
         }
 
         aes::hazmat::mix_columns(block.into());

@@ -147,18 +147,18 @@ use aead::{
 use zeroize::Zeroize;
 
 /// Deoxys-I with 128-bit keys
-pub type DeoxysI128 = Deoxys<modes::DeoxysI, deoxys_bc::DeoxysBc256>;
+pub type DeoxysI128 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
 
 /// Deoxys-I with 256-bit keys
-pub type DeoxysI256 = Deoxys<modes::DeoxysI, deoxys_bc::DeoxysBc384>;
+pub type DeoxysI256 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc384>, deoxys_bc::DeoxysBc384>;
 
 /// Deoxys-II with 128-bit keys
 #[allow(clippy::upper_case_acronyms)]
-pub type DeoxysII128 = Deoxys<modes::DeoxysII, deoxys_bc::DeoxysBc256>;
+pub type DeoxysII128 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
 
 /// Deoxys-II with 256-bit keys
 #[allow(clippy::upper_case_acronyms)]
-pub type DeoxysII256 = Deoxys<modes::DeoxysII, deoxys_bc::DeoxysBc384>;
+pub type DeoxysII256 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc384>, deoxys_bc::DeoxysBc384>;
 
 /// Deoxys keys
 pub type Key<KeySize> = GenericArray<u8, KeySize>;
@@ -181,7 +181,7 @@ where
     /// Encrypts the data in place with the specified parameters
     /// Returns the tag
     fn encrypt_in_place(
-        nonce: &[u8],
+        nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         key: &GenericArray<u8, B::KeySize>,
@@ -190,10 +190,10 @@ where
     /// Decrypts the data in place with the specified parameters
     /// Returns an error if the tag verification fails
     fn decrypt_in_place(
-        nonce: &[u8],
+        nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &[u8],
+        tag: &Tag,
         key: &GenericArray<u8, B::KeySize>,
     ) -> Result<(), aead::Error>;
 }
@@ -306,7 +306,7 @@ where
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
         Ok(Tag::from(M::encrypt_in_place(
-            nonce.as_slice(),
+            nonce,
             associated_data,
             buffer,
             &self.key,

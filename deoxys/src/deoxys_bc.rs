@@ -84,7 +84,7 @@ impl DeoxysBcInternal for DeoxysBc256 {
     }
 
     fn shuffle_tweakey(tweakey: &mut GenericArray<u8, Self::TweakKeySize>) {
-        h_substitution(&mut tweakey[16..]);
+        h_substitution(&mut tweakey[16..32]);
         lfsr2(&mut tweakey[..16]);
         h_substitution(&mut tweakey[..16]);
     }
@@ -151,7 +151,7 @@ fn h_substitution(tk: &mut [u8]) {
 }
 
 // TODO: This operation is very slow
-// On Deoxys-II-256, shuffle_tweakey(), 
+// On Deoxys-II-256, shuffle_tweakey(),
 //   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
 fn lfsr2(tk: &mut [u8]) {
     for x in tk {
@@ -162,7 +162,7 @@ fn lfsr2(tk: &mut [u8]) {
 }
 
 // TODO: This operation is very slow
-// On Deoxys-II-256, shuffle_tweakey(), 
+// On Deoxys-II-256, shuffle_tweakey(),
 //   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
 fn lfsr3(tk: &mut [u8]) {
     for x in tk {

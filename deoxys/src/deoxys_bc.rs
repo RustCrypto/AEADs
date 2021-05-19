@@ -150,6 +150,9 @@ fn h_substitution(tk: &mut [u8]) {
     tk.copy_from_slice(&result[..16]);
 }
 
+// TODO: This operation is very slow
+// On Deoxys-II-256, shuffle_tweakey(), 
+//   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
 fn lfsr2(tk: &mut [u8]) {
     for x in tk {
         let feedback = (*x >> 5) & 1;
@@ -158,6 +161,9 @@ fn lfsr2(tk: &mut [u8]) {
     }
 }
 
+// TODO: This operation is very slow
+// On Deoxys-II-256, shuffle_tweakey(), 
+//   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
 fn lfsr3(tk: &mut [u8]) {
     for x in tk {
         let feedback = (*x << 1) & 0x80;

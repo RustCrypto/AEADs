@@ -171,7 +171,7 @@ pub type Tag = GenericArray<u8, U16>;
 
 /// Deoxys encryption modes.
 /// This type contains the public API for a Deoxys mode, like Deoxys-I and Deoxys-II.
-pub trait DeoxysMode<B>
+pub trait DeoxysMode<B>: modes::DeoxysModeInternal<B>
 where
     B: DeoxysBcType,
 {

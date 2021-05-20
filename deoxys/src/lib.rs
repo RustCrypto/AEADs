@@ -209,7 +209,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
-        block: &mut [u8],
+        block: &mut [u8; 16],
         tweak: &[u8; 16],
         subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
     ) {
@@ -231,7 +231,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     #[cfg(target_feature = "aes")]
     /// Decrypts a block of data in place.
     fn decrypt_in_place(
-        block: &mut [u8],
+        block: &mut [u8; 16],
         tweak: &[u8; 16],
         subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
     ) {
@@ -256,7 +256,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     #[cfg(not(target_feature = "aes"))]
     /// Decrypts a block of data in place.
     fn decrypt_in_place(
-        block: &mut [u8],
+        block: &mut [u8; 16],
         tweak: &[u8; 16],
         subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
     ) {

@@ -1,3 +1,4 @@
+use core::convert::TryFrom;
 use core::marker::PhantomData;
 
 use aead::{
@@ -35,7 +36,7 @@ where
         associated_data: &[u8],
         tweak: &mut [u8; 16],
         subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
-        tag: &mut [u8],
+        tag: &mut [u8; 16],
     ) {
         if !associated_data.is_empty() {
             tweak[0] = TWEAK_AD;
@@ -124,7 +125,7 @@ where
                         *c ^= d;
                     }
 
-                    B::encrypt_in_place(data, &tweak, subkeys);
+                    B::encrypt_in_place(<&mut [u8; 16]>::try_from(data).unwrap(), &tweak, subkeys);
                 } else {
                     // Last block checksum
                     tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
@@ -219,6 +220,7 @@ where
                 tweak[8] = (tweak[8] & 0xf) | tmp;
 
                 if data.len() == 16 {
+                    let data = <&mut [u8; 16]>::try_from(data).unwrap();
                     B::decrypt_in_place(data, &tweak, subkeys);
 
                     for (c, d) in checksum.iter_mut().zip(data.iter()) {

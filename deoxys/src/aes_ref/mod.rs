@@ -49,33 +49,33 @@ const MIX_COLUMNS_MATRIX_INV: [[u8; 4]; 4] = [
     [11, 13, 9, 14],
 ];
 
-fn add_round_key(block: &mut [u8], key: &[u8]) {
+fn add_round_key(block: &mut [u8; 16], key: &[u8; 16]) {
     for (x, k) in block.iter_mut().zip(key) {
         *x ^= k;
     }
 }
 
-pub fn encrypt_round(block: &mut [u8], round_key: &[u8]) {
+pub fn encrypt_round(block: &mut [u8; 16], round_key: &[u8; 16]) {
     sub_bytes(block, &SBOX);
     shift_rows_left(block);
     mix_columns(block, &MIX_COLUMNS_MATRIX);
     add_round_key(block, round_key);
 }
 
-pub fn decrypt_round(block: &mut [u8], round_key: &[u8]) {
+pub fn decrypt_round(block: &mut [u8; 16], round_key: &[u8; 16]) {
     add_round_key(block, round_key);
     mix_columns(block, &MIX_COLUMNS_MATRIX_INV);
     shift_rows_right(block);
     sub_bytes(block, &RSBOX);
 }
 
-fn sub_bytes(block: &mut [u8], sbox: &[u8; 256]) {
+fn sub_bytes(block: &mut [u8; 16], sbox: &[u8; 256]) {
     for x in block.iter_mut() {
         *x = sbox[*x as usize];
     }
 }
 
-fn shift_rows_left(block: &mut [u8]) {
+fn shift_rows_left(block: &mut [u8; 16]) {
     let tmp = block[1];
     block[1] = block[4 + 1];
     block[4 + 1] = block[2 * 4 + 1];
@@ -92,7 +92,7 @@ fn shift_rows_left(block: &mut [u8]) {
     block[3] = tmp;
 }
 
-fn shift_rows_right(block: &mut [u8]) {
+fn shift_rows_right(block: &mut [u8; 16]) {
     let tmp = block[3 * 4 + 1];
     block[3 * 4 + 1] = block[2 * 4 + 1];
     block[2 * 4 + 1] = block[4 + 1];
@@ -109,7 +109,7 @@ fn shift_rows_right(block: &mut [u8]) {
     block[3 * 4 + 3] = tmp;
 }
 
-fn mix_columns(block: &mut [u8], matrix: &[[u8; 4]; 4]) {
+fn mix_columns(block: &mut [u8; 16], matrix: &[[u8; 4]; 4]) {
     let mut result = [0u8; 16];
 
     for i in 0..4 {

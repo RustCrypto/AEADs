@@ -3,6 +3,8 @@ use aead::{
     generic_array::{ArrayLength, GenericArray},
 };
 
+use core::convert::TryFrom;
+
 use crate::DeoxysBcType;
 
 const H_PERM: [u8; 16] = [1, 6, 11, 12, 5, 10, 15, 0, 9, 14, 3, 4, 13, 2, 7, 8];
@@ -75,8 +77,8 @@ impl DeoxysBcType for DeoxysBc256 {
 
         // Other keys
         for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
-            h_substitution(&mut buffer);
-            lfsr2(&mut buffer);
+            h_substitution(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
+            lfsr2(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
 
             let rcon = [
                 1,
@@ -134,10 +136,10 @@ impl DeoxysBcType for DeoxysBc384 {
 
         // Other keys
         for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
-            h_substitution(&mut buffer[16..]);
-            lfsr2(&mut buffer[16..]);
-            h_substitution(&mut buffer[..16]);
-            lfsr3(&mut buffer[..16]);
+            h_substitution(<&mut [u8; 16]>::try_from(&mut buffer[16..32]).unwrap());
+            lfsr2(<&mut [u8; 16]>::try_from(&mut buffer[16..32]).unwrap());
+            h_substitution(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
+            lfsr3(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
 
             let rcon = [
                 1,
@@ -167,7 +169,7 @@ impl DeoxysBcType for DeoxysBc384 {
     }
 }
 
-fn h_substitution(tk: &mut [u8]) {
+fn h_substitution(tk: &mut [u8; 16]) {
     let mut result = [0u8; 16];
 
     for i in 0..16 {
@@ -180,7 +182,7 @@ fn h_substitution(tk: &mut [u8]) {
 // TODO: This operation is very slow
 // On Deoxys-II-256, shuffle_tweakey(),
 //   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
-fn lfsr2(tk: &mut [u8]) {
+fn lfsr2(tk: &mut [u8; 16]) {
     for x in tk {
         let feedback = (*x >> 5) & 1;
         *x = x.rotate_left(1);
@@ -191,7 +193,7 @@ fn lfsr2(tk: &mut [u8]) {
 // TODO: This operation is very slow
 // On Deoxys-II-256, shuffle_tweakey(),
 //   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
-fn lfsr3(tk: &mut [u8]) {
+fn lfsr3(tk: &mut [u8; 16]) {
     for x in tk {
         let feedback = (*x << 1) & 0x80;
         *x = x.rotate_right(1);

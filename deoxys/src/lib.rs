@@ -184,7 +184,7 @@ where
         nonce: &GenericArray<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        key: &GenericArray<u8, B::KeySize>,
+        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
     ) -> [u8; 16];
 
     /// Decrypts the data in place with the specified parameters
@@ -194,7 +194,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
-        key: &GenericArray<u8, B::KeySize>,
+        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error>;
 }
 
@@ -204,9 +204,16 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     /// The size of the required tweakey.
     type KeySize: ArrayLength<u8>;
 
+    /// Precompute the subkeys
+    fn precompute_subkeys(key: &Key<Self::KeySize>) -> GenericArray<[u8; 16], Self::SubkeysSize>;
+
     /// Encrypts a block of data in place.
-    fn encrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
-        let keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
+    fn encrypt_in_place(
+        block: &mut [u8],
+        tweak: &[u8; 16],
+        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
+    ) {
+        let keys = Self::key_schedule(tweak, subkeys);
 
         for (b, k) in block.iter_mut().zip(keys[0].iter()) {
             *b ^= k;
@@ -223,8 +230,12 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
     #[cfg(target_feature = "aes")]
     /// Decrypts a block of data in place.
-    fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
-        let mut keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
+    fn decrypt_in_place(
+        block: &mut [u8],
+        tweak: &[u8; 16],
+        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
+    ) {
+        let mut keys = Self::key_schedule(tweak, subkeys);
 
         let r = keys.len();
 
@@ -244,8 +255,12 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
     #[cfg(not(target_feature = "aes"))]
     /// Decrypts a block of data in place.
-    fn decrypt_in_place(block: &mut [u8], tweakey: &GenericArray<u8, Self::TweakKeySize>) {
-        let keys: GenericArray<[u8; 16], Self::SubkeysSize> = Self::key_schedule(tweakey);
+    fn decrypt_in_place(
+        block: &mut [u8],
+        tweak: &[u8; 16],
+        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
+    ) {
+        let keys = Self::key_schedule(tweak, subkeys);
 
         for k in keys[1..].iter().rev() {
             aes_ref::decrypt_round(block, k);
@@ -265,7 +280,7 @@ where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
-    key: Key<B::KeySize>,
+    subkeys: GenericArray<[u8; 16], B::SubkeysSize>,
     mode: PhantomData<M>,
 }
 
@@ -278,7 +293,7 @@ where
 
     fn new(key: &Key<B::KeySize>) -> Self {
         Self {
-            key: key.clone(),
+            subkeys: B::precompute_subkeys(key),
             mode: PhantomData,
         }
     }
@@ -309,7 +324,7 @@ where
             nonce,
             associated_data,
             buffer,
-            &self.key,
+            &self.subkeys,
         )))
     }
 
@@ -320,7 +335,7 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        M::decrypt_in_place(nonce, associated_data, buffer, tag, &self.key)
+        M::decrypt_in_place(nonce, associated_data, buffer, tag, &self.subkeys)
     }
 }
 
@@ -330,6 +345,8 @@ where
     B: DeoxysBcType,
 {
     fn drop(&mut self) {
-        self.key.as_mut_slice().zeroize();
+        for s in self.subkeys.iter_mut() {
+            s.zeroize();
+        }
     }
 }

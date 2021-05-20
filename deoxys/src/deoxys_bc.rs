@@ -22,122 +22,149 @@ pub trait DeoxysBcInternal {
     type SubkeysSize: ArrayLength<[u8; 16]>;
     type TweakKeySize: ArrayLength<u8>;
 
-    fn generate_subkey(
-        subkey: &mut [u8; 16],
-        tweakey: &GenericArray<u8, Self::TweakKeySize>,
-        index: usize,
-    );
-
-    fn shuffle_tweakey(tweakey: &mut GenericArray<u8, Self::TweakKeySize>);
-
-    fn key_schedule(tweakey: &[u8]) -> GenericArray<[u8; 16], Self::SubkeysSize> {
-        let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
-
-        let mut tk: GenericArray<u8, Self::TweakKeySize> = Default::default();
-
-        tk.copy_from_slice(tweakey);
+    fn key_schedule(
+        tweak: &[u8; 16],
+        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
+    ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
+        let mut subtweakeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
+        let mut tweak = *tweak;
 
         // First key
-        Self::generate_subkey(&mut subkeys[0], &tk, 0);
-
-        // Other keys
-        for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
-            Self::shuffle_tweakey(&mut tk);
-            Self::generate_subkey(subkey, &tk, index + 1);
+        for (i, (s, t)) in tweak.iter().zip(subkeys[0].iter()).enumerate() {
+            subtweakeys[0][i] = s ^ t
         }
 
-        subkeys
+        // Other keys
+        for (stk, sk) in subtweakeys[1..].iter_mut().zip(subkeys[1..].iter()) {
+            h_substitution(&mut tweak);
+
+            for i in 0..16 {
+                stk[i] = sk[i] ^ tweak[i];
+            }
+        }
+
+        subtweakeys
     }
 }
 
 impl DeoxysBcInternal for DeoxysBc256 {
     type SubkeysSize = U15;
     type TweakKeySize = U32;
-
-    fn generate_subkey(
-        subkey: &mut [u8; 16],
-        tweakey: &GenericArray<u8, Self::TweakKeySize>,
-        index: usize,
-    ) {
-        let rcon = [
-            1,
-            2,
-            4,
-            8,
-            RCON[index],
-            RCON[index],
-            RCON[index],
-            RCON[index],
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ];
-
-        for i in 0..16 {
-            subkey[i] = tweakey[i] ^ tweakey[i + 16] ^ rcon[i];
-        }
-    }
-
-    fn shuffle_tweakey(tweakey: &mut GenericArray<u8, Self::TweakKeySize>) {
-        h_substitution(&mut tweakey[16..32]);
-        lfsr2(&mut tweakey[..16]);
-        h_substitution(&mut tweakey[..16]);
-    }
 }
 
 impl DeoxysBcType for DeoxysBc256 {
     type KeySize = U16;
+
+    fn precompute_subkeys(
+        key: &GenericArray<u8, Self::KeySize>,
+    ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
+        let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
+
+        let mut buffer: GenericArray<u8, Self::KeySize> = Default::default();
+
+        buffer.copy_from_slice(key);
+
+        // First key
+        let rcon = [
+            1, 2, 4, 8, RCON[0], RCON[0], RCON[0], RCON[0], 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+
+        for i in 0..16 {
+            subkeys[0][i] = buffer[i] ^ rcon[i];
+        }
+
+        // Other keys
+        for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
+            h_substitution(&mut buffer);
+            lfsr2(&mut buffer);
+
+            let rcon = [
+                1,
+                2,
+                4,
+                8,
+                RCON[index + 1],
+                RCON[index + 1],
+                RCON[index + 1],
+                RCON[index + 1],
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ];
+
+            for i in 0..16 {
+                subkey[i] = buffer[i] ^ rcon[i];
+            }
+        }
+
+        subkeys
+    }
 }
 
 impl DeoxysBcInternal for DeoxysBc384 {
     type SubkeysSize = U17;
     type TweakKeySize = U48;
-
-    fn generate_subkey(
-        subkey: &mut [u8; 16],
-        tweakey: &GenericArray<u8, Self::TweakKeySize>,
-        index: usize,
-    ) {
-        let rcon = [
-            1,
-            2,
-            4,
-            8,
-            RCON[index],
-            RCON[index],
-            RCON[index],
-            RCON[index],
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ];
-
-        for i in 0..16 {
-            subkey[i] = tweakey[i] ^ tweakey[i + 16] ^ tweakey[i + 32] ^ rcon[i];
-        }
-    }
-
-    fn shuffle_tweakey(tweakey: &mut GenericArray<u8, Self::TweakKeySize>) {
-        h_substitution(&mut tweakey[32..]);
-        lfsr2(&mut tweakey[16..32]);
-        h_substitution(&mut tweakey[16..32]);
-        lfsr3(&mut tweakey[..16]);
-        h_substitution(&mut tweakey[..16]);
-    }
 }
 
 impl DeoxysBcType for DeoxysBc384 {
     type KeySize = U32;
+
+    fn precompute_subkeys(
+        key: &GenericArray<u8, Self::KeySize>,
+    ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
+        let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
+
+        let mut buffer: GenericArray<u8, Self::KeySize> = Default::default();
+
+        buffer.copy_from_slice(key);
+
+        // First key
+        let rcon = [
+            1, 2, 4, 8, RCON[0], RCON[0], RCON[0], RCON[0], 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+
+        for i in 0..16 {
+            subkeys[0][i] = buffer[i] ^ buffer[i + 16] ^ rcon[i];
+        }
+
+        // Other keys
+        for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
+            h_substitution(&mut buffer[16..]);
+            lfsr2(&mut buffer[16..]);
+            h_substitution(&mut buffer[..16]);
+            lfsr3(&mut buffer[..16]);
+
+            let rcon = [
+                1,
+                2,
+                4,
+                8,
+                RCON[index + 1],
+                RCON[index + 1],
+                RCON[index + 1],
+                RCON[index + 1],
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ];
+
+            for i in 0..16 {
+                subkey[i] = buffer[i] ^ buffer[i + 16] ^ rcon[i];
+            }
+        }
+
+        subkeys
+    }
 }
 
 fn h_substitution(tk: &mut [u8]) {
@@ -147,7 +174,7 @@ fn h_substitution(tk: &mut [u8]) {
         result[i] = tk[H_PERM[i] as usize];
     }
 
-    tk.copy_from_slice(&result[..16]);
+    tk.copy_from_slice(&result);
 }
 
 // TODO: This operation is very slow

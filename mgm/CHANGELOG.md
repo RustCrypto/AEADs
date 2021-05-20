@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.4.1 (2021-05-20)
+### Changed
+- Remove unnecessary `NewBlockCipher` bounds ([#314])
+
+[#314]: https://github.com/RustCrypto/AEADs/pull/314
+
 ## 0.4.0 (2021-04-29)
 ### Changed
 - Bump `aead` dependency to v0.4.0 release ([#270])

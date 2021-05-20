@@ -60,7 +60,7 @@ const ONE: Wrapping<u64> = Wrapping(1);
 #[derive(Clone)]
 pub struct Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block>,
 {
     cipher: C,
@@ -68,7 +68,7 @@ where
 
 impl<C> Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block>,
 {
     fn get_h(&self, counter: &Counter) -> Block {
@@ -86,7 +86,7 @@ where
 
 impl<C> From<C> for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block>,
 {
     fn from(cipher: C) -> Self {
@@ -108,7 +108,7 @@ where
 
 impl<C> AeadCore for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block>,
 {
     type NonceSize = C::BlockSize;
@@ -118,7 +118,7 @@ where
 
 impl<C> AeadInPlace for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
     C::ParBlocks: ArrayLength<Block>,
 {
     fn encrypt_in_place_detached(
@@ -293,7 +293,7 @@ fn to_bytes(v: &Counter) -> Block {
 
 impl<C> fmt::Debug for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + fmt::Debug,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + fmt::Debug,
     C::ParBlocks: ArrayLength<Block>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {

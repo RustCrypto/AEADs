@@ -343,12 +343,11 @@ dependencies = [
 
 [[package]]
 name = "kuznyechik"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0865d64349fd4b3aaf478b279af022717585d95780c038919c60fe042aff30b0"
+checksum = "1020a37e326b4033680520bf26d4ec7366f92827e5d2c5620a38511f2fd732c5"
 dependencies = [
  "cipher",
- "opaque-debug",
 ]
 
 [[package]]
@@ -359,7 +358,7 @@ checksum = "18794a8ad5b29321f790b55d93dfba91e125cb1a9edbd4f8e3150acc771c1a5e"
 
 [[package]]
 name = "mgm"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "aead",
  "cipher",

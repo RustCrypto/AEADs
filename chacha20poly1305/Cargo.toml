@@ -35,6 +35,7 @@ heapless = ["aead/heapless"]
 reduced-round = ["chacha20"]
 stream = ["aead/stream"]
 xchacha20poly1305 = ["chacha20/xchacha"]
+force-soft = ["chacha20/force-soft", "poly1305/force-soft"]
 
 [package.metadata.docs.rs]
 all-features = true

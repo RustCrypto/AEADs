@@ -9,9 +9,32 @@ use crate::DeoxysBcType;
 
 const H_PERM: [u8; 16] = [1, 6, 11, 12, 5, 10, 15, 0, 9, 14, 3, 4, 13, 2, 7, 8];
 
-const RCON: [u8; 17] = [
-    0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
-    0x72,
+macro_rules! gen_rcon {
+    ($value:expr) => {
+        [
+            1, 2, 4, 8, $value, $value, $value, $value, 0, 0, 0, 0, 0, 0, 0, 0,
+        ]
+    };
+}
+
+const RCON: [[u8; 16]; 17] = [
+    gen_rcon!(0x2f),
+    gen_rcon!(0x5e),
+    gen_rcon!(0xbc),
+    gen_rcon!(0x63),
+    gen_rcon!(0xc6),
+    gen_rcon!(0x97),
+    gen_rcon!(0x35),
+    gen_rcon!(0x6a),
+    gen_rcon!(0xd4),
+    gen_rcon!(0xb3),
+    gen_rcon!(0x7d),
+    gen_rcon!(0xfa),
+    gen_rcon!(0xef),
+    gen_rcon!(0xc5),
+    gen_rcon!(0x91),
+    gen_rcon!(0x39),
+    gen_rcon!(0x72),
 ];
 
 /// Implementation of the Deoxys-BC256 block cipher
@@ -62,45 +85,26 @@ impl DeoxysBcType for DeoxysBc256 {
     ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
         let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
 
-        let mut buffer: GenericArray<u8, Self::KeySize> = Default::default();
+        let mut tk2 = [0u8; 16];
 
-        buffer.copy_from_slice(key);
+        tk2.copy_from_slice(key);
 
         // First key
-        let rcon = [
-            1, 2, 4, 8, RCON[0], RCON[0], RCON[0], RCON[0], 0, 0, 0, 0, 0, 0, 0, 0,
-        ];
+        let rcon = RCON[0];
 
         for i in 0..16 {
-            subkeys[0][i] = buffer[i] ^ rcon[i];
+            subkeys[0][i] = tk2[i] ^ rcon[i];
         }
 
         // Other keys
         for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
-            h_substitution(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
-            lfsr2(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
+            h_substitution(&mut tk2);
+            lfsr2(&mut tk2);
 
-            let rcon = [
-                1,
-                2,
-                4,
-                8,
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ];
+            let rcon = RCON[index + 1];
 
             for i in 0..16 {
-                subkey[i] = buffer[i] ^ rcon[i];
+                subkey[i] = tk2[i] ^ rcon[i];
             }
         }
 
@@ -121,47 +125,30 @@ impl DeoxysBcType for DeoxysBc384 {
     ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
         let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
 
-        let mut buffer: GenericArray<u8, Self::KeySize> = Default::default();
+        let mut tk3 = [0u8; 16];
+        let mut tk2 = [0u8; 16];
 
-        buffer.copy_from_slice(key);
+        tk3.copy_from_slice(&key[..16]);
+        tk2.copy_from_slice(&key[16..]);
 
         // First key
-        let rcon = [
-            1, 2, 4, 8, RCON[0], RCON[0], RCON[0], RCON[0], 0, 0, 0, 0, 0, 0, 0, 0,
-        ];
+        let rcon = RCON[0];
 
         for i in 0..16 {
-            subkeys[0][i] = buffer[i] ^ buffer[i + 16] ^ rcon[i];
+            subkeys[0][i] = tk3[i] ^ tk2[i] ^ rcon[i];
         }
 
         // Other keys
         for (index, subkey) in subkeys[1..].iter_mut().enumerate() {
-            h_substitution(<&mut [u8; 16]>::try_from(&mut buffer[16..32]).unwrap());
-            lfsr2(<&mut [u8; 16]>::try_from(&mut buffer[16..32]).unwrap());
-            h_substitution(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
-            lfsr3(<&mut [u8; 16]>::try_from(&mut buffer[0..16]).unwrap());
+            h_substitution(&mut tk2);
+            lfsr2(&mut tk2);
+            h_substitution(&mut tk3);
+            lfsr3(&mut tk3);
 
-            let rcon = [
-                1,
-                2,
-                4,
-                8,
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                RCON[index + 1],
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ];
+            let rcon = RCON[index + 1];
 
             for i in 0..16 {
-                subkey[i] = buffer[i] ^ buffer[i + 16] ^ rcon[i];
+                subkey[i] = tk3[i] ^ tk2[i] ^ rcon[i];
             }
         }
 
@@ -179,24 +166,18 @@ fn h_substitution(tk: &mut [u8; 16]) {
     tk.copy_from_slice(&result);
 }
 
-// TODO: This operation is very slow
-// On Deoxys-II-256, shuffle_tweakey(),
-//   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
 fn lfsr2(tk: &mut [u8; 16]) {
-    for x in tk {
-        let feedback = (*x >> 5) & 1;
-        *x = x.rotate_left(1);
-        *x ^= feedback;
-    }
+    let mut data = u128::from_ne_bytes(*tk);
+    data = ((data << 1) & 0xFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE)
+        | (((data >> 7) ^ (data >> 5)) & 0x01010101010101010101010101010101);
+
+    tk.copy_from_slice(&data.to_ne_bytes())
 }
 
-// TODO: This operation is very slow
-// On Deoxys-II-256, shuffle_tweakey(),
-//   which consists of h_substitution and lfsr2 and lfsr3, takes up 65% of the encryption time
 fn lfsr3(tk: &mut [u8; 16]) {
-    for x in tk {
-        let feedback = (*x << 1) & 0x80;
-        *x = x.rotate_right(1);
-        *x ^= feedback;
-    }
+    let mut data = u128::from_ne_bytes(*tk);
+    data = ((data >> 1) & 0x7F7F7F7F7F7F7F7F7F7F7F7F7F7F7F7F)
+        | (((data << 7) ^ (data << 1)) & 0x80808080808080808080808080808080);
+
+    tk.copy_from_slice(&data.to_ne_bytes())
 }

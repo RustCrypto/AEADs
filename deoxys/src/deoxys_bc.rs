@@ -3,8 +3,6 @@ use aead::{
     generic_array::{ArrayLength, GenericArray},
 };
 
-use core::convert::TryFrom;
-
 use crate::DeoxysBcType;
 
 const H_PERM: [u8; 16] = [1, 6, 11, 12, 5, 10, 15, 0, 9, 14, 3, 4, 13, 2, 7, 8];

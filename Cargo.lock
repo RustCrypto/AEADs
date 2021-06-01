@@ -16,20 +16,9 @@ dependencies = [
 
 [[package]]
 name = "aes"
-version = "0.7.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2333ac5777aaa1beb8589f5374976ae7dc8aa4f09fd21ae3d8662ca97f5247d"
-dependencies = [
- "cfg-if",
- "cipher",
- "cpufeatures",
- "opaque-debug",
-]
-
-[[package]]
-name = "aes"
-version = "0.7.3"
-source = "git+https://github.com/RustCrypto/block-ciphers?rev=758169d#758169d470a7d376217f32e60d8a02a5235166ad"
+checksum = "495ee669413bfbe9e8cace80f4d3d78e6d8c8d99579f97fb93bde351b185f2d4"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -42,7 +31,7 @@ name = "aes-gcm"
 version = "0.9.2"
 dependencies = [
  "aead",
- "aes 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aes",
  "cipher",
  "ctr",
  "ghash",
@@ -56,7 +45,7 @@ name = "aes-gcm-siv"
 version = "0.10.0"
 dependencies = [
  "aead",
- "aes 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aes",
  "cipher",
  "ctr",
  "polyval",
@@ -69,7 +58,7 @@ name = "aes-siv"
 version = "0.6.0"
 dependencies = [
  "aead",
- "aes 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aes",
  "blobby",
  "cipher",
  "cmac",
@@ -122,7 +111,7 @@ name = "ccm"
 version = "0.4.0"
 dependencies = [
  "aead",
- "aes 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aes",
  "cipher",
  "hex-literal 0.2.1",
  "subtle",
@@ -257,7 +246,7 @@ name = "deoxys"
 version = "0.1.0"
 dependencies = [
  "aead",
- "aes 0.7.3 (git+https://github.com/RustCrypto/block-ciphers?rev=758169d)",
+ "aes",
  "hex-literal 0.3.1",
  "subtle",
  "zeroize",
@@ -277,7 +266,7 @@ name = "eax"
 version = "0.4.0"
 dependencies = [
  "aead",
- "aes 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aes",
  "cipher",
  "cmac",
  "ctr",

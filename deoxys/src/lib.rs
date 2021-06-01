@@ -127,13 +127,6 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
-#[cfg(target_feature = "aes")]
-use aes;
-
-/// Reference implementation of AES. Should be replaced with the `aes` crate whenever it exposes its round function
-#[cfg(not(target_feature = "aes"))]
-mod aes_ref;
-
 use core::marker::PhantomData;
 
 pub use aead;
@@ -220,15 +213,10 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
         }
 
         for k in &keys[1..] {
-            #[cfg(target_feature = "aes")]
             aes::hazmat::cipher_round(block.into(), k.into());
-
-            #[cfg(not(target_feature = "aes"))]
-            aes_ref::encrypt_round(block, k);
         }
     }
 
-    #[cfg(target_feature = "aes")]
     /// Decrypts a block of data in place.
     fn decrypt_in_place(
         block: &mut [u8; 16],
@@ -251,24 +239,6 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
         }
 
         aes::hazmat::mix_columns(block.into());
-    }
-
-    #[cfg(not(target_feature = "aes"))]
-    /// Decrypts a block of data in place.
-    fn decrypt_in_place(
-        block: &mut [u8; 16],
-        tweak: &[u8; 16],
-        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
-    ) {
-        let keys = Self::key_schedule(tweak, subkeys);
-
-        for k in keys[1..].iter().rev() {
-            aes_ref::decrypt_round(block, k);
-        }
-
-        for (b, k) in block.iter_mut().zip(keys[0].iter()) {
-            *b ^= k;
-        }
     }
 }
 

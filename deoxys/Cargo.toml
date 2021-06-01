@@ -16,9 +16,7 @@ categories = ["cryptography", "no-std"]
 aead = { version = "0.4", default-features = false }
 subtle = "2.4.0"
 zeroize = { version = "1", default-features = false }
-
-[target.'cfg(target_feature="aes")'.dependencies]
-aes = { version = "0.7.3", features=["hazmat"], default-features = false}
+aes = { git = "https://github.com/RustCrypto/block-ciphers", rev = "758169d", features=["hazmat"], default-features = false}
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }

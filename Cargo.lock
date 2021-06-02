@@ -17,9 +17,9 @@ dependencies = [
 
 [[package]]
 name = "aes"
-version = "0.7.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2333ac5777aaa1beb8589f5374976ae7dc8aa4f09fd21ae3d8662ca97f5247d"
+checksum = "495ee669413bfbe9e8cace80f4d3d78e6d8c8d99579f97fb93bde351b185f2d4"
 dependencies = [
  "cfg-if",
  "cipher",

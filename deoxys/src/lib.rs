@@ -1,21 +1,10 @@
 //! The [Deoxys][2] [Authenticated Encryption and Associated Data (AEAD)][1].
 //! The Deoxys-II variant has been selected as the first choice for defense in-depth scenario during the [CAESAR competition][3].
 //!
-//! ## Performance Notes
-//!
-//! By default this crate will use software implementations of AES.
-//!
-//! When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
-//! take advantage of high performance AES-NI and CLMUL CPU intrinsics:
-//!
-//! ```text
-//! RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
-//! ```
-//!
 //! ## Security Notes
 //!
-//! This crate has NOT received any security audit and is still in pretty early stage.
-//! Although encryption and secryption passes the test vector, there is no guarantee that operations happens in constant time.
+//! This crate has NOT received any security audit.
+//! Although encryption and decryption passes the test vector, there is no guarantee that operations happens in constant time.
 //!
 //! **USE AT YOUR OWN RISK.**
 //!

@@ -72,6 +72,7 @@
 //! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
 
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
@@ -132,6 +133,7 @@ pub type CmacSivAead<BlockCipher> = SivAead<Ctr128BE<BlockCipher>, Cmac<BlockCip
 
 /// SIV AEAD modes based on PMAC
 #[cfg(feature = "pmac")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type PmacSivAead<BlockCipher> = SivAead<Ctr128BE<BlockCipher>, Pmac<BlockCipher>>;
 
 /// AES-CMAC-SIV in AEAD mode with 256-bit key size (128-bit security)
@@ -142,10 +144,12 @@ pub type Aes256SivAead = CmacSivAead<Aes256>;
 
 /// AES-PMAC-SIV in AEAD mode with 256-bit key size (128-bit security)
 #[cfg(feature = "pmac")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type Aes128PmacSivAead = PmacSivAead<Aes128>;
 
 /// AES-PMAC-SIV in AEAD mode with 512-bit key size (256-bit security)
 #[cfg(feature = "pmac")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type Aes256PmacSivAead = PmacSivAead<Aes256>;
 
 impl<M> NewAead for SivAead<Ctr128BE<Aes128>, M>

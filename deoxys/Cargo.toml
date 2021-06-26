@@ -1,16 +1,20 @@
 [package]
 name = "deoxys"
-version = "0.1.0"
+version = "0.0.0"
+description = """
+Pure Rust implementation of the Deoxys Authenticated Encryption with Associated
+Data (AEAD) cipher, including the Deoxys-II variant which was selected by the
+CAESAR competition as the first choice for in-depth security
+"""
 authors = ["RustCrypto Developers, zer0x64"]
-edition = "2018"
 license = "Apache-2.0 OR MIT"
-readme = "README.md"
 documentation = "https://docs.rs/deoxys"
-repository = "https://github.com/RustCrypto/AEADs"
+repository = "https://github.com/RustCrypto/AEADs/tree/master/deoxys"
+homepage = "https://github.com/RustCrypto"
 keywords = ["aead", "deoxys", "deoxys-i", "deoxys-ii"]
 categories = ["cryptography", "no-std"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+readme = "README.md"
+edition = "2018"
 
 [dependencies]
 aead = { version = "0.4", default-features = false }

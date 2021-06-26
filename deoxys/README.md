@@ -7,10 +7,10 @@
 [![Project Chat][chat-image]][chat-link]
 [![Build Status][build-image]][build-link]
 
-Pure Rust implementation of the Deoxys
-[Authenticated Encryption with Associated Data (AEAD)][1] cipher,
-including the [Deoxys-II][2] variant which was selected by the
-[CAESAR competition][3] as the best choice for in-depth security.
+Pure Rust implementation of the [Deoxys][1]
+[Authenticated Encryption with Associated Data (AEAD)][2] cipher,
+including the [Deoxys-II][3] variant which was selected by the
+[CAESAR competition][4] as the best choice for in-depth security.
 
 [Documentation][docs-link]
 
@@ -45,7 +45,7 @@ dual licensed as above, without any additional terms or conditions.
 [docs-image]: https://docs.rs/deoxys/badge.svg
 [docs-link]: https://docs.rs/deoxys/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.49+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.50+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/deoxys/badge.svg?branch=master&event=push
@@ -53,6 +53,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (general links)
 
-[1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-[2]: https://competitions.cr.yp.to/round3/deoxysv141.pdf
-[3]: https://competitions.cr.yp.to/index.html
+[1]: https://sites.google.com/view/deoxyscipher
+[2]: https://en.wikipedia.org/wiki/Authenticated_encryption
+[3]: https://competitions.cr.yp.to/round3/deoxysv141.pdf
+[4]: https://competitions.cr.yp.to/index.html

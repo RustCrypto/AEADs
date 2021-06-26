@@ -1,10 +1,14 @@
-//! The [Deoxys][2] [Authenticated Encryption and Associated Data (AEAD)][1].
-//! The Deoxys-II variant has been selected as the first choice for defense in-depth scenario during the [CAESAR competition][3].
+//! The [Deoxys][2] [Authenticated Encryption and Associated Data (AEAD)][1] cipher.
+//!
+//! The Deoxys-II variant has been selected as the first choice for defense in-depth
+//! scenario during the [CAESAR competition][3].
 //!
 //! ## Security Notes
 //!
-//! This crate has NOT received any security audit.
-//! Although encryption and decryption passes the test vector, there is no guarantee that operations happens in constant time.
+//! This crate has *NOT* received any security audit.
+//!
+//! Although encryption and decryption passes the test vector, there is no guarantee
+//! of constant-time operation.
 //!
 //! **USE AT YOUR OWN RISK.**
 //!

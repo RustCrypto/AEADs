@@ -46,6 +46,7 @@ pub type CmacSiv<BlockCipher> = Siv<Ctr128BE<BlockCipher>, Cmac<BlockCipher>>;
 
 /// SIV modes based on PMAC
 #[cfg(feature = "pmac")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type PmacSiv<BlockCipher> = Siv<Ctr128BE<BlockCipher>, Pmac<BlockCipher>>;
 
 /// AES-CMAC-SIV with a 128-bit key
@@ -56,10 +57,12 @@ pub type Aes256Siv = CmacSiv<Aes256>;
 
 /// AES-PMAC-SIV with a 128-bit key
 #[cfg(feature = "pmac")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type Aes128PmacSiv = PmacSiv<Aes128>;
 
 /// AES-PMAC-SIV with a 256-bit key
 #[cfg(feature = "pmac")]
+#[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type Aes256PmacSiv = PmacSiv<Aes256>;
 
 impl<C, M> Siv<C, M>

@@ -1,6 +1,6 @@
 [package]
 name = "aes-siv"
-version = "0.6.0"
+version = "0.6.1"
 description = """
 Pure Rust implementation of the AES-SIV Misuse-Resistant Authenticated
 Encryption Cipher (RFC 5297) with optional architecture-specific
@@ -39,3 +39,4 @@ stream = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -1,4 +1,4 @@
-//! The [Deoxys][2] [Authenticated Encryption and Associated Data (AEAD)][1] cipher.
+//! The [Deoxys][1] [Authenticated Encryption and Associated Data (AEAD)][2] cipher.
 //!
 //! The Deoxys-II variant has been selected as the first choice for defense in-depth
 //! scenario during the [CAESAR competition][3].
@@ -103,8 +103,8 @@
 //! # }
 //! ```
 //!
-//! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [2]: https://sites.google.com/view/deoxyscipher
+//! [1]: https://sites.google.com/view/deoxyscipher
+//! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [3]: https://competitions.cr.yp.to/caesar-submissions.html
 
 #![no_std]

@@ -294,17 +294,20 @@ fn fill_block_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
     let n = if adata_len == 0 {
         0
     } else if adata_len < (1 << 16) - (1 << 8) {
-        be_copy(&mut b[..2], adata_len);
+        let adata_len = adata_len as u16;
+        b[..2].copy_from_slice(&adata_len.to_be_bytes());
         2
     } else if adata_len <= core::u32::MAX as usize {
         b[0] = 0xFF;
         b[1] = 0xFE;
-        be_copy(&mut b[2..6], adata_len);
+        let adata_len = adata_len as u32;
+        b[2..6].copy_from_slice(&adata_len.to_be_bytes());
         6
     } else {
         b[0] = 0xFF;
         b[1] = 0xFF;
-        be_copy(&mut b[2..10], adata_len);
+        let adata_len = adata_len as u64;
+        b[2..10].copy_from_slice(&adata_len.to_be_bytes());
         10
     };
     (n, b)
@@ -345,7 +348,7 @@ mod tests {
         assert_eq!(n, 6);
         assert_eq!(b[..], hex!("FFFE0123456700000000000000000000")[..]);
 
-        #[cfg(not(target_pointer_width = "64"))]
+        #[cfg(target_pointer_width = "64")]
         {
             let (n, b) = fill_block_header(0x0123456789ABCDEF);
             assert_eq!(n, 10);

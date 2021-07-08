@@ -330,8 +330,8 @@ fn xor(v1: &mut [u8], v2: &[u8]) {
 mod tests {
     #[test]
     fn fill_block_header_test() {
-        use hex_literal::hex;
         use super::fill_block_header;
+        use hex_literal::hex;
 
         let (n, b) = fill_block_header(0);
         assert_eq!(n, 0);

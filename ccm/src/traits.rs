@@ -1,7 +1,5 @@
-use aead::consts::{U10, U11, U12, U13, U14, U16, U4, U6, U7, U8, U9};
-
 mod private {
-    use aead::generic_array::typenum::Unsigned;
+    use aead::{consts, generic_array::typenum::Unsigned};
 
     // Sealed traits stop other crates from implementing any traits that use it.
     pub trait SealedTag: Unsigned {
@@ -23,21 +21,21 @@ mod private {
         }
     }
 
-    impl SealedTag for super::U4 {}
-    impl SealedTag for super::U6 {}
-    impl SealedTag for super::U8 {}
-    impl SealedTag for super::U10 {}
-    impl SealedTag for super::U12 {}
-    impl SealedTag for super::U14 {}
-    impl SealedTag for super::U16 {}
+    impl SealedTag for consts::U4 {}
+    impl SealedTag for consts::U6 {}
+    impl SealedTag for consts::U8 {}
+    impl SealedTag for consts::U10 {}
+    impl SealedTag for consts::U12 {}
+    impl SealedTag for consts::U14 {}
+    impl SealedTag for consts::U16 {}
 
-    impl SealedNonce for super::U7 {}
-    impl SealedNonce for super::U8 {}
-    impl SealedNonce for super::U9 {}
-    impl SealedNonce for super::U10 {}
-    impl SealedNonce for super::U11 {}
-    impl SealedNonce for super::U12 {}
-    impl SealedNonce for super::U13 {}
+    impl SealedNonce for consts::U7 {}
+    impl SealedNonce for consts::U8 {}
+    impl SealedNonce for consts::U9 {}
+    impl SealedNonce for consts::U10 {}
+    impl SealedNonce for consts::U11 {}
+    impl SealedNonce for consts::U12 {}
+    impl SealedNonce for consts::U13 {}
 }
 
 /// Trait implemented for valid tag sizes, i.e. [`U4`], [`U6`], [`U8`],

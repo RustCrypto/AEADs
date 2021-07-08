@@ -288,26 +288,22 @@ where
     }
 }
 
-#[inline(always)]
 fn fill_block_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
     let mut b = GenericArray::<u8, U16>::default();
     let n = if adata_len == 0 {
         0
-    } else if adata_len < (1 << 16) - (1 << 8) {
-        let adata_len = adata_len as u16;
-        b[..2].copy_from_slice(&adata_len.to_be_bytes());
+    } else if adata_len < 0xFF00 {
+        b[..2].copy_from_slice(&(adata_len as u16).to_be_bytes());
         2
     } else if adata_len <= core::u32::MAX as usize {
         b[0] = 0xFF;
         b[1] = 0xFE;
-        let adata_len = adata_len as u32;
-        b[2..6].copy_from_slice(&adata_len.to_be_bytes());
+        b[2..6].copy_from_slice(&(adata_len as u32).to_be_bytes());
         6
     } else {
         b[0] = 0xFF;
         b[1] = 0xFF;
-        let adata_len = adata_len as u64;
-        b[2..10].copy_from_slice(&adata_len.to_be_bytes());
+        b[2..10].copy_from_slice(&(adata_len as u64).to_be_bytes());
         10
     };
     (n, b)

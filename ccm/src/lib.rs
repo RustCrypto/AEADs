@@ -345,8 +345,11 @@ mod tests {
         assert_eq!(n, 6);
         assert_eq!(b[..], hex!("FFFE0123456700000000000000000000")[..]);
 
-        let (n, b) = fill_block_header(0x0123456789ABCDEF);
-        assert_eq!(n, 10);
-        assert_eq!(b[..], hex!("FFFF0123456789ABCDEF000000000000")[..]);
+        #[cfg(not(target_pointer_width = "64"))]
+        {
+            let (n, b) = fill_block_header(0x0123456789ABCDEF);
+            assert_eq!(n, 10);
+            assert_eq!(b[..], hex!("FFFF0123456789ABCDEF000000000000")[..]);
+        }
     }
 }

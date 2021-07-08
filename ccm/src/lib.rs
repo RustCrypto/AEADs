@@ -134,28 +134,10 @@ where
         b0[1..n].copy_from_slice(nonce);
         be_copy(&mut b0[n..], buffer.len());
 
-        let la = adata.len();
-        let mut b = Block::<C>::default();
-        let n = if la == 0 {
-            0
-        } else if la < (1 << 16) - (1 << 8) {
-            be_copy(&mut b[..2], adata.len());
-            2
-        } else if la <= core::u32::MAX as usize {
-            b[0] = 0xFF;
-            b[1] = 0xFE;
-            be_copy(&mut b[2..6], adata.len());
-            6
-        } else {
-            b[0] = 0xFF;
-            b[1] = 0xFF;
-            be_copy(&mut b[2..10], adata.len());
-            10
-        };
-
         let mut mac = CbcMac::from_cipher(&self.cipher);
         mac.update(&b0);
 
+        let (n, mut b) = fill_block_header(adata.len());
         if n != 0 {
             if b.len() - n >= adata.len() {
                 b[n..n + adata.len()].copy_from_slice(adata);
@@ -307,6 +289,28 @@ where
 }
 
 #[inline(always)]
+fn fill_block_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
+    let mut b = GenericArray::<u8, U16>::default();
+    let n = if adata_len == 0 {
+        0
+    } else if adata_len < (1 << 16) - (1 << 8) {
+        be_copy(&mut b[..2], adata_len);
+        2
+    } else if adata_len <= core::u32::MAX as usize {
+        b[0] = 0xFF;
+        b[1] = 0xFE;
+        be_copy(&mut b[2..6], adata_len);
+        6
+    } else {
+        b[0] = 0xFF;
+        b[1] = 0xFF;
+        be_copy(&mut b[2..10], adata_len);
+        10
+    };
+    (n, b)
+}
+
+#[inline(always)]
 fn be_copy(buf: &mut [u8], n: usize) {
     let narr = n.to_le_bytes();
     let iter = buf.iter_mut().rev().zip(narr.iter());
@@ -319,5 +323,30 @@ fn be_copy(buf: &mut [u8], n: usize) {
 fn xor(v1: &mut [u8], v2: &[u8]) {
     for (a, b) in v1.iter_mut().zip(v2.iter()) {
         *a ^= b;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn fill_block_header_test() {
+        use hex_literal::hex;
+        use super::fill_block_header;
+
+        let (n, b) = fill_block_header(0);
+        assert_eq!(n, 0);
+        assert_eq!(b[..], hex!("00000000000000000000000000000000")[..]);
+
+        let (n, b) = fill_block_header(0x0123);
+        assert_eq!(n, 2);
+        assert_eq!(b[..], hex!("01230000000000000000000000000000")[..]);
+
+        let (n, b) = fill_block_header(0x01234567);
+        assert_eq!(n, 6);
+        assert_eq!(b[..], hex!("FFFE0123456700000000000000000000")[..]);
+
+        let (n, b) = fill_block_header(0x0123456789ABCDEF);
+        assert_eq!(n, 10);
+        assert_eq!(b[..], hex!("FFFF0123456789ABCDEF000000000000")[..]);
     }
 }

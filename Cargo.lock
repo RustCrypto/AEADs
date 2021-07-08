@@ -11,7 +11,7 @@ dependencies = [
  "blobby",
  "generic-array",
  "heapless",
- "rand_core 0.6.2",
+ "rand_core 0.6.3",
 ]
 
 [[package]]
@@ -203,7 +203,7 @@ version = "0.6.0"
 dependencies = [
  "chacha20",
  "chacha20poly1305",
- "rand_core 0.6.2",
+ "rand_core 0.6.3",
  "salsa20",
  "x25519-dalek",
  "xsalsa20poly1305",
@@ -471,9 +471,9 @@ checksum = "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
 
 [[package]]
 name = "rand_core"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34cf66eb183df1c5876e2dcf6b13d57340741e8dc255b48e40a26de954d06ae7"
+checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
 dependencies = [
  "getrandom",
 ]
@@ -619,7 +619,7 @@ version = "0.7.1"
 dependencies = [
  "aead",
  "poly1305",
- "rand_core 0.6.2",
+ "rand_core 0.6.3",
  "salsa20",
  "subtle",
  "zeroize",

@@ -131,7 +131,7 @@ where
         let mut b0 = Block::<C>::default();
         b0[0] = flags;
         let n = 1 + N::to_usize();
-        b0[1..n].copy_from_slice(&nonce);
+        b0[1..n].copy_from_slice(nonce);
         be_copy(&mut b0[n..], buffer.len());
 
         let la = adata.len();

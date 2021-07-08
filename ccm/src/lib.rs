@@ -137,10 +137,11 @@ where
         let mut mac = CbcMac::from_cipher(&self.cipher);
         mac.update(&b0);
 
-        let (n, mut b) = fill_block_header(adata.len());
-        if n != 0 {
-            if b.len() - n >= adata.len() {
-                b[n..n + adata.len()].copy_from_slice(adata);
+        if !adata.is_empty() {
+            let alen = adata.len();
+            let (n, mut b) = fill_aad_header(alen);
+            if b.len() - n >= alen {
+                b[n..n + alen].copy_from_slice(adata);
                 mac.update(&b);
             } else {
                 let (l, r) = adata.split_at(b.len() - n);
@@ -288,11 +289,11 @@ where
     }
 }
 
-fn fill_block_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
+fn fill_aad_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
+    debug_assert_ne!(adata_len, 0);
+
     let mut b = GenericArray::<u8, U16>::default();
-    let n = if adata_len == 0 {
-        0
-    } else if adata_len < 0xFF00 {
+    let n = if adata_len < 0xFF00 {
         b[..2].copy_from_slice(&(adata_len as u16).to_be_bytes());
         2
     } else if adata_len <= core::u32::MAX as usize {
@@ -328,29 +329,25 @@ fn xor(v1: &mut [u8], v2: &[u8]) {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn fill_block_header_test() {
-        use super::fill_block_header;
+    fn fill_aad_header_test() {
+        use super::fill_aad_header;
         use hex_literal::hex;
 
-        let (n, b) = fill_block_header(0);
-        assert_eq!(n, 0);
-        assert_eq!(b[..], hex!("00000000000000000000000000000000")[..]);
-
-        let (n, b) = fill_block_header(0x0123);
+        let (n, b) = fill_aad_header(0x0123);
         assert_eq!(n, 2);
         assert_eq!(b[..], hex!("01230000000000000000000000000000")[..]);
 
-        let (n, b) = fill_block_header(0xFF00);
+        let (n, b) = fill_aad_header(0xFF00);
         assert_eq!(n, 6);
         assert_eq!(b[..], hex!("FFFE0000FF0000000000000000000000")[..]);
 
-        let (n, b) = fill_block_header(0x01234567);
+        let (n, b) = fill_aad_header(0x01234567);
         assert_eq!(n, 6);
         assert_eq!(b[..], hex!("FFFE0123456700000000000000000000")[..]);
 
         #[cfg(target_pointer_width = "64")]
         {
-            let (n, b) = fill_block_header(0x0123456789ABCDEF);
+            let (n, b) = fill_aad_header(0x0123456789ABCDEF);
             assert_eq!(n, 10);
             assert_eq!(b[..], hex!("FFFF0123456789ABCDEF000000000000")[..]);
         }

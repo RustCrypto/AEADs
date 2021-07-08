@@ -57,7 +57,7 @@ use subtle::ConstantTimeEq;
 
 mod traits;
 
-use traits::{NonceSize, TagSize};
+pub use traits::{NonceSize, TagSize};
 
 /// CCM nonces
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
@@ -69,10 +69,10 @@ pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 ///
 /// Type parameters:
 /// - `C`: block cipher.
-/// - `M`: size of MAC tag, valid values:
-/// `U4`, `U6`, `U8`, `U10`, `U12`, `U14`, `U16`.
+/// - `M`: size of MAC tag in bytes, valid values:
+/// [`U4`], [`U6`], [`U8`], [`U10`], [`U12`], [`U14`], [`U12`].
 /// - `N`: size of nonce, valid values:
-/// `U7`, `U8`, `U9`, `U10`, `U11`, `U12`, `U13`.
+/// [`U7`], [`U8`], [`U9`], [`U10`], [`U11`], [`U12`], [`U13`].
 pub struct Ccm<C, M, N>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncrypt,

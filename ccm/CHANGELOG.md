@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.4.1 (2021-07-09)
+### Added
+- Make `NonceSize` and `TagSize` traits publicly visible. ([#331])
+
+[#331]: https://github.com/RustCrypto/AEADs/pull/331
+
 ## 0.4.0 (2021-04-29)
 ### Changed
 - Bump `aead` dependency to v0.4 ([#270])

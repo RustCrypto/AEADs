@@ -1,6 +1,6 @@
 [package]
 name = "ccm"
-version = "0.4.2"
+version = "0.4.3"
 description = "Generic implementation of the Counter with CBC-MAC (CCM) mode"
 authors = ["RustCrypto Developers"]
 edition = "2018"

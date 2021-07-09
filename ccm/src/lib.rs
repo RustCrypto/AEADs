@@ -80,7 +80,6 @@ pub trait NonceSize: private::SealedNonce {}
 
 impl<T: private::SealedNonce> NonceSize for T {}
 
-
 /// CCM instance generic over an underlying block cipher.
 ///
 /// Type parameters:

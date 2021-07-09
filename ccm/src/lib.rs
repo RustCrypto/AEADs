@@ -53,6 +53,7 @@ use aead::{
 };
 use cipher::{Block, BlockCipher, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher};
 use core::marker::PhantomData;
+use ctr::{Ctr32BE, Ctr64BE};
 use subtle::ConstantTimeEq;
 
 mod traits;
@@ -73,6 +74,7 @@ pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 /// [`U4`], [`U6`], [`U8`], [`U10`], [`U12`], [`U14`], [`U12`].
 /// - `N`: size of nonce, valid values:
 /// [`U7`], [`U8`], [`U9`], [`U10`], [`U11`], [`U12`], [`U13`].
+#[derive(Clone)]
 pub struct Ccm<C, M, N>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncrypt,
@@ -81,8 +83,7 @@ where
     N: ArrayLength<u8> + NonceSize,
 {
     cipher: C,
-    _tag_size: PhantomData<M>,
-    _nonce_size: PhantomData<N>,
+    _pd: PhantomData<(M, N)>,
 }
 
 impl<C, M, N> Ccm<C, M, N>
@@ -92,14 +93,6 @@ where
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
-    fn from_cipher(cipher: C) -> Self {
-        Self {
-            cipher,
-            _tag_size: Default::default(),
-            _nonce_size: Default::default(),
-        }
-    }
-
     fn extend_nonce(nonce: &Nonce<N>) -> Block<C> {
         let mut ext_nonce = Block::<C>::default();
         ext_nonce[0] = N::get_l() - 1;
@@ -150,6 +143,21 @@ where
     }
 }
 
+impl<C, M, N> From<C> for Ccm<C, M, N>
+where
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
+    C::ParBlocks: ArrayLength<Block<C>>,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
+{
+    fn from(cipher: C) -> Self {
+        Self {
+            cipher,
+            _pd: PhantomData,
+        }
+    }
+}
+
 impl<C, M, N> NewAead for Ccm<C, M, N>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
@@ -160,7 +168,7 @@ where
     type KeySize = C::KeySize;
 
     fn new(key: &Key<Self>) -> Self {
-        Self::from_cipher(C::new(key))
+        Self::from(C::new(key))
     }
 }
 
@@ -192,17 +200,15 @@ where
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
 
         let ext_nonce = Self::extend_nonce(nonce);
-        let d = C::BlockSize::USIZE - N::USIZE - 1;
-        if d > 8 {
-            let mut ctr = ctr::Ctr128BE::from_block_cipher(&self.cipher, &ext_nonce);
-            ctr.apply_keystream(&mut full_tag);
-            ctr.apply_keystream(buffer);
-        } else if d > 4 {
-            let mut ctr = ctr::Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
+        // number of bytes left for counter (max 8)
+        let cb = C::BlockSize::USIZE - N::USIZE - 1;
+
+        if cb > 4 {
+            let mut ctr = Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
             ctr.apply_keystream(&mut full_tag);
             ctr.apply_keystream(buffer);
         } else {
-            let mut ctr = ctr::Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
+            let mut ctr = Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
             ctr.apply_keystream(&mut full_tag);
             ctr.apply_keystream(buffer);
         }
@@ -218,33 +224,27 @@ where
         tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
         let ext_nonce = Self::extend_nonce(nonce);
-        let d = C::BlockSize::USIZE - N::USIZE - 1;
+        // number of bytes left for counter (max 8)
+        let cb = C::BlockSize::USIZE - N::USIZE - 1;
 
-        if d > 8 {
-            let mut ctr = ctr::Ctr128BE::from_block_cipher(&self.cipher, &ext_nonce);
-            ctr.seek_block(1);
-            ctr.apply_keystream(buffer);
-        } else if d > 4 {
-            let mut ctr = ctr::Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
+        if cb > 4 {
+            let mut ctr = Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
             ctr.seek_block(1);
             ctr.apply_keystream(buffer);
         } else {
-            let mut ctr = ctr::Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
+            let mut ctr = Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
             ctr.seek_block(1);
             ctr.apply_keystream(buffer);
         }
 
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
 
-        if d > 8 {
-            ctr::Ctr128BE::from_block_cipher(&self.cipher, &ext_nonce)
-                .apply_keystream(&mut full_tag);
-        } else if d > 4 {
-            ctr::Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce)
-                .apply_keystream(&mut full_tag);
+        if cb > 4 {
+            let mut ctr = Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.apply_keystream(&mut full_tag);
         } else {
-            ctr::Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce)
-                .apply_keystream(&mut full_tag);
+            let mut ctr = Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.apply_keystream(&mut full_tag);
         }
 
         if full_tag[..tag.len()].ct_eq(tag).unwrap_u8() == 0 {

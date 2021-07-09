@@ -127,7 +127,7 @@ where
             let alen = adata.len();
             let (n, mut b) = fill_aad_header(alen);
             if b.len() - n >= alen {
-                b[n..n + alen].copy_from_slice(adata);
+                b[n..][..alen].copy_from_slice(adata);
                 mac.block_update(&b);
             } else {
                 let (l, r) = adata.split_at(b.len() - n);

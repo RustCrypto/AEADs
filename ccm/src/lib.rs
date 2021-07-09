@@ -56,9 +56,7 @@ use core::marker::PhantomData;
 use ctr::{Ctr32BE, Ctr64BE};
 use subtle::ConstantTimeEq;
 
-mod traits;
-
-pub use traits::{NonceSize, TagSize};
+mod private;
 
 /// CCM nonces
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
@@ -66,14 +64,35 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 /// CCM tags
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
+/// Trait implemented for valid tag sizes, i.e.
+/// [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
+/// [`U10`][consts::U10], [`U12`][consts::U12], [`U14`][consts::U14], and
+/// [`U12`][consts::U12].
+pub trait TagSize: private::SealedTag {}
+
+impl<T: private::SealedTag> TagSize for T {}
+
+/// Trait implemented for valid nonce sizes, i.e.
+/// [`U7`][consts::U7], [`U8`][consts::U8], [`U9`][consts::U9],
+/// [`U10`][consts::U10], [`U11`][consts::U11], [`U12`][consts::U12], and
+/// [`U13`][consts::U13].
+pub trait NonceSize: private::SealedNonce {}
+
+impl<T: private::SealedNonce> NonceSize for T {}
+
+
 /// CCM instance generic over an underlying block cipher.
 ///
 /// Type parameters:
 /// - `C`: block cipher.
 /// - `M`: size of MAC tag in bytes, valid values:
-/// [`U4`], [`U6`], [`U8`], [`U10`], [`U12`], [`U14`], [`U12`].
+/// [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
+/// [`U10`][consts::U10], [`U12`][consts::U12], [`U14`][consts::U14],
+/// [`U12`][consts::U12].
 /// - `N`: size of nonce, valid values:
-/// [`U7`], [`U8`], [`U9`], [`U10`], [`U11`], [`U12`], [`U13`].
+/// [`U7`][consts::U7], [`U8`][consts::U8], [`U9`][consts::U9],
+/// [`U10`][consts::U10], [`U11`][consts::U11], [`U12`][consts::U12],
+/// [`U13`][consts::U13].
 #[derive(Clone)]
 pub struct Ccm<C, M, N>
 where

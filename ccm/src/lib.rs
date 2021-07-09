@@ -57,7 +57,7 @@ use subtle::ConstantTimeEq;
 
 mod traits;
 
-use traits::{NonceSize, TagSize};
+pub use traits::{NonceSize, TagSize};
 
 /// CCM nonces
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
@@ -69,10 +69,10 @@ pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 ///
 /// Type parameters:
 /// - `C`: block cipher.
-/// - `M`: size of MAC tag, valid values:
-/// `U4`, `U6`, `U8`, `U10`, `U12`, `U14`, `U16`.
+/// - `M`: size of MAC tag in bytes, valid values:
+/// [`U4`], [`U6`], [`U8`], [`U10`], [`U12`], [`U14`], [`U12`].
 /// - `N`: size of nonce, valid values:
-/// `U7`, `U8`, `U9`, `U10`, `U11`, `U12`, `U13`.
+/// [`U7`], [`U8`], [`U9`], [`U10`], [`U11`], [`U12`], [`U13`].
 pub struct Ccm<C, M, N>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncrypt,
@@ -131,34 +131,17 @@ where
         let mut b0 = Block::<C>::default();
         b0[0] = flags;
         let n = 1 + N::to_usize();
-        b0[1..n].copy_from_slice(&nonce);
+        b0[1..n].copy_from_slice(nonce);
         be_copy(&mut b0[n..], buffer.len());
-
-        let la = adata.len();
-        let mut b = Block::<C>::default();
-        let n = if la == 0 {
-            0
-        } else if la < (1 << 16) - (1 << 8) {
-            be_copy(&mut b[..2], adata.len());
-            2
-        } else if la <= core::u32::MAX as usize {
-            b[0] = 0xFF;
-            b[1] = 0xFE;
-            be_copy(&mut b[2..6], adata.len());
-            6
-        } else {
-            b[0] = 0xFF;
-            b[1] = 0xFF;
-            be_copy(&mut b[2..10], adata.len());
-            10
-        };
 
         let mut mac = CbcMac::from_cipher(&self.cipher);
         mac.update(&b0);
 
-        if n != 0 {
-            if b.len() - n >= adata.len() {
-                b[n..n + adata.len()].copy_from_slice(adata);
+        if !adata.is_empty() {
+            let alen = adata.len();
+            let (n, mut b) = fill_aad_header(alen);
+            if b.len() - n >= alen {
+                b[n..n + alen].copy_from_slice(adata);
                 mac.update(&b);
             } else {
                 let (l, r) = adata.split_at(b.len() - n);
@@ -306,6 +289,27 @@ where
     }
 }
 
+fn fill_aad_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
+    debug_assert_ne!(adata_len, 0);
+
+    let mut b = GenericArray::<u8, U16>::default();
+    let n = if adata_len < 0xFF00 {
+        b[..2].copy_from_slice(&(adata_len as u16).to_be_bytes());
+        2
+    } else if adata_len <= core::u32::MAX as usize {
+        b[0] = 0xFF;
+        b[1] = 0xFE;
+        b[2..6].copy_from_slice(&(adata_len as u32).to_be_bytes());
+        6
+    } else {
+        b[0] = 0xFF;
+        b[1] = 0xFF;
+        b[2..10].copy_from_slice(&(adata_len as u64).to_be_bytes());
+        10
+    };
+    (n, b)
+}
+
 #[inline(always)]
 fn be_copy(buf: &mut [u8], n: usize) {
     let narr = n.to_le_bytes();
@@ -319,5 +323,33 @@ fn be_copy(buf: &mut [u8], n: usize) {
 fn xor(v1: &mut [u8], v2: &[u8]) {
     for (a, b) in v1.iter_mut().zip(v2.iter()) {
         *a ^= b;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn fill_aad_header_test() {
+        use super::fill_aad_header;
+        use hex_literal::hex;
+
+        let (n, b) = fill_aad_header(0x0123);
+        assert_eq!(n, 2);
+        assert_eq!(b[..], hex!("01230000000000000000000000000000")[..]);
+
+        let (n, b) = fill_aad_header(0xFF00);
+        assert_eq!(n, 6);
+        assert_eq!(b[..], hex!("FFFE0000FF0000000000000000000000")[..]);
+
+        let (n, b) = fill_aad_header(0x01234567);
+        assert_eq!(n, 6);
+        assert_eq!(b[..], hex!("FFFE0123456700000000000000000000")[..]);
+
+        #[cfg(target_pointer_width = "64")]
+        {
+            let (n, b) = fill_aad_header(0x0123456789ABCDEF);
+            assert_eq!(n, 10);
+            assert_eq!(b[..], hex!("FFFF0123456789ABCDEF000000000000")[..]);
+        }
     }
 }

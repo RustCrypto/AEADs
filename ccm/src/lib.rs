@@ -51,7 +51,7 @@ use aead::{
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, Key, NewAead,
 };
-use cipher::{Block, BlockCipher, BlockEncrypt, NewBlockCipher};
+use cipher::{Block, BlockCipher, BlockEncrypt, NewBlockCipher, FromBlockCipher, StreamCipher};
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
 
@@ -100,17 +100,11 @@ where
         }
     }
 
-    /// XOR data in `buf` of length equal or smaller than block size with
-    /// a keystream block computed for given `nonce` and `i`.
-    #[inline(always)]
-    fn apply_ks_block(&self, buf: &mut [u8], nonce: &Nonce<N>, i: usize) {
-        let mut block = Block::<C>::default();
-        block[0] = N::get_l() - 1;
-        let n = 1 + N::to_usize();
-        block[1..n].copy_from_slice(nonce);
-        be_copy(&mut block[n..], i);
-        self.cipher.encrypt_block(&mut block);
-        xor(buf, &block);
+    fn extend_nonce(nonce: &Nonce<N>) -> Block<C> {
+        let mut ext_nonce = Block::<C>::default();
+        ext_nonce[0] = N::get_l() - 1;
+        ext_nonce[1..][..nonce.len()].copy_from_slice(nonce);
+        ext_nonce
     }
 
     fn calc_mac(
@@ -119,7 +113,6 @@ where
         adata: &[u8],
         buffer: &[u8],
     ) -> Result<Tag<C::BlockSize>, Error> {
-        let bs = C::BlockSize::to_usize();
         let is_ad = !adata.is_empty();
         let l = N::get_l();
         let flags = 64 * (is_ad as u8) + 8 * M::get_m_tick() + (l - 1);
@@ -135,42 +128,23 @@ where
         be_copy(&mut b0[n..], buffer.len());
 
         let mut mac = CbcMac::from_cipher(&self.cipher);
-        mac.update(&b0);
+        mac.block_update(&b0);
 
         if !adata.is_empty() {
             let alen = adata.len();
             let (n, mut b) = fill_aad_header(alen);
             if b.len() - n >= alen {
                 b[n..n + alen].copy_from_slice(adata);
-                mac.update(&b);
+                mac.block_update(&b);
             } else {
                 let (l, r) = adata.split_at(b.len() - n);
                 b[n..].copy_from_slice(l);
-                mac.update(&b);
-
-                let mut chunks = r.chunks_exact(bs);
-                for chunk in &mut chunks {
-                    mac.update(Block::<C>::from_slice(chunk));
-                }
-                let rem = chunks.remainder();
-                if !rem.is_empty() {
-                    let mut bn = Block::<C>::default();
-                    bn[..rem.len()].copy_from_slice(rem);
-                    mac.update(&bn)
-                }
+                mac.block_update(&b);
+                mac.update(&r);
             }
         }
 
-        let mut chunks = buffer.chunks_exact(bs);
-        for chunk in &mut chunks {
-            mac.update(Block::<C>::from_slice(chunk));
-        }
-        let rem = chunks.remainder();
-        if !rem.is_empty() {
-            let mut bn = Block::<C>::default();
-            bn[..rem.len()].copy_from_slice(rem);
-            mac.update(&bn);
-        }
+        mac.update(buffer);
 
         Ok(mac.finalize())
     }
@@ -216,21 +190,24 @@ where
         buffer: &mut [u8],
     ) -> Result<Tag<Self::TagSize>, Error> {
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
-        self.apply_ks_block(&mut full_tag, nonce, 0);
 
-        let mut iter = buffer.chunks_exact_mut(C::BlockSize::to_usize());
-        let mut i = 1;
-        for chunk in &mut iter {
-            self.apply_ks_block(chunk, nonce, i);
-            i += 1;
-        }
-        let rem = iter.into_remainder();
-        if !rem.is_empty() {
-            self.apply_ks_block(rem, nonce, i);
+        let ext_nonce = Self::extend_nonce(nonce);
+        let d = C::BlockSize::USIZE - N::USIZE - 1;
+        if d > 8 {
+            let mut ctr = ctr::Ctr128BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.apply_keystream(&mut full_tag);
+            ctr.apply_keystream(buffer);
+        } else if d > 4 {
+            let mut ctr = ctr::Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.apply_keystream(&mut full_tag);
+            ctr.apply_keystream(buffer);
+        } else {
+            let mut ctr = ctr::Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.apply_keystream(&mut full_tag);
+            ctr.apply_keystream(buffer);
         }
 
-        let tag = Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()]);
-        Ok(tag)
+        Ok(Tag::clone_from_slice(&full_tag[..M::to_usize()]))
     }
 
     fn decrypt_in_place_detached(
@@ -240,21 +217,37 @@ where
         buffer: &mut [u8],
         tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
-        let mut iter = buffer.chunks_exact_mut(C::BlockSize::to_usize());
-        let mut i = 1;
-        for chunk in &mut iter {
-            self.apply_ks_block(chunk, nonce, i);
-            i += 1;
-        }
-        let rem = iter.into_remainder();
-        if !rem.is_empty() {
-            self.apply_ks_block(rem, nonce, i);
+        let ext_nonce = Self::extend_nonce(nonce);
+        let d = C::BlockSize::USIZE - N::USIZE - 1;
+
+        if d > 8 {
+            let mut ctr = ctr::Ctr128BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.seek_block(1);
+            ctr.apply_keystream(buffer);
+        } else if d > 4 {
+            let mut ctr = ctr::Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.seek_block(1);
+            ctr.apply_keystream(buffer);
+        } else {
+            let mut ctr = ctr::Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
+            ctr.seek_block(1);
+            ctr.apply_keystream(buffer);
         }
 
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
-        self.apply_ks_block(&mut full_tag, nonce, 0);
-        let n = tag.len();
-        if full_tag[..n].ct_eq(tag).unwrap_u8() == 0 {
+
+        if d > 8 {
+            ctr::Ctr128BE::from_block_cipher(&self.cipher, &ext_nonce)
+                .apply_keystream(&mut full_tag);
+        } else if d > 4 {
+            ctr::Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce)
+                .apply_keystream(&mut full_tag);
+        } else {
+            ctr::Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce)
+                .apply_keystream(&mut full_tag);
+        }
+
+        if full_tag[..tag.len()].ct_eq(tag).unwrap_u8() == 0 {
             buffer.iter_mut().for_each(|v| *v = 0);
             return Err(Error);
         }
@@ -279,7 +272,20 @@ where
         }
     }
 
-    fn update(&mut self, block: &Block<C>) {
+    fn update(&mut self, data: &[u8]) {
+        let mut chunks = data.chunks_exact(C::BlockSize::USIZE);
+        for chunk in &mut chunks {
+            self.block_update(Block::<C>::from_slice(chunk));
+        }
+        let rem = chunks.remainder();
+        if !rem.is_empty() {
+            let mut bn = Block::<C>::default();
+            bn[..rem.len()].copy_from_slice(rem);
+            self.block_update(&bn);
+        }
+    }
+
+    fn block_update(&mut self, block: &Block<C>) {
         xor(&mut self.state, block);
         self.cipher.encrypt_block(&mut self.state);
     }
@@ -310,7 +316,6 @@ fn fill_aad_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
     (n, b)
 }
 
-#[inline(always)]
 fn be_copy(buf: &mut [u8], n: usize) {
     let narr = n.to_le_bytes();
     let iter = buf.iter_mut().rev().zip(narr.iter());
@@ -319,7 +324,6 @@ fn be_copy(buf: &mut [u8], n: usize) {
     }
 }
 
-#[inline(always)]
 fn xor(v1: &mut [u8], v2: &[u8]) {
     for (a, b) in v1.iter_mut().zip(v2.iter()) {
         *a ^= b;

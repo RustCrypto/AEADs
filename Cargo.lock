@@ -33,7 +33,7 @@ dependencies = [
  "aead",
  "aes",
  "cipher",
- "ctr",
+ "ctr 0.7.0",
  "ghash",
  "hex-literal 0.2.1",
  "subtle",
@@ -47,7 +47,7 @@ dependencies = [
  "aead",
  "aes",
  "cipher",
- "ctr",
+ "ctr 0.7.0",
  "polyval",
  "subtle",
  "zeroize",
@@ -63,7 +63,7 @@ dependencies = [
  "cipher",
  "cmac",
  "crypto-mac",
- "ctr",
+ "ctr 0.7.0",
  "dbl",
  "hex-literal 0.2.1",
  "pmac",
@@ -108,11 +108,12 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "ccm"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "aead",
  "aes",
  "cipher",
+ "ctr 0.8.0",
  "hex-literal 0.2.1",
  "subtle",
 ]
@@ -220,6 +221,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ctr"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "049bb91fb4aaf0e3c7efa6cd5ef877dbbbd15b39dad06d9948de4ec8a75761ea"
+dependencies = [
+ "cipher",
+]
+
+[[package]]
 name = "curve25519-dalek"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -269,7 +279,7 @@ dependencies = [
  "aes",
  "cipher",
  "cmac",
- "ctr",
+ "ctr 0.7.0",
  "subtle",
 ]
 

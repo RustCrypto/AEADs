@@ -51,7 +51,7 @@ use aead::{
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, Key, NewAead,
 };
-use cipher::{Block, BlockCipher, BlockEncrypt, NewBlockCipher, FromBlockCipher, StreamCipher};
+use cipher::{Block, BlockCipher, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher};
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
 

@@ -118,7 +118,17 @@ where
         b0[0] = flags;
         let n = 1 + N::to_usize();
         b0[1..n].copy_from_slice(nonce);
-        be_copy(&mut b0[n..], buffer.len());
+
+        let cb = b0.len() - n;
+        // the max len check makes certain that we discard only
+        // zero bytes from `b`
+        if cb > 4 {
+            let b = (buffer.len() as u64).to_be_bytes();
+            b0[n..].copy_from_slice(&b[b.len() - cb..]);
+        } else {
+            let b = (buffer.len() as u32).to_be_bytes();
+            b0[n..].copy_from_slice(&b[b.len() - cb..]);
+        }
 
         let mut mac = CbcMac::from_cipher(&self.cipher);
         mac.block_update(&b0);
@@ -286,7 +296,10 @@ where
     }
 
     fn block_update(&mut self, block: &Block<C>) {
-        xor(&mut self.state, block);
+        self.state
+            .iter_mut()
+            .zip(block.iter())
+            .for_each(|(a, b)| *a ^= b);
         self.cipher.encrypt_block(&mut self.state);
     }
 
@@ -314,20 +327,6 @@ fn fill_aad_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
         10
     };
     (n, b)
-}
-
-fn be_copy(buf: &mut [u8], n: usize) {
-    let narr = n.to_le_bytes();
-    let iter = buf.iter_mut().rev().zip(narr.iter());
-    for (a, b) in iter {
-        *a = *b;
-    }
-}
-
-fn xor(v1: &mut [u8], v2: &[u8]) {
-    for (a, b) in v1.iter_mut().zip(v2.iter()) {
-        *a ^= b;
-    }
 }
 
 #[cfg(test)]

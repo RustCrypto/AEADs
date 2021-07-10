@@ -57,7 +57,7 @@ dual licensed as above, without any additional terms or conditions.
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [deps-image]: https://deps.rs/repo/github/RustCrypto/AEADs/status.svg
-[deps-link]: https://deps.rs/repo/github/AEADs/traits
+[deps-link]: https://deps.rs/repo/github/RustCrypto/AEADs
 
 [//]: # (general links)
 

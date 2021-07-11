@@ -35,7 +35,7 @@ dependencies = [
  "cipher",
  "ctr",
  "ghash",
- "hex-literal 0.2.1",
+ "hex-literal 0.3.1",
  "subtle",
  "zeroize",
 ]
@@ -65,7 +65,7 @@ dependencies = [
  "crypto-mac",
  "ctr",
  "dbl",
- "hex-literal 0.2.1",
+ "hex-literal 0.3.1",
  "pmac",
  "zeroize",
 ]

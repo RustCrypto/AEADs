@@ -20,7 +20,7 @@ subtle = { version = "2", default-features = false }
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
 kuznyechik = "0.7"
-hex-literal = "0.2"
+hex-literal = "0.3"
 
 [features]
 default = ["alloc"]

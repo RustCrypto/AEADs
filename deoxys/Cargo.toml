@@ -18,7 +18,7 @@ edition = "2018"
 
 [dependencies]
 aead = { version = "0.4", default-features = false }
-subtle = { version = "2.4.1", default-features = false }
+subtle = { version = "2.4", default-features = false }
 zeroize = { version = "1", default-features = false }
 aes = { version = "0.7.4", features=["hazmat"], default-features = false}
 

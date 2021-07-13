@@ -13,7 +13,6 @@ impl GfElement for Element128 {
         Self(0, 0)
     }
 
-    #[allow(clippy::cast_ptr_alignment)]
     #[allow(clippy::many_single_char_names)]
     fn mul_sum(&mut self, a: &Block, b: &Block) {
         let [a1, a0] = from_block(a);

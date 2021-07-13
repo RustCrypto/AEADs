@@ -34,7 +34,6 @@ impl GfElement for Element128 {
         Self(unsafe { _mm_setzero_si128() })
     }
 
-    #[allow(clippy::cast_ptr_alignment)]
     #[allow(clippy::many_single_char_names)]
     fn mul_sum(&mut self, a: &Block, b: &Block) {
         unsafe {

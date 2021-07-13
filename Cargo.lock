@@ -376,6 +376,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320cfe77175da3a483efed4bc0adc1968ca050b098ce4f2f1c13a56626128790"
 
 [[package]]
+name = "magma"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53792c7fca348c3d880c5ab2b0a2378a28edca57d080feabc4b60b4633dff91b"
+dependencies = [
+ "cipher",
+ "opaque-debug",
+]
+
+[[package]]
 name = "mgm"
 version = "0.4.1"
 dependencies = [
@@ -383,6 +393,7 @@ dependencies = [
  "cipher",
  "hex-literal 0.2.1",
  "kuznyechik",
+ "magma",
  "subtle",
 ]
 

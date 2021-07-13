@@ -1,6 +1,6 @@
 [package]
 name = "mgm"
-version = "0.4.1"
+version = "0.4.2"
 description = "Generic implementation of the Multilinear Galois Mode (MGM) cipher"
 authors = ["RustCrypto Developers"]
 edition = "2018"

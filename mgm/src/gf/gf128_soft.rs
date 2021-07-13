@@ -1,6 +1,6 @@
+use super::{utils::bmul64, GfElement};
 use aead::{consts::U16, generic_array::GenericArray};
 use core::convert::TryInto;
-use super::{GfElement, utils::bmul64};
 
 pub struct Element128(u64, u64);
 

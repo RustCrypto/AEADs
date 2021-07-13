@@ -7,7 +7,7 @@ use aead::{
     Error,
 };
 use cipher::BlockCipher;
-use core::{convert::TryInto, num::Wrapping};
+use core::convert::TryInto;
 
 pub type Counter<C> = [<<C as BlockCipher>::BlockSize as Sealed>::Counter; 2];
 
@@ -23,20 +23,20 @@ pub trait Sealed: ArrayLength<u8> {
 }
 
 impl Sealed for U16 {
-    type Counter = Wrapping<u64>;
+    type Counter = u64;
     type Element = crate::gf::Element128;
 
     fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2] {
         let (a, b) = block.split_at(8);
         [
-            Wrapping(u64::from_be_bytes(a.try_into().unwrap())),
-            Wrapping(u64::from_be_bytes(b.try_into().unwrap())),
+            u64::from_be_bytes(a.try_into().unwrap()),
+            u64::from_be_bytes(b.try_into().unwrap()),
         ]
     }
 
     fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self> {
-        let a = ctr[0].0.to_be_bytes();
-        let b = ctr[1].0.to_be_bytes();
+        let a = ctr[0].to_be_bytes();
+        let b = ctr[1].to_be_bytes();
         let mut block = GenericArray::<u8, Self>::default();
         block[..8].copy_from_slice(&a);
         block[8..].copy_from_slice(&b);
@@ -44,11 +44,11 @@ impl Sealed for U16 {
     }
 
     fn incr_l(ctr: &mut [Self::Counter; 2]) {
-        ctr[0] += Wrapping(1);
+        ctr[0] = ctr[0].wrapping_add(1);
     }
 
     fn incr_r(ctr: &mut [Self::Counter; 2]) {
-        ctr[1] += Wrapping(1);
+        ctr[1] = ctr[1].wrapping_add(1);
     }
 
     fn lengths2block(adata_len: usize, data_len: usize) -> Result<GenericArray<u8, Self>, Error> {
@@ -62,25 +62,25 @@ impl Sealed for U16 {
             .ok_or(Error)?
             .try_into()
             .map_err(|_| Error)?;
-        Ok(Self::ctr2block(&[Wrapping(adata_len), Wrapping(data_len)]))
+        Ok(Self::ctr2block(&[adata_len, data_len]))
     }
 }
 
 impl Sealed for U8 {
-    type Counter = Wrapping<u32>;
+    type Counter = u32;
     type Element = crate::gf::Element64;
 
     fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2] {
         let (a, b) = block.split_at(4);
         [
-            Wrapping(u32::from_be_bytes(a.try_into().unwrap())),
-            Wrapping(u32::from_be_bytes(b.try_into().unwrap())),
+            u32::from_be_bytes(a.try_into().unwrap()),
+            u32::from_be_bytes(b.try_into().unwrap()),
         ]
     }
 
     fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self> {
-        let a = ctr[0].0.to_be_bytes();
-        let b = ctr[1].0.to_be_bytes();
+        let a = ctr[0].to_be_bytes();
+        let b = ctr[1].to_be_bytes();
         let mut block = GenericArray::<u8, Self>::default();
         block[..4].copy_from_slice(&a);
         block[4..].copy_from_slice(&b);
@@ -88,11 +88,11 @@ impl Sealed for U8 {
     }
 
     fn incr_l(ctr: &mut [Self::Counter; 2]) {
-        ctr[0] += Wrapping(1);
+        ctr[0] = ctr[0].wrapping_add(1);
     }
 
     fn incr_r(ctr: &mut [Self::Counter; 2]) {
-        ctr[1] += Wrapping(1);
+        ctr[1] = ctr[1].wrapping_add(1);
     }
 
     fn lengths2block(adata_len: usize, data_len: usize) -> Result<GenericArray<u8, Self>, Error> {
@@ -106,6 +106,6 @@ impl Sealed for U8 {
             .ok_or(Error)?
             .try_into()
             .map_err(|_| Error)?;
-        Ok(Self::ctr2block(&[Wrapping(adata_len), Wrapping(data_len)]))
+        Ok(Self::ctr2block(&[adata_len, data_len]))
     }
 }

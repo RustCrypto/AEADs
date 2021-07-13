@@ -34,16 +34,19 @@
 )]
 #![warn(missing_docs, rust_2018_idioms)]
 use aead::{
-    consts::{U0, U16},
-    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
+    consts::U0,
+    generic_array::{typenum::Unsigned, GenericArray},
     AeadCore, AeadInPlace, Error, Key, NewAead,
 };
 use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
-use core::{convert::TryInto, fmt, num::Wrapping};
 
 pub use aead;
 
 mod gf;
+mod sealed;
+
+use gf::GfElement;
+use sealed::{Counter, Sealed};
 
 /// MGM nonces
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
@@ -51,34 +54,36 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 /// MGM tags
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
-type Block = GenericArray<u8, U16>;
-type Counter = [Wrapping<u64>; 2];
+type Block<C> = GenericArray<u8, <C as BlockCipher>::BlockSize>;
 
-const ONE: Wrapping<u64> = Wrapping(1);
+/// Trait implemented for block cipher sizes usable with MGM.
+pub trait MgmBlockSize: sealed::Sealed {}
+
+impl<T: Sealed> MgmBlockSize for T {}
 
 /// Multilinear Galous Mode cipher
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block>,
+    C: BlockEncrypt,
+    C::BlockSize: MgmBlockSize,
 {
     cipher: C,
 }
 
 impl<C> Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block>,
+    C: BlockEncrypt,
+    C::BlockSize: MgmBlockSize,
 {
-    fn get_h(&self, counter: &Counter) -> Block {
-        let mut block = to_bytes(counter);
+    fn get_h(&self, counter: &Counter<C>) -> Block<C> {
+        let mut block = C::BlockSize::ctr2block(counter);
         self.cipher.encrypt_block(&mut block);
         block
     }
 
-    fn encrypt_counter(&self, counter: &Counter) -> Block {
-        let mut block = to_bytes(counter);
+    fn encrypt_counter(&self, counter: &Counter<C>) -> Block<C> {
+        let mut block = C::BlockSize::ctr2block(counter);
         self.cipher.encrypt_block(&mut block);
         block
     }
@@ -86,8 +91,8 @@ where
 
 impl<C> From<C> for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block>,
+    C: BlockEncrypt,
+    C::BlockSize: MgmBlockSize,
 {
     fn from(cipher: C) -> Self {
         Self { cipher }
@@ -96,8 +101,8 @@ where
 
 impl<C> NewAead for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
-    C::ParBlocks: ArrayLength<Block>,
+    C: BlockEncrypt + NewBlockCipher,
+    C::BlockSize: MgmBlockSize,
 {
     type KeySize = C::KeySize;
 
@@ -108,8 +113,8 @@ where
 
 impl<C> AeadCore for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block>,
+    C: BlockEncrypt,
+    C::BlockSize: MgmBlockSize,
 {
     type NonceSize = C::BlockSize;
     type TagSize = C::BlockSize;
@@ -118,8 +123,8 @@ where
 
 impl<C> AeadInPlace for Mgm<C>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block>,
+    C: BlockEncrypt,
+    C::BlockSize: MgmBlockSize,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -131,41 +136,42 @@ where
         if nonce[0] >> 7 != 0 {
             return Err(Error);
         }
+        let final_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
 
-        let mut enc_counter = *nonce;
-        let mut tag_counter = *nonce;
+        let mut enc_counter = nonce.clone();
+        let mut tag_counter = nonce.clone();
         enc_counter[0] &= 0b0111_1111;
         tag_counter[0] |= 0b1000_0000;
 
         self.cipher.encrypt_block(&mut enc_counter);
         self.cipher.encrypt_block(&mut tag_counter);
 
-        let mut enc_counter = to_u64_pair(&enc_counter);
-        let mut tag_counter = to_u64_pair(&tag_counter);
+        let mut enc_counter = C::BlockSize::block2ctr(&enc_counter);
+        let mut tag_counter = C::BlockSize::block2ctr(&tag_counter);
 
-        let mut tag = gf::Element::new();
+        let mut tag = <C::BlockSize as Sealed>::Element::new();
 
         // process adata
         let mut iter = adata.chunks_exact(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::from_slice) {
+        for chunk in (&mut iter).map(Block::<C>::from_slice) {
             tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_l(&mut tag_counter);
         }
         let rem = iter.remainder();
         if !rem.is_empty() {
-            let mut chunk: Block = Default::default();
+            let mut chunk: Block<C> = Default::default();
             chunk[..rem.len()].copy_from_slice(rem);
             tag.mul_sum(&self.get_h(&tag_counter), &chunk);
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_l(&mut tag_counter);
         }
 
         // process plaintext
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::from_mut_slice) {
+        for chunk in (&mut iter).map(Block::<C>::from_mut_slice) {
             xor(chunk, &self.encrypt_counter(&enc_counter));
             tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            enc_counter[1] += ONE;
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_r(&mut enc_counter);
+            C::BlockSize::incr_l(&mut tag_counter);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
@@ -173,16 +179,13 @@ where
             let e = self.encrypt_counter(&enc_counter);
             xor(rem, &e[..n]);
 
-            let mut ct = Block::default();
+            let mut ct = Block::<C>::default();
             ct[..n].copy_from_slice(rem);
 
             tag.mul_sum(&self.get_h(&tag_counter), &ct);
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_l(&mut tag_counter);
         }
 
-        let adata_len = Wrapping(8 * (adata.len() as u64));
-        let msg_len = Wrapping(8 * (buffer.len() as u64));
-        let final_block = to_bytes(&[adata_len, msg_len]);
         tag.mul_sum(&self.get_h(&tag_counter), &final_block);
 
         let mut tag = tag.into_bytes();
@@ -202,58 +205,56 @@ where
         if nonce[0] >> 7 != 0 {
             return Err(Error);
         }
+        let final_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
 
-        let mut enc_counter = *nonce;
-        let mut tag_counter = *nonce;
+        let mut enc_counter = nonce.clone();
+        let mut tag_counter = nonce.clone();
         enc_counter[0] &= 0b0111_1111;
         tag_counter[0] |= 0b1000_0000;
 
         self.cipher.encrypt_block(&mut enc_counter);
         self.cipher.encrypt_block(&mut tag_counter);
 
-        let mut dec_counter = to_u64_pair(&enc_counter);
-        let mut tag_counter = to_u64_pair(&tag_counter);
+        let mut dec_counter = C::BlockSize::block2ctr(&enc_counter);
+        let mut tag_counter = C::BlockSize::block2ctr(&tag_counter);
 
-        let mut tag = gf::Element::new();
+        let mut tag = <C::BlockSize as Sealed>::Element::new();
 
         // process adata
         let mut iter = adata.chunks_exact(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::from_slice) {
+        for chunk in (&mut iter).map(Block::<C>::from_slice) {
             tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_l(&mut tag_counter);
         }
         let rem = iter.remainder();
         if !rem.is_empty() {
-            let mut chunk: Block = Default::default();
+            let mut chunk: Block<C> = Default::default();
             chunk[..rem.len()].copy_from_slice(rem);
             tag.mul_sum(&self.get_h(&tag_counter), &chunk);
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_l(&mut tag_counter);
         }
 
         // process ciphertext
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::from_mut_slice) {
+        for chunk in (&mut iter).map(Block::<C>::from_mut_slice) {
             tag.mul_sum(&self.get_h(&tag_counter), chunk);
             xor(chunk, &self.encrypt_counter(&dec_counter));
-            dec_counter[1] += ONE;
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_r(&mut dec_counter);
+            C::BlockSize::incr_l(&mut tag_counter);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
             let n = rem.len();
             let e = self.encrypt_counter(&dec_counter);
 
-            let mut ct = Block::default();
+            let mut ct = Block::<C>::default();
             ct[..n].copy_from_slice(rem);
 
             tag.mul_sum(&self.get_h(&tag_counter), &ct);
             xor(rem, &e[..n]);
-            tag_counter[0] += ONE;
+            C::BlockSize::incr_l(&mut tag_counter);
         }
 
-        let adata_len = Wrapping(8 * (adata.len() as u64));
-        let msg_len = Wrapping(8 * (buffer.len() as u64));
-        let final_block = to_bytes(&[adata_len, msg_len]);
         tag.mul_sum(&self.get_h(&tag_counter), &final_block);
 
         let mut tag = tag.into_bytes();
@@ -272,31 +273,5 @@ fn xor(buf: &mut [u8], val: &[u8]) {
     debug_assert_eq!(buf.len(), val.len());
     for (a, b) in buf.iter_mut().zip(val.iter()) {
         *a ^= *b;
-    }
-}
-
-fn to_u64_pair(v: &Block) -> Counter {
-    [
-        Wrapping(u64::from_be_bytes(v[..8].try_into().unwrap())),
-        Wrapping(u64::from_be_bytes(v[8..].try_into().unwrap())),
-    ]
-}
-
-fn to_bytes(v: &Counter) -> Block {
-    let a = v[0].0.to_be_bytes();
-    let b = v[1].0.to_be_bytes();
-    let mut block = Block::default();
-    block[..8].copy_from_slice(&a);
-    block[8..].copy_from_slice(&b);
-    block
-}
-
-impl<C> fmt::Debug for Mgm<C>
-where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + fmt::Debug,
-    C::ParBlocks: ArrayLength<Block>,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "Mgm<{:?}>", self.cipher)
     }
 }

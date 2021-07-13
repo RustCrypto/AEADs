@@ -3,16 +3,18 @@
 //!
 //! More information can be found in the Intel whitepaper:
 //! https://software.intel.com/sites/default/files/managed/72/cc/clmul-wp-rev-2.02-2014-04-20.pdf
-use crate::Block;
+use super::GfElement;
+use aead::{consts::U16, generic_array::GenericArray};
+
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-pub(crate) struct Element(__m128i);
+type Block = GenericArray<u8, U16>;
 
-const BS_MASK1: i64 = 0x00010203_04050607;
-const BS_MASK2: i64 = 0x08090A0B_0C0D0E0F;
+const BS_MASK1: i64 = 0x0001_0203_0405_0607;
+const BS_MASK2: i64 = 0x0809_0A0B_0C0D_0E0F;
 
 macro_rules! xor {
     ($e1:expr, $e2:expr $(,)?) => {
@@ -23,14 +25,17 @@ macro_rules! xor {
     };
 }
 
-impl Element {
-    pub(crate) fn new() -> Self {
+pub struct Element128(__m128i);
+
+impl GfElement for Element128 {
+    type N = U16;
+
+    fn new() -> Self {
         Self(unsafe { _mm_setzero_si128() })
     }
 
-    #[allow(clippy::cast_ptr_alignment)]
     #[allow(clippy::many_single_char_names)]
-    pub(crate) fn mul_sum(&mut self, a: &Block, b: &Block) {
+    fn mul_sum(&mut self, a: &Block, b: &Block) {
         unsafe {
             let bs_mask = _mm_set_epi64x(BS_MASK1, BS_MASK2);
 
@@ -51,7 +56,7 @@ impl Element {
             let v2 = xor!(c, _mm_shuffle_epi32(t, 0x0E));
             let v3 = _mm_shuffle_epi32(c, 0x0E);
 
-            // Polynomial reduction
+            // reduce over polynominal f(w) = w^128 + w^7 + w^2 + w + 1
             let d = xor!(
                 v2,
                 _mm_srli_epi64(v3, 63),
@@ -81,7 +86,7 @@ impl Element {
         }
     }
 
-    pub(crate) fn into_bytes(self) -> Block {
+    fn into_bytes(self) -> Block {
         unsafe {
             let bs_mask = _mm_set_epi64x(BS_MASK1, BS_MASK2);
             core::mem::transmute(_mm_shuffle_epi8(self.0, bs_mask))

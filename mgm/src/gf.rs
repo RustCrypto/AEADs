@@ -17,7 +17,7 @@ mod imp128;
     target_feature = "ssse3",
     any(target_arch = "x86", target_arch = "x86_64")
 )))]
-#[path = "gf/gf128_soft.rs"]
+#[path = "gf/gf128_soft64.rs"]
 mod imp128;
 
 #[cfg(all(
@@ -33,7 +33,7 @@ mod imp64;
     target_feature = "sse2",
     any(target_arch = "x86", target_arch = "x86_64")
 )))]
-#[path = "gf/gf64_soft.rs"]
+#[path = "gf/gf64_soft64.rs"]
 mod imp64;
 
 pub use imp128::Element128;

@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.0.2 (2021-07-20)
 ### Changed
-- Pin `zeroize` dependency to v1.3 ([#349])
+- Pin `zeroize` dependency to v1.3 and `subtle` to v2.4 ([#349])
 
 [#349]: https://github.com/RustCrypto/AEADs/pull/349
 

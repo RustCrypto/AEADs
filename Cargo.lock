@@ -28,7 +28,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.9.2"
+version = "0.9.3"
 dependencies = [
  "aead",
  "aes",
@@ -42,7 +42,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.10.1"
+version = "0.10.2"
 dependencies = [
  "aead",
  "aes",
@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "aes-siv"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "aead",
  "aes",
@@ -138,7 +138,7 @@ dependencies = [
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "aead",
  "chacha20",
@@ -200,7 +200,7 @@ dependencies = [
 
 [[package]]
 name = "crypto_box"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "chacha20",
  "chacha20poly1305",
@@ -244,7 +244,7 @@ dependencies = [
 
 [[package]]
 name = "deoxys"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "aead",
  "aes",
@@ -627,7 +627,7 @@ dependencies = [
 
 [[package]]
 name = "xsalsa20poly1305"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "aead",
  "poly1305",

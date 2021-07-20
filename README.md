@@ -24,7 +24,6 @@ crate.
 | [`aes-siv`]          | [AES-SIV]                    | [![crates.io](https://img.shields.io/crates/v/aes-siv.svg)](https://crates.io/crates/aes-siv) | [![Documentation](https://docs.rs/aes-siv/badge.svg)](https://docs.rs/aes-siv) | 1.49 |
 | [`ccm`]              | [CCM]                        | [![crates.io](https://img.shields.io/crates/v/ccm.svg)](https://crates.io/crates/ccm) | [![Documentation](https://docs.rs/ccm/badge.svg)](https://docs.rs/ccm) | 1.41 |
 | [`chacha20poly1305`] | [(X)ChaCha20Poly1305]        | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) | 1.49 |
-| [`crypto_box`]       | [Curve25519XSalsa20Poly1305] | [![crates.io](https://img.shields.io/crates/v/crypto_box.svg)](https://crates.io/crates/crypto_box) | [![Documentation](https://docs.rs/crypto_box/badge.svg)](https://docs.rs/crypto_box) | 1.49 |
 | [`deoxys`]           | [Deoxys-I/II]                | [![crates.io](https://img.shields.io/crates/v/deoxys.svg)](https://crates.io/crates/deoxys) | [![Documentation](https://docs.rs/deoxys/badge.svg)](https://docs.rs/deoxys) | 1.50 |
 | [`eax`]              | [EAX]                        | [![crates.io](https://img.shields.io/crates/v/eax.svg)](https://crates.io/crates/eax) | [![Documentation](https://docs.rs/eax/badge.svg)](https://docs.rs/eax) | 1.41 |
 | [`mgm`]              | [MGM]                        | [![crates.io](https://img.shields.io/crates/v/mgm.svg)](https://crates.io/crates/mgm) | [![Documentation](https://docs.rs/mgm/badge.svg)](https://docs.rs/mgm) | 1.41 |
@@ -69,7 +68,6 @@ dual licensed as above, without any additional terms or conditions.
 [`ccm`]: https://github.com/RustCrypto/AEADs/tree/master/ccm
 [`chacha20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
 [`deoxys`]: https://github.com/RustCrypto/AEADs/tree/master/deoxys
-[`crypto_box`]: https://github.com/RustCrypto/AEADs/tree/master/crypto_box
 [`eax`]: https://github.com/RustCrypto/AEADs/tree/master/eax
 [`mgm`]: https://github.com/RustCrypto/AEADs/tree/master/mgm
 [`xsalsa20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/xsalsa20poly1305 

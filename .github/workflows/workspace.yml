@@ -37,7 +37,7 @@ jobs:
           components: clippy
           override: true
           profile: minimal
-      - run: cargo clippy --all --exclude crypto_box --all-features -- -D warnings
+      - run: cargo clippy --all --all-features -- -D warnings
 
   codecov:
     runs-on: ubuntu-latest

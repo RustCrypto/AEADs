@@ -29,6 +29,11 @@ crate.
 | [`mgm`]              | [MGM]                        | [![crates.io](https://img.shields.io/crates/v/mgm.svg)](https://crates.io/crates/mgm) | [![Documentation](https://docs.rs/mgm/badge.svg)](https://docs.rs/mgm) | 1.41 |
 | [`xsalsa20poly1305`] | [XSalsa20Poly1305]           | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) | 1.49 |
 
+## MSRV Policy
+
+Minimum Supported Rust Version (MSRV) can be changed in the future, but it will be
+done with a minor version bump.
+
 ## License
 
 All crates licensed under either of

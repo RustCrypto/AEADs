@@ -157,12 +157,15 @@ pub use aead;
 use self::cipher::Cipher;
 use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
 use aead::{
-    consts::{U0, U12, U16, U24, U32},
+    consts::{U0, U12, U16, U32},
     generic_array::{ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, NewAead,
 };
 use core::marker::PhantomData;
 use zeroize::Zeroize;
+
+#[cfg(feature = "xchacha20")]
+use aead::consts::U24;
 
 #[cfg(feature = "chacha20")]
 use chacha20::ChaCha20;

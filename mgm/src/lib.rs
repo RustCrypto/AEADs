@@ -78,11 +78,13 @@ where
     C: BlockEncrypt,
     C::BlockSize: MgmBlockSize,
 {
-    fn next_ks_block(&self, counter: &mut Counter<C>) -> Block<C> {
+    fn apply_ks_block(&self, counter: &mut Counter<C>, buf: &mut [u8]) {
         let mut block = C::BlockSize::ctr2block(counter);
         self.cipher.encrypt_block(&mut block);
+        for i in 0..core::cmp::min(block.len(), buf.len()) {
+            buf[i] ^= block[i];
+        }
         C::BlockSize::incr_r(counter);
-        block
     }
 
     fn update_tag(&self, tag: &mut Element<C>, tag_ctr: &mut Counter<C>, block: &Block<C>) {
@@ -168,16 +170,15 @@ where
         // process plaintext
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
         for block in (&mut iter).map(Block::<C>::from_mut_slice) {
-            xor(block, &self.next_ks_block(&mut enc_ctr));
+            self.apply_ks_block(&mut enc_ctr, block);
             self.update_tag(&mut tag, &mut tag_ctr, block);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
-            let n = rem.len();
-            let ks_block = self.next_ks_block(&mut enc_ctr);
-            xor(rem, &ks_block[..n]);
+            self.apply_ks_block(&mut enc_ctr, rem);
 
             let mut block = Block::<C>::default();
+            let n = rem.len();
             block[..n].copy_from_slice(rem);
             self.update_tag(&mut tag, &mut tag_ctr, &block);
         }
@@ -254,22 +255,13 @@ where
 
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
         for block in (&mut iter).map(Block::<C>::from_mut_slice) {
-            xor(block, &self.next_ks_block(&mut dec_ctr));
+            self.apply_ks_block(&mut dec_ctr, block);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
-            let n = rem.len();
-            let ks_block = self.next_ks_block(&mut dec_ctr);
-            xor(rem, &ks_block[..n]);
+            self.apply_ks_block(&mut dec_ctr, rem);
         }
 
         Ok(())
-    }
-}
-
-fn xor(buf: &mut [u8], val: &[u8]) {
-    debug_assert_eq!(buf.len(), val.len());
-    for (a, b) in buf.iter_mut().zip(val.iter()) {
-        *a ^= *b;
     }
 }

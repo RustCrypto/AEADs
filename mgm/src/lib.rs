@@ -39,6 +39,7 @@ use aead::{
     AeadCore, AeadInPlace, Error, Key, NewAead,
 };
 use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
+use subtle::ConstantTimeEq;
 
 pub use aead;
 
@@ -138,55 +139,55 @@ where
         }
         let final_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
 
-        let mut enc_counter = nonce.clone();
-        let mut tag_counter = nonce.clone();
-        enc_counter[0] &= 0b0111_1111;
-        tag_counter[0] |= 0b1000_0000;
+        let mut enc_ctr = nonce.clone();
+        let mut tag_ctr = nonce.clone();
+        enc_ctr[0] &= 0b0111_1111;
+        tag_ctr[0] |= 0b1000_0000;
 
-        self.cipher.encrypt_block(&mut enc_counter);
-        self.cipher.encrypt_block(&mut tag_counter);
+        self.cipher.encrypt_block(&mut enc_ctr);
+        self.cipher.encrypt_block(&mut tag_ctr);
 
-        let mut enc_counter = C::BlockSize::block2ctr(&enc_counter);
-        let mut tag_counter = C::BlockSize::block2ctr(&tag_counter);
+        let mut enc_ctr = C::BlockSize::block2ctr(&enc_ctr);
+        let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
 
         let mut tag = <C::BlockSize as Sealed>::Element::new();
 
         // process adata
         let mut iter = adata.chunks_exact(C::BlockSize::USIZE);
         for chunk in (&mut iter).map(Block::<C>::from_slice) {
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+            tag.mul_sum(&self.get_h(&tag_ctr), chunk);
+            C::BlockSize::incr_l(&mut tag_ctr);
         }
         let rem = iter.remainder();
         if !rem.is_empty() {
             let mut chunk: Block<C> = Default::default();
             chunk[..rem.len()].copy_from_slice(rem);
-            tag.mul_sum(&self.get_h(&tag_counter), &chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+            tag.mul_sum(&self.get_h(&tag_ctr), &chunk);
+            C::BlockSize::incr_l(&mut tag_ctr);
         }
 
         // process plaintext
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
         for chunk in (&mut iter).map(Block::<C>::from_mut_slice) {
-            xor(chunk, &self.encrypt_counter(&enc_counter));
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            C::BlockSize::incr_r(&mut enc_counter);
-            C::BlockSize::incr_l(&mut tag_counter);
+            xor(chunk, &self.encrypt_counter(&enc_ctr));
+            tag.mul_sum(&self.get_h(&tag_ctr), chunk);
+            C::BlockSize::incr_r(&mut enc_ctr);
+            C::BlockSize::incr_l(&mut tag_ctr);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
             let n = rem.len();
-            let e = self.encrypt_counter(&enc_counter);
+            let e = self.encrypt_counter(&enc_ctr);
             xor(rem, &e[..n]);
 
             let mut ct = Block::<C>::default();
             ct[..n].copy_from_slice(rem);
 
-            tag.mul_sum(&self.get_h(&tag_counter), &ct);
-            C::BlockSize::incr_l(&mut tag_counter);
+            tag.mul_sum(&self.get_h(&tag_ctr), &ct);
+            C::BlockSize::incr_l(&mut tag_ctr);
         }
 
-        tag.mul_sum(&self.get_h(&tag_counter), &final_block);
+        tag.mul_sum(&self.get_h(&tag_ctr), &final_block);
 
         let mut tag = tag.into_bytes();
         self.cipher.encrypt_block(&mut tag);
@@ -205,67 +206,74 @@ where
         if nonce[0] >> 7 != 0 {
             return Err(Error);
         }
-        let final_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
 
-        let mut enc_counter = nonce.clone();
-        let mut tag_counter = nonce.clone();
-        enc_counter[0] &= 0b0111_1111;
-        tag_counter[0] |= 0b1000_0000;
+        let mut enc_ctr = nonce.clone();
+        let mut tag_ctr = nonce.clone();
+        enc_ctr[0] &= 0b0111_1111;
+        tag_ctr[0] |= 0b1000_0000;
 
-        self.cipher.encrypt_block(&mut enc_counter);
-        self.cipher.encrypt_block(&mut tag_counter);
+        self.cipher.encrypt_block(&mut enc_ctr);
+        self.cipher.encrypt_block(&mut tag_ctr);
 
-        let mut dec_counter = C::BlockSize::block2ctr(&enc_counter);
-        let mut tag_counter = C::BlockSize::block2ctr(&tag_counter);
-
+        let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
         let mut tag = <C::BlockSize as Sealed>::Element::new();
 
         // process adata
         let mut iter = adata.chunks_exact(C::BlockSize::USIZE);
         for chunk in (&mut iter).map(Block::<C>::from_slice) {
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+            tag.mul_sum(&self.get_h(&tag_ctr), chunk);
+            C::BlockSize::incr_l(&mut tag_ctr);
         }
         let rem = iter.remainder();
         if !rem.is_empty() {
             let mut chunk: Block<C> = Default::default();
             chunk[..rem.len()].copy_from_slice(rem);
-            tag.mul_sum(&self.get_h(&tag_counter), &chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+            tag.mul_sum(&self.get_h(&tag_ctr), &chunk);
+            C::BlockSize::incr_l(&mut tag_ctr);
         }
 
-        // process ciphertext
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
         for chunk in (&mut iter).map(Block::<C>::from_mut_slice) {
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
+            tag.mul_sum(&self.get_h(&tag_ctr), chunk);
+            C::BlockSize::incr_l(&mut tag_ctr);
+        }
+        let rem = iter.into_remainder();
+        if !rem.is_empty() {
+            let n = rem.len();
+
+            let mut ct = Block::<C>::default();
+            ct[..n].copy_from_slice(rem);
+
+            tag.mul_sum(&self.get_h(&tag_ctr), &ct);
+            C::BlockSize::incr_l(&mut tag_ctr);
+        }
+
+        let final_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
+        tag.mul_sum(&self.get_h(&tag_ctr), &final_block);
+
+        let mut tag = tag.into_bytes();
+        self.cipher.encrypt_block(&mut tag);
+
+        if expected_tag.ct_eq(&tag).unwrap_u8() == 0 {
+            return Err(Error);
+        }
+
+        // decrypt ciphertext
+        let mut dec_counter = C::BlockSize::block2ctr(&enc_ctr);
+        let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
+        for chunk in (&mut iter).map(Block::<C>::from_mut_slice) {
             xor(chunk, &self.encrypt_counter(&dec_counter));
             C::BlockSize::incr_r(&mut dec_counter);
-            C::BlockSize::incr_l(&mut tag_counter);
+            C::BlockSize::incr_l(&mut tag_ctr);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
             let n = rem.len();
             let e = self.encrypt_counter(&dec_counter);
-
-            let mut ct = Block::<C>::default();
-            ct[..n].copy_from_slice(rem);
-
-            tag.mul_sum(&self.get_h(&tag_counter), &ct);
             xor(rem, &e[..n]);
-            C::BlockSize::incr_l(&mut tag_counter);
         }
 
-        tag.mul_sum(&self.get_h(&tag_counter), &final_block);
-
-        let mut tag = tag.into_bytes();
-        self.cipher.encrypt_block(&mut tag);
-
-        use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
-            Ok(())
-        } else {
-            Err(Error)
-        }
+        Ok(())
     }
 }
 

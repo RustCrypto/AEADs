@@ -39,6 +39,7 @@ use aead::{
     AeadCore, AeadInPlace, Error, Key, NewAead,
 };
 use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
+use subtle::ConstantTimeEq;
 
 pub use aead;
 
@@ -55,6 +56,7 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 type Block<C> = GenericArray<u8, <C as BlockCipher>::BlockSize>;
+type Element<C> = <<C as BlockCipher>::BlockSize as Sealed>::Element;
 
 /// Trait implemented for block cipher sizes usable with MGM.
 pub trait MgmBlockSize: sealed::Sealed {}
@@ -76,16 +78,20 @@ where
     C: BlockEncrypt,
     C::BlockSize: MgmBlockSize,
 {
-    fn get_h(&self, counter: &Counter<C>) -> Block<C> {
+    fn apply_ks_block(&self, counter: &mut Counter<C>, buf: &mut [u8]) {
         let mut block = C::BlockSize::ctr2block(counter);
         self.cipher.encrypt_block(&mut block);
-        block
+        for i in 0..core::cmp::min(block.len(), buf.len()) {
+            buf[i] ^= block[i];
+        }
+        C::BlockSize::incr_r(counter);
     }
 
-    fn encrypt_counter(&self, counter: &Counter<C>) -> Block<C> {
-        let mut block = C::BlockSize::ctr2block(counter);
-        self.cipher.encrypt_block(&mut block);
-        block
+    fn update_tag(&self, tag: &mut Element<C>, tag_ctr: &mut Counter<C>, block: &Block<C>) {
+        let mut h = C::BlockSize::ctr2block(tag_ctr);
+        self.cipher.encrypt_block(&mut h);
+        tag.mul_sum(&h, block);
+        C::BlockSize::incr_l(tag_ctr);
     }
 }
 
@@ -136,57 +142,49 @@ where
         if nonce[0] >> 7 != 0 {
             return Err(Error);
         }
-        let final_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
 
-        let mut enc_counter = nonce.clone();
-        let mut tag_counter = nonce.clone();
-        enc_counter[0] &= 0b0111_1111;
-        tag_counter[0] |= 0b1000_0000;
-
-        self.cipher.encrypt_block(&mut enc_counter);
-        self.cipher.encrypt_block(&mut tag_counter);
-
-        let mut enc_counter = C::BlockSize::block2ctr(&enc_counter);
-        let mut tag_counter = C::BlockSize::block2ctr(&tag_counter);
+        let mut tag_ctr = nonce.clone();
+        tag_ctr[0] |= 0b1000_0000;
+        self.cipher.encrypt_block(&mut tag_ctr);
+        let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
 
         let mut tag = <C::BlockSize as Sealed>::Element::new();
 
         // process adata
         let mut iter = adata.chunks_exact(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::<C>::from_slice) {
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+        for block in (&mut iter).map(Block::<C>::from_slice) {
+            self.update_tag(&mut tag, &mut tag_ctr, block);
         }
         let rem = iter.remainder();
         if !rem.is_empty() {
-            let mut chunk: Block<C> = Default::default();
-            chunk[..rem.len()].copy_from_slice(rem);
-            tag.mul_sum(&self.get_h(&tag_counter), &chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+            let mut block: Block<C> = Default::default();
+            block[..rem.len()].copy_from_slice(rem);
+            self.update_tag(&mut tag, &mut tag_ctr, &block);
         }
+
+        let mut enc_ctr = nonce.clone();
+        enc_ctr[0] &= 0b0111_1111;
+        self.cipher.encrypt_block(&mut enc_ctr);
+        let mut enc_ctr = C::BlockSize::block2ctr(&enc_ctr);
 
         // process plaintext
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::<C>::from_mut_slice) {
-            xor(chunk, &self.encrypt_counter(&enc_counter));
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            C::BlockSize::incr_r(&mut enc_counter);
-            C::BlockSize::incr_l(&mut tag_counter);
+        for block in (&mut iter).map(Block::<C>::from_mut_slice) {
+            self.apply_ks_block(&mut enc_ctr, block);
+            self.update_tag(&mut tag, &mut tag_ctr, block);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
+            self.apply_ks_block(&mut enc_ctr, rem);
+
+            let mut block = Block::<C>::default();
             let n = rem.len();
-            let e = self.encrypt_counter(&enc_counter);
-            xor(rem, &e[..n]);
-
-            let mut ct = Block::<C>::default();
-            ct[..n].copy_from_slice(rem);
-
-            tag.mul_sum(&self.get_h(&tag_counter), &ct);
-            C::BlockSize::incr_l(&mut tag_counter);
+            block[..n].copy_from_slice(rem);
+            self.update_tag(&mut tag, &mut tag_ctr, &block);
         }
 
-        tag.mul_sum(&self.get_h(&tag_counter), &final_block);
+        let block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
+        self.update_tag(&mut tag, &mut tag_ctr, &block);
 
         let mut tag = tag.into_bytes();
         self.cipher.encrypt_block(&mut tag);
@@ -205,73 +203,65 @@ where
         if nonce[0] >> 7 != 0 {
             return Err(Error);
         }
-        let final_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
 
-        let mut enc_counter = nonce.clone();
-        let mut tag_counter = nonce.clone();
-        enc_counter[0] &= 0b0111_1111;
-        tag_counter[0] |= 0b1000_0000;
+        let mut tag_ctr = nonce.clone();
+        tag_ctr[0] |= 0b1000_0000;
+        self.cipher.encrypt_block(&mut tag_ctr);
 
-        self.cipher.encrypt_block(&mut enc_counter);
-        self.cipher.encrypt_block(&mut tag_counter);
-
-        let mut dec_counter = C::BlockSize::block2ctr(&enc_counter);
-        let mut tag_counter = C::BlockSize::block2ctr(&tag_counter);
-
+        let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
         let mut tag = <C::BlockSize as Sealed>::Element::new();
 
         // process adata
         let mut iter = adata.chunks_exact(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::<C>::from_slice) {
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+        for block in (&mut iter).map(Block::<C>::from_slice) {
+            self.update_tag(&mut tag, &mut tag_ctr, block);
         }
         let rem = iter.remainder();
         if !rem.is_empty() {
-            let mut chunk: Block<C> = Default::default();
-            chunk[..rem.len()].copy_from_slice(rem);
-            tag.mul_sum(&self.get_h(&tag_counter), &chunk);
-            C::BlockSize::incr_l(&mut tag_counter);
+            let mut block: Block<C> = Default::default();
+            block[..rem.len()].copy_from_slice(rem);
+            self.update_tag(&mut tag, &mut tag_ctr, &block);
         }
 
-        // process ciphertext
         let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
-        for chunk in (&mut iter).map(Block::<C>::from_mut_slice) {
-            tag.mul_sum(&self.get_h(&tag_counter), chunk);
-            xor(chunk, &self.encrypt_counter(&dec_counter));
-            C::BlockSize::incr_r(&mut dec_counter);
-            C::BlockSize::incr_l(&mut tag_counter);
+        for block in (&mut iter).map(Block::<C>::from_mut_slice) {
+            self.update_tag(&mut tag, &mut tag_ctr, block);
         }
         let rem = iter.into_remainder();
         if !rem.is_empty() {
             let n = rem.len();
-            let e = self.encrypt_counter(&dec_counter);
 
-            let mut ct = Block::<C>::default();
-            ct[..n].copy_from_slice(rem);
+            let mut block = Block::<C>::default();
+            block[..n].copy_from_slice(rem);
 
-            tag.mul_sum(&self.get_h(&tag_counter), &ct);
-            xor(rem, &e[..n]);
-            C::BlockSize::incr_l(&mut tag_counter);
+            self.update_tag(&mut tag, &mut tag_ctr, &block);
         }
 
-        tag.mul_sum(&self.get_h(&tag_counter), &final_block);
+        let block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
+        self.update_tag(&mut tag, &mut tag_ctr, &block);
 
         let mut tag = tag.into_bytes();
         self.cipher.encrypt_block(&mut tag);
 
-        use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
-            Ok(())
-        } else {
-            Err(Error)
+        if expected_tag.ct_eq(&tag).unwrap_u8() == 0 {
+            return Err(Error);
         }
-    }
-}
 
-fn xor(buf: &mut [u8], val: &[u8]) {
-    debug_assert_eq!(buf.len(), val.len());
-    for (a, b) in buf.iter_mut().zip(val.iter()) {
-        *a ^= *b;
+        // decrypt ciphertext
+        let mut dec_ctr = nonce.clone();
+        dec_ctr[0] &= 0b0111_1111;
+        self.cipher.encrypt_block(&mut dec_ctr);
+        let mut dec_ctr = C::BlockSize::block2ctr(&dec_ctr);
+
+        let mut iter = buffer.chunks_exact_mut(C::BlockSize::USIZE);
+        for block in (&mut iter).map(Block::<C>::from_mut_slice) {
+            self.apply_ks_block(&mut dec_ctr, block);
+        }
+        let rem = iter.into_remainder();
+        if !rem.is_empty() {
+            self.apply_ks_block(&mut dec_ctr, rem);
+        }
+
+        Ok(())
     }
 }

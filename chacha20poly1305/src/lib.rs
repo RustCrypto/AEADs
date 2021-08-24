@@ -3,14 +3,16 @@
 //! cipher amenable to fast, constant-time implementations in software, based on
 //! the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
 //!
-//! This crate contains pure Rust implementations of `ChaCha20Poly1305`
+//! This crate contains pure Rust implementations of [`ChaCha20Poly1305`]
 //! (with optional AVX2 acceleration) as well as the following variants thereof:
 //!
 //! - [`XChaCha20Poly1305`] - ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
 //! - [`ChaCha8Poly1305`] / [`ChaCha12Poly1305`] - non-standard, reduced-round variants
 //!   (gated under the `reduced-round` Cargo feature). See the [Too Much Crypto][5]
 //!   paper for background and rationale on when these constructions could be used.
-//!   When in doubt, prefer `ChaCha20Poly1305`.
+//!   When in doubt, prefer [`ChaCha20Poly1305`].
+//! - [`XChaCha8Poly1305`] / [`XChaCha12Poly1305`] - same as above,
+//!   but with an extended 192-bit (24-byte) nonce.
 //!
 //! ## Security Notes
 //!
@@ -87,6 +89,51 @@
 //! # }
 //! ```
 //!
+//! ## [`XChaCha20Poly1305`]
+//!
+//! ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
+//!
+//! The `xchacha20` Cargo feature must be enabled in order to use this
+//! (which it is by default).
+//!
+//! The construction is an adaptation of the same techniques used by
+//! XSalsa20 as described in the paper "Extending the Salsa20 Nonce"
+//! to the 96-bit nonce variant of ChaCha20, which derive a
+//! separate subkey/nonce for each extended nonce:
+//!
+//! <https://cr.yp.to/snuffle/xsalsa-20081128.pdf>
+//!
+//! No authoritative specification exists for XChaCha20Poly1305, however the
+//! construction has "rough consensus and running code" in the form of
+//! several interoperable libraries and protocols (e.g. libsodium, WireGuard)
+//! and is documented in an (expired) IETF draft, which also applies the
+//! proof from the XSalsa20 paper to the construction in order to demonstrate
+//! that XChaCha20 is secure if ChaCha20 is secure (see Section 3.1):
+//!
+//! <https://tools.ietf.org/html/draft-arciszewski-xchacha-03>
+//!
+//! It is worth noting that NaCl/libsodium's default "secretbox" algorithm is
+//! XSalsa20Poly1305, not XChaCha20Poly1305, and thus not compatible with
+//! this library. If you are interested in that construction, please see the
+//! `xsalsa20poly1305` crate:
+//!
+//! <https://docs.rs/xsalsa20poly1305/>
+//!
+//! # Usage
+//!
+//! ```
+//! use chacha20poly1305::{XChaCha20Poly1305, Key, XNonce};
+//! use chacha20poly1305::aead::{Aead, NewAead};
+//!
+//! let key = Key::from_slice(b"an example very very secret key."); // 32-bytes
+//! let aead = XChaCha20Poly1305::new(key);
+//!
+//! let nonce = XNonce::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
+//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
+//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! assert_eq!(&plaintext, b"plaintext message");
+//! ```
+//!
 //! [1]: https://tools.ietf.org/html/rfc8439
 //! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
@@ -105,19 +152,13 @@
 
 mod cipher;
 
-#[cfg(feature = "xchacha20poly1305")]
-mod xchacha20poly1305;
-
 pub use aead;
-
-#[cfg(feature = "xchacha20poly1305")]
-pub use xchacha20poly1305::{XChaCha20Poly1305, XNonce};
 
 use self::cipher::Cipher;
 use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
 use aead::{
-    consts::{U0, U12, U16, U32},
-    generic_array::GenericArray,
+    consts::{U0, U12, U16, U24, U32},
+    generic_array::{ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, NewAead,
 };
 use core::marker::PhantomData;
@@ -126,8 +167,14 @@ use zeroize::Zeroize;
 #[cfg(feature = "chacha20")]
 use chacha20::ChaCha20;
 
-#[cfg(feature = "reduced-round")]
+#[cfg(feature = "xchacha20")]
+use chacha20::XChaCha20;
+
+#[cfg(feature = "chacha20-reduced-round")]
 use chacha20::{ChaCha12, ChaCha8};
+
+#[cfg(feature = "xchacha20-reduced-round")]
+use chacha20::{XChaCha12, XChaCha8};
 
 /// Key type (256-bits/32-bytes).
 ///
@@ -142,6 +189,12 @@ pub type Key = GenericArray<u8, U32>;
 /// Implemented as an alias for [`GenericArray`].
 pub type Nonce = GenericArray<u8, U12>;
 
+/// XNonce type (192-bits/24-bytes).
+///
+/// Implemented as an alias for [`GenericArray`].
+#[cfg(feature = "xchacha20")]
+pub type XNonce = GenericArray<u8, U24>;
+
 /// Poly1305 tag.
 ///
 /// Implemented as an alias for [`GenericArray`].
@@ -150,24 +203,39 @@ pub type Tag = GenericArray<u8, U16>;
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
 #[cfg(feature = "chacha20")]
 #[cfg_attr(docsrs, doc(cfg(feature = "chacha20")))]
-pub type ChaCha20Poly1305 = ChaChaPoly1305<ChaCha20>;
+pub type ChaCha20Poly1305 = ChaChaPoly1305<ChaCha20, U12>;
+
+/// XChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
+#[cfg(feature = "xchacha20")]
+#[cfg_attr(docsrs, doc(cfg(feature = "xchacha20")))]
+pub type XChaCha20Poly1305 = ChaChaPoly1305<XChaCha20, U24>;
 
 /// ChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "reduced-round")]
+#[cfg(feature = "chacha20-reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
-pub type ChaCha8Poly1305 = ChaChaPoly1305<ChaCha8>;
+pub type ChaCha8Poly1305 = ChaChaPoly1305<ChaCha8, U12>;
+
+/// XChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
+#[cfg(feature = "xchacha20-reduced-round")]
+#[cfg_attr(docsrs, doc(cfg(feature = "xchacha20-reduced-round")))]
+pub type XChaCha8Poly1305 = ChaChaPoly1305<XChaCha8, U24>;
 
 /// ChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "reduced-round")]
+#[cfg(feature = "chacha20-reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
-pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaCha12>;
+pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaCha12, U12>;
+
+/// XChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
+#[cfg(feature = "xchacha20-reduced-round")]
+#[cfg_attr(docsrs, doc(cfg(feature = "xchacha20-reduced-round")))]
+pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
 
 /// Generic ChaCha+Poly1305 Authenticated Encryption with Additional Data (AEAD) construction.
 ///
 /// See the [toplevel documentation](index.html) for a usage example.
-pub struct ChaChaPoly1305<C>
+pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12>
 where
-    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
 {
     /// Secret key
     key: GenericArray<u8, U32>,
@@ -176,9 +244,10 @@ where
     stream_cipher: PhantomData<C>,
 }
 
-impl<C> NewAead for ChaChaPoly1305<C>
+impl<C, N> NewAead for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    N: ArrayLength<u8>,
 {
     type KeySize = U32;
 
@@ -190,22 +259,24 @@ where
     }
 }
 
-impl<C> AeadCore for ChaChaPoly1305<C>
+impl<C, N> AeadCore for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    N: ArrayLength<u8>,
 {
-    type NonceSize = U12;
+    type NonceSize = N;
     type TagSize = U16;
     type CiphertextOverhead = U0;
 }
 
-impl<C> AeadInPlace for ChaChaPoly1305<C>
+impl<C, N> AeadInPlace for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    N: ArrayLength<u8>,
 {
     fn encrypt_in_place_detached(
         &self,
-        nonce: &Nonce,
+        nonce: &aead::Nonce<Self>,
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
@@ -214,7 +285,7 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &Nonce,
+        nonce: &aead::Nonce<Self>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
@@ -227,9 +298,10 @@ where
     }
 }
 
-impl<C> Clone for ChaChaPoly1305<C>
+impl<C, N> Clone for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    N: ArrayLength<u8>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -239,9 +311,10 @@ where
     }
 }
 
-impl<C> Drop for ChaChaPoly1305<C>
+impl<C, N> Drop for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = U12> + StreamCipher + StreamCipherSeek,
+    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    N: ArrayLength<u8>,
 {
     fn drop(&mut self) {
         self.key.as_mut_slice().zeroize();

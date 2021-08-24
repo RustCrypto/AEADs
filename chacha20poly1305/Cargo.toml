@@ -28,13 +28,16 @@ zeroize = { version = "=1.3", default-features = false }
 aead = { version = "0.4", features = ["dev"], default-features = false }
 
 [features]
-default = ["alloc", "chacha20", "xchacha20poly1305"]
+default = ["alloc", "chacha20", "xchacha20"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
-reduced-round = ["chacha20"]
 stream = ["aead/stream"]
-xchacha20poly1305 = ["chacha20/xchacha"]
+xchacha20 = ["chacha20/xchacha"]
+xchacha20poly1305 = ["xchacha20"] # alias
+reduced-round = ["chacha20-reduced-round", "xchacha20-reduced-round"]
+chacha20-reduced-round = ["chacha20"]
+xchacha20-reduced-round = ["xchacha20"]
 force-soft = ["chacha20/force-soft", "poly1305/force-soft"]
 
 [package.metadata.docs.rs]

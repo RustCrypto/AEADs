@@ -53,9 +53,9 @@ fn encrypt_msg_only_16kb(b: &mut Bencher) {
 fn decrypt_aad_only_16kb(b: &mut Bencher) {
     let c = Mgm::<Kuznyechik>::new(GenericArray::from_slice(&KEY));
     let nonce = GenericArray::from_slice(&NONCE);
-    let tag = GenericArray::default();
     let aad = vec![0; 16 * 1024];
     let mut buf = [];
+    let tag = c.encrypt_in_place_detached(nonce, &aad, &mut []).unwrap();
 
     #[allow(unused_must_use)]
     b.iter(|| {
@@ -71,13 +71,14 @@ fn decrypt_aad_only_16kb(b: &mut Bencher) {
 fn decrypt_msg_only_16kb(b: &mut Bencher) {
     let c = Mgm::<Kuznyechik>::new(GenericArray::from_slice(&KEY));
     let nonce = GenericArray::from_slice(&NONCE);
-    let tag = GenericArray::default();
     let aad = [];
-    let mut buf = vec![0; 16 * 1024];
+    let mut buf = vec![0u8; 16 * 1024];
+    let tag = c.encrypt_in_place_detached(nonce, &aad, &mut buf).unwrap();
 
     #[allow(unused_must_use)]
     b.iter(|| {
-        let (aad, buf, tag) = test::black_box((&aad, &mut buf, &tag));
+        let mut buf_cpy = buf.clone();
+        let (aad, buf, tag) = test::black_box((&aad, &mut buf_cpy, &tag));
         let res = c.decrypt_in_place_detached(nonce, aad, buf, tag);
         test::black_box(res);
     });

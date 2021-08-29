@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.0 (2021-08-29)
+### Changed
+- Bump `chacha20` to v0.9: now a hard dependency ([#365])
+- MSRV 1.51+ ([#365])
+
+### Removed
+- `chacha20` feature: now a hard dependency ([#365])
+- `xchacha20` feature: now always-on ([#365])
+- `chacha20-reduced-round` and `xchacha20-reduced-round` have been coalesced
+  into the `reduced-round` feature ([#365])
+
+[#365]: https://github.com/RustCrypto/AEADs/pull/365
+
 ## 0.8.2 (2021-08-28)
 ### Added
 - `XChaCha*` reduced-round variants ([#355])

@@ -114,7 +114,7 @@ dependencies = [
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.9.0-pre"
+version = "0.9.0"
 dependencies = [
  "aead",
  "chacha20",

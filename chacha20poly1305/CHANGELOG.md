@@ -5,9 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.8.2 (2021-08-28)
+### Added
+- `XChaCha*` reduced-round variants ([#355])
+
 ### Changed
 - Relax `subtle` and `zeroize` requirements ([#360])
 
+[#355]: https://github.com/RustCrypto/AEADs/pull/355
 [#360]: https://github.com/RustCrypto/AEADs/pull/360
 
 ## 0.8.1 (2021-07-20)

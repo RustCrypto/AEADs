@@ -1,6 +1,6 @@
 [package]
 name = "chacha20poly1305"
-version = "0.8.2"
+version = "0.9.0-pre"
 description = """
 Pure Rust implementation of the ChaCha20Poly1305 Authenticated Encryption
 with Additional Data Cipher (RFC 8439) with optional architecture-specific
@@ -19,25 +19,21 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.4", default-features = false }
-chacha20 = { version = "0.7", features = ["zeroize"], optional = true }
+chacha20 = { version = "0.8", features = ["zeroize"] }
 cipher = "0.3"
 poly1305 = "0.7"
-zeroize = { version = ">=1, <1.4", default-features = false }
+zeroize = { version = ">=1, <1.5", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
 
 [features]
-default = ["alloc", "chacha20", "xchacha20"]
+default = ["alloc"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
-xchacha20 = ["chacha20/xchacha"]
-xchacha20poly1305 = ["xchacha20"] # alias
-reduced-round = ["chacha20-reduced-round", "xchacha20-reduced-round"]
-chacha20-reduced-round = ["chacha20"]
-xchacha20-reduced-round = ["xchacha20"]
+reduced-round = []
 force-soft = ["chacha20/force-soft", "poly1305/force-soft"]
 
 [package.metadata.docs.rs]

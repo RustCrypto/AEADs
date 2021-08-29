@@ -31,6 +31,8 @@
 //! # Usage
 //!
 //! ```
+//! # #[cfg(feature = "alloc")]
+//! # {
 //! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
 //! use chacha20poly1305::aead::{Aead, NewAead};
 //!
@@ -45,6 +47,7 @@
 //!     .expect("decryption failure!");  // NOTE: handle this error to avoid panics!
 //!
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -122,6 +125,8 @@
 //! # Usage
 //!
 //! ```
+//! # #[cfg(feature = "alloc")]
+//! # {
 //! use chacha20poly1305::{XChaCha20Poly1305, Key, XNonce};
 //! use chacha20poly1305::aead::{Aead, NewAead};
 //!
@@ -132,6 +137,7 @@
 //! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
 //! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # }
 //! ```
 //!
 //! [1]: https://tools.ietf.org/html/rfc8439
@@ -157,27 +163,17 @@ pub use aead;
 use self::cipher::Cipher;
 use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
 use aead::{
-    consts::{U0, U12, U16, U32},
+    consts::{U0, U12, U16, U24, U32},
     generic_array::{ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, NewAead,
 };
 use core::marker::PhantomData;
 use zeroize::Zeroize;
 
-#[cfg(feature = "xchacha20")]
-use aead::consts::U24;
+use chacha20::{ChaCha20, XChaCha20};
 
-#[cfg(feature = "chacha20")]
-use chacha20::ChaCha20;
-
-#[cfg(feature = "xchacha20")]
-use chacha20::XChaCha20;
-
-#[cfg(feature = "chacha20-reduced-round")]
-use chacha20::{ChaCha12, ChaCha8};
-
-#[cfg(feature = "xchacha20-reduced-round")]
-use chacha20::{XChaCha12, XChaCha8};
+#[cfg(feature = "reduced-round")]
+use chacha20::{ChaCha12, ChaCha8, XChaCha12, XChaCha8};
 
 /// Key type (256-bits/32-bytes).
 ///
@@ -195,7 +191,6 @@ pub type Nonce = GenericArray<u8, U12>;
 /// XNonce type (192-bits/24-bytes).
 ///
 /// Implemented as an alias for [`GenericArray`].
-#[cfg(feature = "xchacha20")]
 pub type XNonce = GenericArray<u8, U24>;
 
 /// Poly1305 tag.
@@ -204,33 +199,29 @@ pub type XNonce = GenericArray<u8, U24>;
 pub type Tag = GenericArray<u8, U16>;
 
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "chacha20")]
-#[cfg_attr(docsrs, doc(cfg(feature = "chacha20")))]
 pub type ChaCha20Poly1305 = ChaChaPoly1305<ChaCha20, U12>;
 
 /// XChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "xchacha20")]
-#[cfg_attr(docsrs, doc(cfg(feature = "xchacha20")))]
 pub type XChaCha20Poly1305 = ChaChaPoly1305<XChaCha20, U24>;
 
 /// ChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "chacha20-reduced-round")]
+#[cfg(feature = "reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
 pub type ChaCha8Poly1305 = ChaChaPoly1305<ChaCha8, U12>;
 
-/// XChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "xchacha20-reduced-round")]
-#[cfg_attr(docsrs, doc(cfg(feature = "xchacha20-reduced-round")))]
-pub type XChaCha8Poly1305 = ChaChaPoly1305<XChaCha8, U24>;
-
 /// ChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "chacha20-reduced-round")]
+#[cfg(feature = "reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
 pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaCha12, U12>;
 
+/// XChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
+#[cfg(feature = "reduced-round")]
+#[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
+pub type XChaCha8Poly1305 = ChaChaPoly1305<XChaCha8, U24>;
+
 /// XChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
-#[cfg(feature = "xchacha20-reduced-round")]
-#[cfg_attr(docsrs, doc(cfg(feature = "xchacha20-reduced-round")))]
+#[cfg(feature = "reduced-round")]
+#[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
 pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
 
 /// Generic ChaCha+Poly1305 Authenticated Encryption with Additional Data (AEAD) construction.

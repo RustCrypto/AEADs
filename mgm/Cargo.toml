@@ -17,6 +17,8 @@ aead = { version = "0.4", default-features = false }
 cipher = "0.3"
 subtle = { version = ">=2, <2.5", default-features = false }
 cfg-if = "1"
+
+[target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))'.dependencies]
 cpufeatures = "0.2"
 
 [dev-dependencies]

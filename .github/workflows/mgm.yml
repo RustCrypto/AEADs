@@ -52,6 +52,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - run: cargo test --release
+      - run: cargo test --release --features force-soft
       - run: cargo test --release --features stream,std
       - run: RUSTFLAGS="-C target-cpu=native" cargo test --release --features stream,std
 

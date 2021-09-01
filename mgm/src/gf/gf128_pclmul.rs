@@ -25,11 +25,12 @@ macro_rules! xor {
     };
 }
 
-pub struct Element128(__m128i);
+pub struct Element(__m128i);
 
-impl GfElement for Element128 {
+impl GfElement for Element {
     type N = U16;
 
+    #[inline(always)]
     fn new() -> Self {
         Self(unsafe { _mm_setzero_si128() })
     }
@@ -86,6 +87,7 @@ impl GfElement for Element128 {
         }
     }
 
+    #[inline(always)]
     fn into_bytes(self) -> Block {
         unsafe {
             let bs_mask = _mm_set_epi64x(BS_MASK1, BS_MASK2);

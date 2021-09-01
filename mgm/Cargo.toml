@@ -1,6 +1,6 @@
 [package]
 name = "mgm"
-version = "0.4.5"
+version = "0.4.6"
 description = "Generic implementation of the Multilinear Galois Mode (MGM) cipher"
 authors = ["RustCrypto Developers"]
 edition = "2018"
@@ -16,6 +16,10 @@ keywords = ["encryption", "aead"]
 aead = { version = "0.4", default-features = false }
 cipher = "0.3"
 subtle = { version = ">=2, <2.5", default-features = false }
+cfg-if = "1"
+
+[target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))'.dependencies]
+cpufeatures = "0.2"
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
@@ -29,3 +33,4 @@ std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
+force-soft = [] # Disable support for hardware intrinsics

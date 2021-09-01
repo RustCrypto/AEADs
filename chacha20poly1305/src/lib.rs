@@ -96,9 +96,6 @@
 //!
 //! ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.
 //!
-//! The `xchacha20` Cargo feature must be enabled in order to use this
-//! (which it is by default).
-//!
 //! The construction is an adaptation of the same techniques used by
 //! XSalsa20 as described in the paper "Extending the Salsa20 Nonce"
 //! to the 96-bit nonce variant of ChaCha20, which derive a

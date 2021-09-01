@@ -11,11 +11,12 @@ use core::arch::x86_64::*;
 
 type Block = GenericArray<u8, U8>;
 
-pub struct Element64(u64);
+pub struct Element(u64);
 
-impl GfElement for Element64 {
+impl GfElement for Element {
     type N = U8;
 
+    #[inline(always)]
     fn new() -> Self {
         Self(0)
     }
@@ -36,6 +37,7 @@ impl GfElement for Element64 {
         self.0 ^= d ^ t ^ (t << 1) ^ (t << 3) ^ (t << 4);
     }
 
+    #[inline(always)]
     fn into_bytes(self) -> Block {
         let mut block = Block::default();
         block.copy_from_slice(&self.0.to_be_bytes());

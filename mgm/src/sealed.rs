@@ -1,4 +1,3 @@
-use crate::gf::GfElement;
 use aead::{
     generic_array::{
         typenum::{U16, U8},
@@ -13,7 +12,6 @@ pub type Counter<C> = [<<C as BlockCipher>::BlockSize as Sealed>::Counter; 2];
 
 pub trait Sealed: ArrayLength<u8> {
     type Counter;
-    type Element: GfElement<N = Self>;
 
     fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2];
     fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self>;
@@ -24,8 +22,8 @@ pub trait Sealed: ArrayLength<u8> {
 
 impl Sealed for U16 {
     type Counter = u64;
-    type Element = crate::gf::Element128;
 
+    #[inline(always)]
     fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2] {
         let (a, b) = block.split_at(8);
         [
@@ -34,6 +32,7 @@ impl Sealed for U16 {
         ]
     }
 
+    #[inline(always)]
     fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self> {
         let a = ctr[0].to_be_bytes();
         let b = ctr[1].to_be_bytes();
@@ -43,14 +42,17 @@ impl Sealed for U16 {
         block
     }
 
+    #[inline(always)]
     fn incr_l(ctr: &mut [Self::Counter; 2]) {
         ctr[0] = ctr[0].wrapping_add(1);
     }
 
+    #[inline(always)]
     fn incr_r(ctr: &mut [Self::Counter; 2]) {
         ctr[1] = ctr[1].wrapping_add(1);
     }
 
+    #[inline(always)]
     fn lengths2block(adata_len: usize, data_len: usize) -> Result<GenericArray<u8, Self>, Error> {
         let adata_len = adata_len
             .checked_mul(8)
@@ -68,8 +70,8 @@ impl Sealed for U16 {
 
 impl Sealed for U8 {
     type Counter = u32;
-    type Element = crate::gf::Element64;
 
+    #[inline(always)]
     fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2] {
         let (a, b) = block.split_at(4);
         [
@@ -78,6 +80,7 @@ impl Sealed for U8 {
         ]
     }
 
+    #[inline(always)]
     fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self> {
         let a = ctr[0].to_be_bytes();
         let b = ctr[1].to_be_bytes();
@@ -87,14 +90,17 @@ impl Sealed for U8 {
         block
     }
 
+    #[inline(always)]
     fn incr_l(ctr: &mut [Self::Counter; 2]) {
         ctr[0] = ctr[0].wrapping_add(1);
     }
 
+    #[inline(always)]
     fn incr_r(ctr: &mut [Self::Counter; 2]) {
         ctr[1] = ctr[1].wrapping_add(1);
     }
 
+    #[inline(always)]
     fn lengths2block(adata_len: usize, data_len: usize) -> Result<GenericArray<u8, Self>, Error> {
         let adata_len = adata_len
             .checked_mul(8)

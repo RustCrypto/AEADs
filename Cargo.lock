@@ -305,10 +305,12 @@ dependencies = [
 
 [[package]]
 name = "mgm"
-version = "0.4.5"
+version = "0.4.6"
 dependencies = [
  "aead",
+ "cfg-if",
  "cipher",
+ "cpufeatures",
  "hex-literal 0.2.1",
  "kuznyechik",
  "magma",

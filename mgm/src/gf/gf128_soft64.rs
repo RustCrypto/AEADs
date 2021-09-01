@@ -2,13 +2,14 @@ use super::{utils::bmul64, GfElement};
 use aead::{consts::U16, generic_array::GenericArray};
 use core::convert::TryInto;
 
-pub struct Element128(u64, u64);
+pub struct Element(u64, u64);
 
 type Block = GenericArray<u8, U16>;
 
-impl GfElement for Element128 {
+impl GfElement for Element {
     type N = U16;
 
+    #[inline(always)]
     fn new() -> Self {
         Self(0, 0)
     }
@@ -36,6 +37,7 @@ impl GfElement for Element128 {
         self.0 ^= v1 ^ v3 ^ (v3 << 1) ^ (v3 << 2) ^ (v3 << 7) ^ (d >> 63) ^ (d >> 62) ^ (d >> 57);
     }
 
+    #[inline(always)]
     fn into_bytes(self) -> Block {
         let mut block = Block::default();
         block[..8].copy_from_slice(&self.0.to_be_bytes());
@@ -44,6 +46,7 @@ impl GfElement for Element128 {
     }
 }
 
+#[inline(always)]
 fn from_block(block: &Block) -> [u64; 2] {
     let (a, b) = block.split_at(8);
     [

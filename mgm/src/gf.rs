@@ -3,41 +3,20 @@ use aead::generic_array::{ArrayLength, GenericArray};
 mod utils;
 
 #[cfg(all(
-    target_feature = "pclmulqdq",
-    target_feature = "sse2",
-    target_feature = "ssse3",
-    any(target_arch = "x86", target_arch = "x86_64")
+    any(target_arch = "x86_64", target_arch = "x86"),
+    not(feature = "force-soft")
 ))]
-#[path = "gf/gf128_pclmul.rs"]
-mod imp128;
+pub(crate) mod gf128_pclmul;
 
-#[cfg(not(all(
-    target_feature = "pclmulqdq",
-    target_feature = "sse2",
-    target_feature = "ssse3",
-    any(target_arch = "x86", target_arch = "x86_64")
-)))]
-#[path = "gf/gf128_soft64.rs"]
-mod imp128;
+pub(crate) mod gf128_soft64;
 
 #[cfg(all(
-    target_feature = "pclmulqdq",
-    target_feature = "sse2",
-    any(target_arch = "x86", target_arch = "x86_64")
+    any(target_arch = "x86_64", target_arch = "x86"),
+    not(feature = "force-soft")
 ))]
-#[path = "gf/gf64_pclmul.rs"]
-mod imp64;
+pub(crate) mod gf64_pclmul;
 
-#[cfg(not(all(
-    target_feature = "pclmulqdq",
-    target_feature = "sse2",
-    any(target_arch = "x86", target_arch = "x86_64")
-)))]
-#[path = "gf/gf64_soft64.rs"]
-mod imp64;
-
-pub use imp128::Element128;
-pub use imp64::Element64;
+pub(crate) mod gf64_soft64;
 
 pub trait GfElement {
     type N: ArrayLength<u8>;

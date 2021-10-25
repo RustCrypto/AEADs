@@ -22,19 +22,20 @@
 //! # Usage
 //!
 //! ```
-//! use xsalsa20poly1305::XSalsa20Poly1305;
-//! use xsalsa20poly1305::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use xsalsa20poly1305::{XSalsa20Poly1305, generate_nonce};
+//! use xsalsa20poly1305::aead::{Aead, NewAead};
+//! use rand::rngs::OsRng;
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = XSalsa20Poly1305::new(key);
+//! // 32-bytes key
+//! let key = XSalsa20Poly1305::generate_key(&mut OsRng::default());
+//! let cipher = XSalsa20Poly1305::new(&key);
 //!
 //! // 24-bytes; unique per message
-//! // Use `xsalsa20poly1305::generate_nonce()` to randomly generate one
-//! let nonce = GenericArray::from_slice(b"extra long unique nonce!");
+//! let nonce = generate_nonce(&mut OsRng::default());
 //!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())
 //!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())
 //!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
 //!
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -61,23 +62,24 @@
 //! use xsalsa20poly1305::XSalsa20Poly1305;
 //! use xsalsa20poly1305::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
 //! use xsalsa20poly1305::aead::heapless::Vec;
+//! use rand::rngs::OsRng;
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = XSalsa20Poly1305::new(key);
+//! let key = XSalsa20Poly1305::generate_key(&mut OsRng::default());
+//! let cipher = XSalsa20Poly1305::new(&key);
 //!
-//! let nonce = GenericArray::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
+//! let nonce = generate_nonce(&mut OsRng::default());
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```

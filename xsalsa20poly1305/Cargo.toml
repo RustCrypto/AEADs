@@ -29,6 +29,9 @@ alloc = ["aead/alloc"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
 
+[dev-dependencies]
+rand = "0.8.4"
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]

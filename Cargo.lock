@@ -35,7 +35,7 @@ dependencies = [
  "cipher",
  "ctr",
  "ghash",
- "hex-literal 0.3.3",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -65,7 +65,7 @@ dependencies = [
  "crypto-mac",
  "ctr",
  "dbl",
- "hex-literal 0.3.3",
+ "hex-literal",
  "pmac",
  "zeroize",
 ]
@@ -90,7 +90,7 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
- "hex-literal 0.2.1",
+ "hex-literal",
  "subtle",
 ]
 
@@ -186,7 +186,7 @@ version = "0.0.2"
 dependencies = [
  "aead",
  "aes",
- "hex-literal 0.3.3",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -255,28 +255,9 @@ dependencies = [
 
 [[package]]
 name = "hex-literal"
-version = "0.2.1"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "961de220ec9a91af2e1e5bd80d02109155695e516771762381ef8581317066e0"
-dependencies = [
- "hex-literal-impl",
- "proc-macro-hack",
-]
-
-[[package]]
-name = "hex-literal"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21e4590e13640f19f249fe3e4eca5113bc4289f2497710378190e7f4bd96f45b"
-
-[[package]]
-name = "hex-literal-impl"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "853f769599eb31de176303197b7ba4973299c38c7a7604a6bc88c3eef05b9b46"
-dependencies = [
- "proc-macro-hack",
-]
+checksum = "7ebdb29d2ea9ed0083cd8cece49bbd968021bd99b0849edb4a9a7ee0fdf6a4e0"
 
 [[package]]
 name = "kuznyechik"
@@ -311,7 +292,7 @@ dependencies = [
  "cfg-if",
  "cipher",
  "cpufeatures",
- "hex-literal 0.2.1",
+ "hex-literal",
  "kuznyechik",
  "magma",
  "subtle",
@@ -355,12 +336,6 @@ dependencies = [
  "opaque-debug",
  "universal-hash",
 ]
-
-[[package]]
-name = "proc-macro-hack"
-version = "0.5.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbf0c48bc1d91375ae5c3cd81e3722dff1abcf81a30960240640d223f59fe0e5"
 
 [[package]]
 name = "rand_core"

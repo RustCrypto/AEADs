@@ -21,7 +21,7 @@ subtle = { version = ">=2, <2.5", default-features = false }
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
 aes = { version = "0.7", features = ["force-soft"] } # Uses `force-soft` for MSRV 1.41
-hex-literal = "0.2"
+hex-literal = "0.3"
 
 [features]
 default = ["alloc"]

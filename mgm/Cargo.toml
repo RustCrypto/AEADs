@@ -24,7 +24,7 @@ cpufeatures = "0.2"
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
 kuznyechik = "0.7"
-magma = "0.7"
+magma = "0.8"
 hex-literal = "0.2"
 
 [features]

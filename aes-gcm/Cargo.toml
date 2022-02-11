@@ -19,7 +19,7 @@ categories = ["cryptography", "no-std"]
 aead = { version = "0.4", default-features = false }
 aes = { version = "0.7.5", optional = true }
 cipher = "0.3"
-ctr = "0.8"
+ctr = "0.9"
 ghash = { version = "0.4.2", default-features = false }
 subtle = { version = ">=2, <2.5", default-features = false }
 zeroize = { version = ">=1, <1.4", optional = true, default-features = false }

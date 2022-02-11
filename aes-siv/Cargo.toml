@@ -21,7 +21,7 @@ aes = "0.7"
 cipher = "0.3"
 cmac = "0.6"
 crypto-mac = "0.11"
-ctr = "0.8"
+ctr = "0.9"
 dbl = "0.3"
 pmac = { version = "0.6", optional = true }
 zeroize = { version = ">=1, <1.4", default-features = false }

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `cipher` crate dependency to v0.4 ([#387])
 - Bump `cmac` crate dependency to v0.7 ([#387])
 - Bump `ctr` crate dependency to v0.9 ([#387])
+- Upgrade to Rust 2021 edition ([#387])
+- MSRV 1.56+ ([#387])
+
+[#387]: https://github.com/RustCrypto/AEADs/pull/387
 
 ## 0.4.1 (2021-07-20)
 ### Changed
@@ -42,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional `std` feature; disabled by default ([#217])
 
 ### Changed
-- Use `aead` crate; MSRV 1.41+
+- Use `aead` crate; MSRV 1.56+
 - Upgrade `aes` to v0.5, `block-cipher` to v0.8, `cmac` to v0.4, `ctr` to v0.5 ([#209])
 
 [#217]: https://github.com/RustCrypto/AEADs/pull/217

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Bump `cipher` crate dependency to v0.4 ([#387])
+- Upgrade to Rust 2021 edition ([#387])
+- MSRV 1.56+ ([#387])
+
+[#387]: https://github.com/RustCrypto/AEADs/pull/387
 
 ## 0.4.6 (2021-09-01)
 ### Added

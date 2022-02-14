@@ -6,7 +6,6 @@ use aead::{
     Error,
 };
 use cipher::BlockSizeUser;
-use core::convert::TryInto;
 
 pub type Counter<C> = [<<C as BlockSizeUser>::BlockSize as Sealed>::Counter; 2];
 

@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.49.0 # MSRV
+          - 1.56.1 # MSRV
           - stable
         target:
           - thumbv7em-none-eabi
@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.49.0 # MSRV
+          - 1.56.1 # MSRV
           - stable
     steps:
       - uses: actions/checkout@v1
@@ -53,20 +53,4 @@ jobs:
           override: true
       - run: cargo test --release
       - run: cargo test --release --features stream,std
-
-  # TODO(tarcieri): re-unify this with `test` when MSRV is 1.51+
-  heapless:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - 1.51.0 # MSRV for `heapless`
-          - stable
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
       - run: cargo test --release --all-features

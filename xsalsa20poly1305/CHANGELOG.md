@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Bump `salsa20` crate dependency to v0.10 ([#387])
-- Bump `zeroize` crate dependency to v1.5 ([#387])
+- Relax `zeroize` requirements ([#387])
+- Upgrade to Rust 2021 edition ([#387])
+- MSRV 1.56+ ([#387])
+
+[#387]: https://github.com/RustCrypto/AEADs/pull/387
 
 ## 0.8.0 (2021-08-30)
 ### Changed

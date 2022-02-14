@@ -2,7 +2,6 @@
 //! on `x86` and `x86_64` target architectures.
 use super::GfElement;
 use aead::{consts::U8, generic_array::GenericArray};
-use core::convert::TryInto;
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;

@@ -6,7 +6,8 @@ Pure Rust implementation of the XSalsa20Poly1305 (a.k.a. NaCl crypto_secretbox)
 authenticated encryption algorithm
 """
 authors = ["RustCrypto Developers"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.56"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/xsalsa20poly1305"
@@ -20,7 +21,7 @@ salsa20 = { version = "0.10", features = ["zeroize"] }
 poly1305 = "0.7"
 rand_core = { version = "0.6", optional = true }
 subtle = { version = ">=2, <2.5", default-features = false }
-zeroize = { version = "1.5", default-features = false }
+zeroize = { version = "1", default-features = false }
 
 [features]
 default = ["alloc", "rand_core", "aead/rand_core"]

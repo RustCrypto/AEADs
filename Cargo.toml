@@ -10,6 +10,7 @@ members = [
     "mgm",
     "xsalsa20poly1305"
 ]
+resolver = "2"
 
 [patch.crates-io]
 chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers" }

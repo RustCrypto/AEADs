@@ -306,7 +306,7 @@ where
                     let mut block = [0u8; 16];
                     block.copy_from_slice(data);
 
-                    B::encrypt_in_place(&mut block, &tweak, subkeys);
+                    B::encrypt_in_place(&mut block, tweak, subkeys);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
                         *t ^= b;
@@ -320,7 +320,7 @@ where
 
                     block[data.len()] = 0x80;
 
-                    B::encrypt_in_place(&mut block, &tweak, subkeys);
+                    B::encrypt_in_place(&mut block, tweak, subkeys);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
                         *t ^= b;
@@ -352,7 +352,7 @@ where
                 let mut block = [0u8; 16];
                 block[1..].copy_from_slice(nonce);
 
-                B::encrypt_in_place(&mut block, &tweak, subkeys);
+                B::encrypt_in_place(&mut block, tweak, subkeys);
 
                 for (t, b) in data.iter_mut().zip(block.iter()) {
                     *t ^= b;
@@ -394,7 +394,7 @@ where
         Self::authenticate_message(buffer, &mut tweak, subkeys, &mut tag);
 
         tweak[0] = TWEAK_TAG;
-        tweak[1..].copy_from_slice(&nonce);
+        tweak[1..].copy_from_slice(nonce);
         B::encrypt_in_place(&mut tag, &tweak, subkeys);
 
         // Message encryption
@@ -430,8 +430,8 @@ where
         Self::authenticate_message(buffer, &mut tweak, subkeys, &mut computed_tag);
 
         tweak[0] = TWEAK_TAG;
-        tweak[1..].copy_from_slice(&nonce);
-        B::encrypt_in_place(&mut computed_tag, &tweak, &subkeys);
+        tweak[1..].copy_from_slice(nonce);
+        B::encrypt_in_place(&mut computed_tag, &tweak, subkeys);
 
         if tag.ct_eq(&computed_tag).into() {
             Ok(())

@@ -113,8 +113,8 @@ pub use aes;
 use cipher::{
     consts::{U0, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    Block, BlockCipher, BlockCipherKey, BlockEncrypt, FromBlockCipher, NewBlockCipher,
-    StreamCipher, StreamCipherSeek,
+    Block, BlockCipher, BlockCipherKey, BlockEncrypt, FromBlockCipher, KeyInit, StreamCipher,
+    StreamCipherSeek,
 };
 use core::marker::PhantomData;
 use ctr::Ctr32BE;

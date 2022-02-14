@@ -133,7 +133,7 @@ use aead::{AeadCore, AeadInPlace, Error, NewAead};
 use cipher::{
     consts::{U0, U12, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    Block, BlockCipher, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher,
+    Block, BlockCipher, BlockEncrypt, KeyInit, ParBlocksSizeUser, StreamCipher,
 };
 use ctr::Ctr32LE;
 use polyval::{
@@ -176,8 +176,8 @@ pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 #[derive(Clone)]
 pub struct AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     /// Key generating key used to derive AES-GCM-SIV subkeys
     key_generating_key: Aes,
@@ -185,8 +185,8 @@ where
 
 impl<Aes> NewAead for AesGcmSiv<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: KeyInit + BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     type KeySize = Aes::KeySize;
 
@@ -199,8 +199,8 @@ where
 
 impl<Aes> From<Aes> for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     fn from(key_generating_key: Aes) -> Self {
         Self { key_generating_key }
@@ -209,8 +209,8 @@ where
 
 impl<Aes> AeadCore for AesGcmSiv<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: KeyInit + BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -219,8 +219,8 @@ where
 
 impl<Aes> AeadInPlace for AesGcmSiv<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: KeyInit + BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -250,8 +250,8 @@ where
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 struct Cipher<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     /// Encryption cipher
     enc_cipher: Aes,
@@ -265,8 +265,8 @@ where
 
 impl<Aes> Cipher<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: KeyInit + BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
@@ -349,7 +349,8 @@ where
         self.polyval.update_padded(associated_data);
         let mut ctr = init_ctr(&self.enc_cipher, tag);
 
-        for chunk in buffer.chunks_mut(Aes::BlockSize::to_usize() * Aes::ParBlocks::to_usize()) {
+        for chunk in buffer.chunks_mut(Aes::BlockSize::to_usize() * Aes::ParBlocksSize::to_usize())
+        {
             ctr.apply_keystream(chunk);
             self.polyval.update_padded(chunk);
         }
@@ -406,10 +407,10 @@ where
 ///
 /// > The initial counter block is the tag with the most significant bit
 /// > of the last byte set to one.
-fn init_ctr<Aes>(cipher: Aes, nonce: &cipher::Block<Aes>) -> Ctr32LE<Aes>
+fn init_ctr<Aes>(cipher: &Aes, nonce: &cipher::Block<Aes>) -> Ctr32LE<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    Aes::ParBlocksSize: ArrayLength<Block<Aes>>,
 {
     let mut counter_block = *nonce;
     counter_block[15] |= 0x80;

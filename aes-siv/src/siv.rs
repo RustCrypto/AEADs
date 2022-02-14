@@ -16,7 +16,7 @@ use core::ops::Add;
 use crypto_mac::{Mac, NewMac};
 use ctr::Ctr128BE;
 use dbl::Dbl;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -240,6 +240,13 @@ where
 
         C::new(GenericArray::from_slice(&self.encryption_key), &iv).apply_keystream(msg);
     }
+}
+
+impl<C, M> ZeroizeOnDrop for Siv<C, M>
+where
+    C: NewCipher<NonceSize = U16> + StreamCipher,
+    M: Mac<OutputSize = U16>,
+{
 }
 
 impl<C, M> Drop for Siv<C, M>

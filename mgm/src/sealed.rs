@@ -5,10 +5,10 @@ use aead::{
     },
     Error,
 };
-use cipher::BlockCipher;
+use cipher::BlockSizeUser;
 use core::convert::TryInto;
 
-pub type Counter<C> = [<<C as BlockCipher>::BlockSize as Sealed>::Counter; 2];
+pub type Counter<C> = [<<C as BlockSizeUser>::BlockSize as Sealed>::Counter; 2];
 
 pub trait Sealed: ArrayLength<u8> {
     type Counter;

@@ -17,14 +17,14 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = "0.4"
-aes = "0.7"
-cipher = "0.3"
-cmac = "0.6"
+aes = "0.8"
+cipher = "0.4"
+cmac = "0.7"
 crypto-mac = "0.11"
-ctr = "0.8"
+ctr = "0.9"
 dbl = "0.3"
-pmac = { version = "0.6", optional = true }
-zeroize = { version = ">=1, <1.4", default-features = false }
+pmac = { version = "0.7", optional = true }
+zeroize = { version = "1.5", default-features = false }
 
 [dev-dependencies]
 blobby = "0.3"

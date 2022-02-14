@@ -158,14 +158,14 @@ mod cipher;
 pub use aead;
 
 use self::cipher::Cipher;
-use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
+use ::cipher::{IvSizeUser, KeyIvInit, KeySizeUser, StreamCipher, StreamCipherSeek};
 use aead::{
     consts::{U0, U12, U16, U24, U32},
     generic_array::{ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, NewAead,
 };
 use core::marker::PhantomData;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use chacha20::{ChaCha20, XChaCha20};
 
@@ -226,7 +226,11 @@ pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
 /// See the [toplevel documentation](index.html) for a usage example.
 pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit
+        + KeySizeUser<KeySize = U32>
+        + IvSizeUser<IvSize = N>
+        + StreamCipher
+        + StreamCipherSeek,
 {
     /// Secret key
     key: GenericArray<u8, U32>,
@@ -237,7 +241,11 @@ where
 
 impl<C, N> NewAead for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit
+        + KeySizeUser<KeySize = U32>
+        + IvSizeUser<IvSize = N>
+        + StreamCipher
+        + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     type KeySize = U32;
@@ -252,7 +260,11 @@ where
 
 impl<C, N> AeadCore for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit
+        + KeySizeUser<KeySize = U32>
+        + IvSizeUser<IvSize = N>
+        + StreamCipher
+        + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     type NonceSize = N;
@@ -262,7 +274,11 @@ where
 
 impl<C, N> AeadInPlace for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit
+        + KeySizeUser<KeySize = U32>
+        + IvSizeUser<IvSize = N>
+        + StreamCipher
+        + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn encrypt_in_place_detached(
@@ -291,7 +307,11 @@ where
 
 impl<C, N> Clone for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit
+        + KeySizeUser<KeySize = U32>
+        + IvSizeUser<IvSize = N>
+        + StreamCipher
+        + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn clone(&self) -> Self {
@@ -302,9 +322,24 @@ where
     }
 }
 
+impl<C, N> ZeroizeOnDrop for ChaChaPoly1305<C, N>
+where
+    C: KeyIvInit
+        + KeySizeUser<KeySize = U32>
+        + IvSizeUser<IvSize = N>
+        + StreamCipher
+        + StreamCipherSeek,
+    N: ArrayLength<u8>,
+{
+}
+
 impl<C, N> Drop for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit
+        + KeySizeUser<KeySize = U32>
+        + IvSizeUser<IvSize = N>
+        + StreamCipher
+        + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn drop(&mut self) {

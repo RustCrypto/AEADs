@@ -111,7 +111,7 @@ use salsa20::{
     cipher::{NewCipher, StreamCipher, StreamCipherSeek},
     XSalsa20,
 };
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[cfg(feature = "rand_core")]
 use rand_core::{CryptoRng, RngCore};
@@ -238,6 +238,8 @@ impl AeadInPlace for XSalsa20Poly1305 {
         )
     }
 }
+
+impl ZeroizeOnDrop for XSalsa20Poly1305 {}
 
 impl Drop for XSalsa20Poly1305 {
     fn drop(&mut self) {

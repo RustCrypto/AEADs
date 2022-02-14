@@ -35,7 +35,7 @@
 #![warn(missing_docs, rust_2018_idioms)]
 use aead::{consts::U0, generic_array::GenericArray, AeadCore, AeadInPlace, Error, Key, NewAead};
 use cfg_if::cfg_if;
-use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
+use cipher::{BlockBackend, BlockEncrypt, BlockSizeUser, KeyInit};
 
 pub use aead;
 
@@ -54,7 +54,7 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 /// MGM tags
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
-type Block<C> = GenericArray<u8, <C as BlockCipher>::BlockSize>;
+type Block<C> = GenericArray<u8, <C as BlockSizeUser>::BlockSize>;
 // cipher, nonce, aad, buffer
 type EncArgs<'a, C> = (&'a C, &'a Block<C>, &'a [u8], &'a mut [u8]);
 // cipher, nonce, aad, buf, expected_tag
@@ -88,7 +88,7 @@ where
 
 impl<C> NewAead for Mgm<C>
 where
-    C: BlockEncrypt + NewBlockCipher,
+    C: BlockEncrypt + KeyInit,
     C::BlockSize: MgmBlockSize,
 {
     type KeySize = C::KeySize;
@@ -110,7 +110,7 @@ where
 
 impl<C> AeadInPlace for Mgm<C>
 where
-    C: BlockEncrypt,
+    C: BlockBackend + BlockEncrypt,
     C::BlockSize: MgmBlockSize,
 {
     fn encrypt_in_place_detached(
@@ -198,7 +198,7 @@ cfg_if! {
     } else {
         fn mgm_encrypt<C>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
         where
-            C: BlockEncrypt,
+            C: BlockBackend + BlockEncrypt,
             C::BlockSize: MgmBlockSize,
         {
             encdec::encrypt::<C, gf::gf64_soft64::Element, gf::gf128_soft64::Element>(args)
@@ -206,7 +206,7 @@ cfg_if! {
 
         fn mgm_decrypt<C>(args: DecArgs<'_, C>) -> Result<(), Error>
         where
-            C: BlockEncrypt,
+            C: BlockBackend + BlockEncrypt,
             C::BlockSize: MgmBlockSize,
         {
             encdec::decrypt::<C, gf::gf64_soft64::Element, gf::gf128_soft64::Element>(args)

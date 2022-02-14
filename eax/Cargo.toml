@@ -20,14 +20,14 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.4", default-features = false }
-cipher = "0.3"
-cmac = "0.6"
-ctr = "0.8"
+cipher = "0.4"
+cmac = "0.7"
+ctr = "0.9"
 subtle = { version = ">=2, <2.5", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
-aes = { version = "0.7", features = ["force-soft"] } # Uses `force-soft` for MSRV 1.41
+aes = "0.8"
 
 [features]
 default = ["alloc"]

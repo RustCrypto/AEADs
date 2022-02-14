@@ -51,7 +51,7 @@ use aead::{
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, Key, NewAead,
 };
-use cipher::{Block, BlockCipher, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher};
+use cipher::{Block, BlockCipher, BlockEncrypt, KeyInit, ParBlocksSizeUser};
 use core::marker::PhantomData;
 use ctr::{Ctr32BE, Ctr64BE};
 use subtle::ConstantTimeEq;
@@ -95,8 +95,8 @@ impl<T: private::SealedNonce> NonceSize for T {}
 #[derive(Clone)]
 pub struct Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    C::ParBlocksSize: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -106,8 +106,8 @@ where
 
 impl<C, M, N> Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    C::ParBlocksSize: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -173,8 +173,8 @@ where
 
 impl<C, M, N> From<C> for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit + ParBlocksSizeUser,
+    C::ParBlocksSize: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -188,8 +188,8 @@ where
 
 impl<C, M, N> NewAead for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit + ParBlocksSizeUser,
+    C::ParBlocksSize: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -202,8 +202,8 @@ where
 
 impl<C, M, N> AeadCore for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    C::ParBlocksSize: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -214,8 +214,8 @@ where
 
 impl<C, M, N> AeadInPlace for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher<BlockSize = U16> + BlockEncrypt + ParBlocksSizeUser,
+    C::ParBlocksSize: ArrayLength<Block<C>>,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {

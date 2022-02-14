@@ -10,3 +10,9 @@ members = [
     "mgm",
     "xsalsa20poly1305"
 ]
+
+[patch.crates-io]
+chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers" }
+ghash = { git = "https://github.com/RustCrypto/universal-hashes" }
+poly1305 = { git = "https://github.com/RustCrypto/universal-hashes" }
+polyval = { git = "https://github.com/RustCrypto/universal-hashes" }

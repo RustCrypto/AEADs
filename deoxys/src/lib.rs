@@ -130,7 +130,7 @@ use aead::{
     AeadCore, AeadInPlace, Error, NewAead,
 };
 
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Deoxys-I with 128-bit keys
 pub type DeoxysI128 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
@@ -300,6 +300,13 @@ where
     ) -> Result<(), Error> {
         M::decrypt_in_place(nonce, associated_data, buffer, tag, &self.subkeys)
     }
+}
+
+impl<M, B> ZeroizeOnDrop for Deoxys<M, B>
+where
+    M: DeoxysMode<B>,
+    B: DeoxysBcType,
+{
 }
 
 impl<M, B> Drop for Deoxys<M, B>

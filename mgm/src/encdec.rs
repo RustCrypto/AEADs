@@ -10,12 +10,12 @@ use aead::{
     },
     Error,
 };
-use cipher::{Block, BlockEncrypt, ParBlocks};
+use cipher::{Block, BlockBackend, BlockEncrypt, ParBlocks};
 use subtle::ConstantTimeEq;
 
 pub(crate) fn encrypt<C, E64, E128>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
 where
-    C: BlockEncrypt,
+    C: BlockBackend + BlockEncrypt,
     C::BlockSize: MgmBlockSize,
     E64: GfElement<N = U8>,
     E128: GfElement<N = U16>,
@@ -30,7 +30,7 @@ where
 
 pub(crate) fn decrypt<C, E64, E128>(args: DecArgs<'_, C>) -> Result<(), Error>
 where
-    C: BlockEncrypt,
+    C: BlockBackend + BlockEncrypt,
     C::BlockSize: MgmBlockSize,
     E64: GfElement<N = U8>,
     E128: GfElement<N = U16>,
@@ -46,7 +46,7 @@ where
 // E::N must be equal to C::BlockSize
 fn encrypt_inner<C, E>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
 where
-    C: BlockEncrypt,
+    C: BlockBackend + BlockEncrypt,
     C::BlockSize: MgmBlockSize,
     E: GfElement,
 {
@@ -61,7 +61,7 @@ where
 
     let mut tag = E::new();
 
-    let pb = C::ParBlocks::USIZE;
+    let pb = C::ParBlocksSize::USIZE;
     let bs = C::BlockSize::USIZE;
 
     // process adata
@@ -125,7 +125,7 @@ where
 // E::N must be equal to C::BlockSize
 fn decrypt_inner<C, E>(args: DecArgs<'_, C>) -> Result<(), Error>
 where
-    C: BlockEncrypt,
+    C: BlockBackend + BlockEncrypt,
     C::BlockSize: MgmBlockSize,
     E: GfElement,
 {
@@ -140,7 +140,7 @@ where
     let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
     let mut tag = E::new();
 
-    let pb = C::ParBlocks::USIZE;
+    let pb = C::ParBlocksSize::USIZE;
     let bs = C::BlockSize::USIZE;
 
     // calculate tag
@@ -241,10 +241,10 @@ where
 #[inline(always)]
 fn apply_par_ks_blocks<C>(cipher: &C, ctr: &mut Counter<C>, par_blocks: &mut [u8])
 where
-    C: BlockEncrypt,
+    C: BlockBackend + BlockEncrypt,
     C::BlockSize: MgmBlockSize,
 {
-    let pb = C::ParBlocks::USIZE;
+    let pb = C::ParBlocksSize::USIZE;
     let bs = C::BlockSize::USIZE;
     assert_eq!(par_blocks.len(), pb * bs);
 
@@ -283,11 +283,11 @@ where
 #[inline(always)]
 fn update_par_tag<C, E>(cipher: &C, tag: &mut E, tag_ctr: &mut Counter<C>, par_blocks: &[u8])
 where
-    C: BlockEncrypt,
+    C: BlockBackend + BlockEncrypt,
     C::BlockSize: MgmBlockSize,
     E: GfElement,
 {
-    let pb = C::ParBlocks::USIZE;
+    let pb = C::ParBlocksSize::USIZE;
     let bs = C::BlockSize::USIZE;
     assert_eq!(par_blocks.len(), pb * bs);
 

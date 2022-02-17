@@ -18,7 +18,7 @@ categories = ["cryptography", "no-std"]
 [dependencies]
 aead = { version = "0.4", default-features = false }
 aes = { version = "0.7.5", optional = true }
-cipher = "0.3"
+cipher = "0.4"
 ctr = "0.8"
 polyval = { version = "0.5.1", default-features = false }
 subtle = { version = ">=2, <2.5", default-features = false }

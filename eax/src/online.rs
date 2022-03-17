@@ -303,16 +303,16 @@ where
         // l = block cipher size = 128 (for AES-128) = 16 byte
         // 1. n ← OMAC(0 || Nonce)
         // (the 0 means the number zero in l bits)
-        let n = prepend_cmac(&key, 0, nonce);
+        let n = prepend_cmac(key, 0, nonce);
         let n = n.finalize().into_bytes();
 
         // NOTE: These can be updated online later
         // 2. h ← OMAC(1 || associated data)
-        let h = prepend_cmac(&key, 1, &[]);
+        let h = prepend_cmac(key, 1, &[]);
         // 3. c ← OMAC(2 || enc)
-        let c = prepend_cmac(&key, 2, &[]);
+        let c = prepend_cmac(key, 2, &[]);
 
-        let cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(&key), &n);
+        let cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(key), &n);
 
         Self {
             nonce: n,

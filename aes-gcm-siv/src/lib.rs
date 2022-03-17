@@ -357,7 +357,7 @@ where
         let expected_tag = self.finish_tag(associated_data.len(), buffer.len());
 
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
             Ok(())
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to

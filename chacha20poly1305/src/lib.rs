@@ -158,7 +158,7 @@ mod cipher;
 pub use aead;
 
 use self::cipher::Cipher;
-use ::cipher::{NewCipher, StreamCipher, StreamCipherSeek};
+use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
 use aead::{
     consts::{U0, U12, U16, U24, U32},
     generic_array::{ArrayLength, GenericArray},
@@ -226,7 +226,7 @@ pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
 /// See the [toplevel documentation](index.html) for a usage example.
 pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
 {
     /// Secret key
     key: GenericArray<u8, U32>,
@@ -237,7 +237,7 @@ where
 
 impl<C, N> NewAead for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     type KeySize = U32;
@@ -252,7 +252,7 @@ where
 
 impl<C, N> AeadCore for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     type NonceSize = N;
@@ -262,7 +262,7 @@ where
 
 impl<C, N> AeadInPlace for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn encrypt_in_place_detached(
@@ -291,7 +291,7 @@ where
 
 impl<C, N> Clone for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn clone(&self) -> Self {
@@ -304,7 +304,7 @@ where
 
 impl<C, N> Drop for ChaChaPoly1305<C, N>
 where
-    C: NewCipher<KeySize = U32, NonceSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn drop(&mut self) {

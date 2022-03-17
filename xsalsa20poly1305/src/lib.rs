@@ -108,7 +108,7 @@ use aead::{
 };
 use poly1305::{universal_hash::NewUniversalHash, Poly1305};
 use salsa20::{
-    cipher::{NewCipher, StreamCipher, StreamCipherSeek},
+    cipher::{KeyIvInit, StreamCipher, StreamCipherSeek},
     XSalsa20,
 };
 use zeroize::Zeroize;

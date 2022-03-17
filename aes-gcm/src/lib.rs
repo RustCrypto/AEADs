@@ -281,7 +281,7 @@ where
         ctr.apply_keystream(expected_tag.as_mut_slice());
 
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
             ctr.apply_keystream(buffer);
             Ok(())
         } else {

@@ -108,7 +108,7 @@ use aead::{
 };
 use poly1305::{universal_hash::NewUniversalHash, Poly1305};
 use salsa20::{
-    cipher::{NewCipher, StreamCipher, StreamCipherSeek},
+    cipher::{KeyIvInit, StreamCipher, StreamCipherSeek},
     XSalsa20,
 };
 use zeroize::Zeroize;
@@ -301,7 +301,7 @@ where
         let expected_tag = self.mac.compute_unpadded(buffer).into_bytes();
 
         // This performs a constant-time comparison using the `subtle` crate
-        if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {

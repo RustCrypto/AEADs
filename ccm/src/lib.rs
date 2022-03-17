@@ -161,7 +161,7 @@ where
                 let (l, r) = adata.split_at(b.len() - n);
                 b[n..].copy_from_slice(l);
                 mac.block_update(&b);
-                mac.update(&r);
+                mac.update(r);
             }
         }
 

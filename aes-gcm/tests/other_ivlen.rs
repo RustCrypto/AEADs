@@ -1,19 +1,15 @@
 //! Tests for AES-GCM when used with non-96-bit IVs.
 //!
-//! Vectors taken from NIST CAVS vectors' `gcmEncryptExtIV128.rsp` file
-/// <https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/CAVP-TESTING-BLOCK-CIPHER-MODES>
+//! Vectors taken from NIST CAVS vectors' `gcmEncryptExtIV128.rsp` file:
+//! <https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/CAVP-TESTING-BLOCK-CIPHER-MODES>
 
-#[macro_use]
-extern crate hex_literal;
-
-use aes_gcm::{
-    aead::{
-        generic_array::{typenum, GenericArray},
-        Aead, NewAead,
-    },
-    aes::Aes128,
-    AesGcm,
+use aead::{
+    generic_array::{typenum, GenericArray},
+    Aead, NewAead,
 };
+use aes::Aes128;
+use aes_gcm::AesGcm;
+use hex_literal::hex;
 
 /// Based on the following `gcmEncryptExtIV128.rsp` test vector:
 ///

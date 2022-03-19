@@ -17,9 +17,9 @@ categories = ["cryptography", "no-std"]
 
 [dependencies]
 aead = { version = "0.4", default-features = false }
-aes = { version = "0.7.5", optional = true }
-cipher = "0.3"
-ctr = "0.8"
+aes = { version = "0.8", optional = true }
+cipher = "0.4"
+ctr = "0.9"
 ghash = { version = "0.4.2", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
@@ -32,8 +32,8 @@ hex-literal = "0.3"
 default    = ["aes", "alloc"]
 std        = ["aead/std", "alloc"]
 alloc      = ["aead/alloc"]
-armv8      = ["aes/armv8", "ghash/armv8"] # nightly-only
-force-soft = ["aes/force-soft", "ghash/force-soft"]
+armv8      = ["ghash/armv8"] # nightly-only
+force-soft = ["ghash/force-soft"]
 heapless   = ["aead/heapless"]
 stream     = ["aead/stream"]
 

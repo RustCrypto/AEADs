@@ -1,14 +1,12 @@
 //! AES-128-GCM tests
 
 #[macro_use]
-extern crate hex_literal;
-
-#[macro_use]
 mod common;
 
 use self::common::TestVector;
 use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead, Payload};
 use aes_gcm::Aes128Gcm;
+use hex_literal::hex;
 
 /// NIST CAVS vectors
 ///

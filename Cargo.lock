@@ -33,7 +33,7 @@ version = "0.9.4"
 dependencies = [
  "aead",
  "aes",
- "cipher 0.3.0",
+ "cipher 0.4.3",
  "ctr",
  "ghash",
  "hex-literal 0.3.4",
@@ -47,7 +47,7 @@ version = "0.10.3"
 dependencies = [
  "aead",
  "aes",
- "cipher 0.3.0",
+ "cipher 0.4.3",
  "ctr",
  "polyval",
  "subtle",
@@ -61,7 +61,7 @@ dependencies = [
  "aead",
  "aes",
  "blobby",
- "cipher 0.3.0",
+ "cipher 0.4.3",
  "cmac",
  "crypto-mac",
  "ctr",
@@ -89,7 +89,7 @@ version = "0.4.4"
 dependencies = [
  "aead",
  "aes",
- "cipher 0.3.0",
+ "cipher 0.4.3",
  "ctr",
  "hex-literal 0.2.2",
  "subtle",
@@ -218,7 +218,7 @@ version = "0.4.1"
 dependencies = [
  "aead",
  "aes",
- "cipher 0.3.0",
+ "cipher 0.4.3",
  "cmac",
  "ctr",
  "subtle",
@@ -349,7 +349,7 @@ version = "0.4.6"
 dependencies = [
  "aead",
  "cfg-if",
- "cipher 0.3.0",
+ "cipher 0.4.3",
  "cpufeatures",
  "hex-literal 0.2.2",
  "kuznyechik",

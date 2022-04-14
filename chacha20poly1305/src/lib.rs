@@ -75,7 +75,7 @@
 //! let key = Key::from_slice(b"an example very very secret key.");
 //! let cipher = ChaCha20Poly1305::new(key);
 //!
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 128-bits; unique per message
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");

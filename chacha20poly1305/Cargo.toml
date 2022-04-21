@@ -21,7 +21,7 @@ categories = ["cryptography", "no-std"]
 aead = { version = "0.4", default-features = false }
 chacha20 = { version = "0.9", features = ["zeroize"] }
 cipher = "0.4"
-poly1305 = "0.7"
+poly1305 = { git = "https://github.com/str4d/universal-hashes", rev = "88eca39b494585b34d4021cefd588a9d59279357" }
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]

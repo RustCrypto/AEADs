@@ -142,18 +142,18 @@ mod cipher;
 pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
 
 use self::cipher::Cipher;
-use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
+use ::cipher::{KeyIvInit, StreamCipherCore, StreamCipherSeekCore};
 use aead::{
-    consts::{U0, U12, U16, U24, U32},
+    consts::{U0, U10, U12, U16, U24, U32},
     generic_array::{ArrayLength, GenericArray},
 };
 use core::marker::PhantomData;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-use chacha20::{ChaCha20, XChaCha20};
+use chacha20::{ChaChaCore, XChaChaCore};
 
 #[cfg(feature = "reduced-round")]
-use chacha20::{ChaCha12, ChaCha8, XChaCha12, XChaCha8};
+use aead::consts::{U4, U6};
 
 /// Key type (256-bits/32-bytes).
 ///
@@ -179,30 +179,30 @@ pub type XNonce = GenericArray<u8, U24>;
 pub type Tag = GenericArray<u8, U16>;
 
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
-pub type ChaCha20Poly1305 = ChaChaPoly1305<ChaCha20, U12>;
+pub type ChaCha20Poly1305 = ChaChaPoly1305<ChaChaCore<U10>, U12>;
 
 /// XChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
-pub type XChaCha20Poly1305 = ChaChaPoly1305<XChaCha20, U24>;
+pub type XChaCha20Poly1305 = ChaChaPoly1305<XChaChaCore<U10>, U24>;
 
 /// ChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
 #[cfg(feature = "reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
-pub type ChaCha8Poly1305 = ChaChaPoly1305<ChaCha8, U12>;
+pub type ChaCha8Poly1305 = ChaChaPoly1305<ChaChaCore<U4>, U12>;
 
 /// ChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
 #[cfg(feature = "reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
-pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaCha12, U12>;
+pub type ChaCha12Poly1305 = ChaChaPoly1305<ChaChaCore<U6>, U12>;
 
 /// XChaCha8Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
 #[cfg(feature = "reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
-pub type XChaCha8Poly1305 = ChaChaPoly1305<XChaCha8, U24>;
+pub type XChaCha8Poly1305 = ChaChaPoly1305<XChaChaCore<U4>, U24>;
 
 /// XChaCha12Poly1305 (reduced round variant) Authenticated Encryption with Additional Data (AEAD).
 #[cfg(feature = "reduced-round")]
 #[cfg_attr(docsrs, doc(cfg(feature = "reduced-round")))]
-pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
+pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaChaCore<U6>, U24>;
 
 /// Generic ChaCha+Poly1305 Authenticated Encryption with Additional Data (AEAD) construction.
 ///
@@ -250,7 +250,7 @@ where
 
 impl<C, N> AeadInPlace for ChaChaPoly1305<C, N>
 where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipherCore + StreamCipherSeekCore,
     N: ArrayLength<u8>,
 {
     fn encrypt_in_place_detached(

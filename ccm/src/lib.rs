@@ -67,7 +67,7 @@ pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 /// Trait implemented for valid tag sizes, i.e.
 /// [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
 /// [`U10`][consts::U10], [`U12`][consts::U12], [`U14`][consts::U14], and
-/// [`U12`][consts::U12].
+/// [`U16`][consts::U16].
 pub trait TagSize: private::SealedTag {}
 
 impl<T: private::SealedTag> TagSize for T {}

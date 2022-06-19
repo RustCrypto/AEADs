@@ -57,9 +57,9 @@ name = "aes-gcm-siv"
 version = "0.11.0-pre"
 dependencies = [
  "aead",
- "aes 0.7.5",
- "cipher 0.3.0",
- "ctr 0.8.0",
+ "aes 0.8.1",
+ "cipher 0.4.3",
+ "ctr 0.9.1",
  "polyval",
  "subtle",
  "zeroize",

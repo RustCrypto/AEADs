@@ -132,10 +132,9 @@ pub use aead;
 use aead::{AeadCore, AeadInPlace, Error, NewAead};
 use cipher::{
     consts::{U0, U12, U16},
-    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    Block, BlockCipher, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher,
+    generic_array::GenericArray,
+    BlockCipher, BlockEncrypt, InnerIvInit, KeyInit, StreamCipherCore,
 };
-use ctr::Ctr32LE;
 use polyval::{
     universal_hash::{NewUniversalHash, UniversalHash},
     Polyval,
@@ -172,12 +171,14 @@ pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
 #[cfg(feature = "aes")]
 pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
+/// Counter mode with a 32-bit little endian counter.
+type Ctr32LE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32LE>;
+
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
 pub struct AesGcmSiv<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     /// Key generating key used to derive AES-GCM-SIV subkeys
     key_generating_key: Aes,
@@ -185,8 +186,7 @@ where
 
 impl<Aes> NewAead for AesGcmSiv<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
     type KeySize = Aes::KeySize;
 
@@ -200,7 +200,6 @@ where
 impl<Aes> From<Aes> for AesGcmSiv<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     fn from(key_generating_key: Aes) -> Self {
         Self { key_generating_key }
@@ -209,8 +208,7 @@ where
 
 impl<Aes> AeadCore for AesGcmSiv<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -219,8 +217,7 @@ where
 
 impl<Aes> AeadInPlace for AesGcmSiv<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -251,7 +248,6 @@ where
 struct Cipher<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     /// Encryption cipher
     enc_cipher: Aes,
@@ -265,8 +261,7 @@ where
 
 impl<Aes> Cipher<Aes>
 where
-    Aes: NewBlockCipher + BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
+    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
@@ -330,7 +325,7 @@ where
         }
 
         let tag = self.compute_tag(associated_data, buffer);
-        init_ctr(&self.enc_cipher, &tag).apply_keystream(buffer);
+        init_ctr(&self.enc_cipher, &tag).apply_keystream_partial(buffer.into());
         Ok(tag)
     }
 
@@ -347,12 +342,8 @@ where
         }
 
         self.polyval.update_padded(associated_data);
-        let mut ctr = init_ctr(&self.enc_cipher, tag);
-
-        for chunk in buffer.chunks_mut(Aes::BlockSize::to_usize() * Aes::ParBlocks::to_usize()) {
-            ctr.apply_keystream(chunk);
-            self.polyval.update_padded(chunk);
-        }
+        init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer.into());
+        self.polyval.update_padded(buffer);
 
         let expected_tag = self.finish_tag(associated_data.len(), buffer.len());
 
@@ -362,7 +353,7 @@ where
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
             // prevent accidental exposure.
-            init_ctr(&self.enc_cipher, tag).apply_keystream(buffer);
+            init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer.into());
             Err(Error)
         }
     }
@@ -406,12 +397,12 @@ where
 ///
 /// > The initial counter block is the tag with the most significant bit
 /// > of the last byte set to one.
+#[inline]
 fn init_ctr<Aes>(cipher: Aes, nonce: &cipher::Block<Aes>) -> Ctr32LE<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    Aes::ParBlocks: ArrayLength<Block<Aes>>,
 {
     let mut counter_block = *nonce;
     counter_block[15] |= 0x80;
-    Ctr32LE::from_block_cipher(cipher, &counter_block)
+    Ctr32LE::inner_iv_init(cipher, &counter_block)
 }

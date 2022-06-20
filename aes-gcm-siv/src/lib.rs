@@ -324,8 +324,10 @@ where
             return Err(Error);
         }
 
+        // TODO(tarcieri): interleave authentication and encryption
         let tag = self.compute_tag(associated_data, buffer);
         init_ctr(&self.enc_cipher, &tag).apply_keystream_partial(buffer.into());
+
         Ok(tag)
     }
 
@@ -342,6 +344,8 @@ where
         }
 
         self.polyval.update_padded(associated_data);
+
+        // TODO(tarcieri): interleave decryption and authentication
         init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer.into());
         self.polyval.update_padded(buffer);
 

@@ -93,17 +93,16 @@ use aead::{
     AeadCore, AeadInPlace, Buffer, Error, NewAead,
 };
 use aes::{Aes128, Aes256};
-use cipher::{NewCipher, StreamCipher};
+use cipher::{BlockCipher, BlockEncryptMut, KeyInit, KeySizeUser};
 use cmac::Cmac;
 use core::{marker::PhantomData, ops::Add};
-use crypto_mac::{Mac, NewMac};
-use ctr::Ctr128BE;
+use digest::{FixedOutputReset, Mac};
 
 #[cfg(feature = "pmac")]
 use pmac::Pmac;
 
 /// Size of an AES-SIV key given a particular cipher
-pub type KeySize<C> = <<C as NewCipher>::KeySize as Add>::Output;
+pub type KeySize<C> = <<C as KeySizeUser>::KeySize as Add>::Output;
 
 /// AES-SIV keys
 pub type Key<KeySize> = GenericArray<u8, KeySize>;
@@ -119,9 +118,9 @@ pub type Tag = GenericArray<u8, U16>;
 /// which accepts a key, nonce, and associated data when encrypting/decrypting.
 pub struct SivAead<C, M>
 where
-    C: NewCipher<NonceSize = U16> + StreamCipher,
-    M: Mac<OutputSize = U16>,
-    <C as NewCipher>::KeySize: Add,
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
+    <C as KeySizeUser>::KeySize: Add,
     KeySize<C>: ArrayLength<u8>,
 {
     key: GenericArray<u8, KeySize<C>>,
@@ -129,12 +128,12 @@ where
 }
 
 /// SIV AEAD modes based on CMAC
-pub type CmacSivAead<BlockCipher> = SivAead<Ctr128BE<BlockCipher>, Cmac<BlockCipher>>;
+pub type CmacSivAead<BlockCipher> = SivAead<BlockCipher, Cmac<BlockCipher>>;
 
 /// SIV AEAD modes based on PMAC
 #[cfg(feature = "pmac")]
 #[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
-pub type PmacSivAead<BlockCipher> = SivAead<Ctr128BE<BlockCipher>, Pmac<BlockCipher>>;
+pub type PmacSivAead<BlockCipher> = SivAead<BlockCipher, Pmac<BlockCipher>>;
 
 /// AES-CMAC-SIV in AEAD mode with 256-bit key size (128-bit security)
 pub type Aes128SivAead = CmacSivAead<Aes128>;
@@ -152,9 +151,9 @@ pub type Aes128PmacSivAead = PmacSivAead<Aes128>;
 #[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type Aes256PmacSivAead = PmacSivAead<Aes256>;
 
-impl<M> NewAead for SivAead<Ctr128BE<Aes128>, M>
+impl<M> NewAead for SivAead<Aes128, M>
 where
-    M: Mac<OutputSize = U16>,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
 {
     type KeySize = U32;
 
@@ -166,9 +165,9 @@ where
     }
 }
 
-impl<M> NewAead for SivAead<Ctr128BE<Aes256>, M>
+impl<M> NewAead for SivAead<Aes256, M>
 where
-    M: Mac<OutputSize = U16>,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
 {
     type KeySize = U64;
 
@@ -182,9 +181,9 @@ where
 
 impl<C, M> AeadCore for SivAead<C, M>
 where
-    C: NewCipher<NonceSize = U16> + StreamCipher,
-    M: Mac<OutputSize = U16> + NewMac,
-    <C as NewCipher>::KeySize: Add,
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
+    <C as KeySizeUser>::KeySize: Add,
     KeySize<C>: ArrayLength<u8>,
 {
     // "If the nonce is random, it SHOULD be at least 128 bits in length"
@@ -197,9 +196,9 @@ where
 
 impl<C, M> AeadInPlace for SivAead<C, M>
 where
-    C: NewCipher<NonceSize = U16> + StreamCipher,
-    M: Mac<OutputSize = U16> + NewMac,
-    <C as NewCipher>::KeySize: Add,
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
+    <C as KeySizeUser>::KeySize: Add,
     KeySize<C>: ArrayLength<u8>,
 {
     fn encrypt_in_place(

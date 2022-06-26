@@ -10,12 +10,13 @@ use aead::generic_array::{
 };
 use aead::{Buffer, Error};
 use aes::{Aes128, Aes256};
-use cipher::{NewCipher, StreamCipher};
+use cipher::{
+    BlockCipher, BlockEncryptMut, InnerIvInit, Key, KeyInit, KeySizeUser, StreamCipherCore,
+};
 use cmac::Cmac;
 use core::ops::Add;
-use crypto_mac::{Mac, NewMac};
-use ctr::Ctr128BE;
 use dbl::Dbl;
+use digest::{CtOutput, FixedOutputReset, Mac};
 use zeroize::Zeroize;
 
 #[cfg(feature = "alloc")]
@@ -30,24 +31,27 @@ pub const IV_SIZE: usize = 16;
 /// Maximum number of header items on the encrypted message
 pub const MAX_HEADERS: usize = 126;
 
+/// Counter mode with a 128-bit big endian counter.
+type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
+
 /// Synthetic Initialization Vector (SIV) mode, providing misuse-resistant
 /// authenticated encryption (MRAE).
 pub struct Siv<C, M>
 where
-    C: NewCipher<NonceSize = U16> + StreamCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16>,
 {
-    encryption_key: GenericArray<u8, <C as NewCipher>::KeySize>,
+    encryption_key: Key<C>,
     mac: M,
 }
 
 /// SIV modes based on CMAC
-pub type CmacSiv<BlockCipher> = Siv<Ctr128BE<BlockCipher>, Cmac<BlockCipher>>;
+pub type CmacSiv<BlockCipher> = Siv<BlockCipher, Cmac<BlockCipher>>;
 
 /// SIV modes based on PMAC
 #[cfg(feature = "pmac")]
 #[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
-pub type PmacSiv<BlockCipher> = Siv<Ctr128BE<BlockCipher>, Pmac<BlockCipher>>;
+pub type PmacSiv<BlockCipher> = Siv<BlockCipher, Pmac<BlockCipher>>;
 
 /// AES-CMAC-SIV with a 128-bit key
 pub type Aes128Siv = CmacSiv<Aes128>;
@@ -67,18 +71,18 @@ pub type Aes256PmacSiv = PmacSiv<Aes256>;
 
 impl<C, M> Siv<C, M>
 where
-    C: NewCipher<NonceSize = U16> + StreamCipher,
-    M: Mac<OutputSize = U16> + NewMac,
-    <C as NewCipher>::KeySize: Add,
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
+    <C as KeySizeUser>::KeySize: Add,
     KeySize<C>: ArrayLength<u8>,
 {
     /// Create a new AES-SIV instance
     pub fn new(key: GenericArray<u8, KeySize<C>>) -> Self {
         // Use the first half of the key as the encryption key
-        let encryption_key = GenericArray::clone_from_slice(&key[M::KeySize::to_usize()..]);
+        let encryption_key = GenericArray::clone_from_slice(&key[M::key_size()..]);
 
         // Use the second half of the key as the MAC key
-        let mac = M::new(GenericArray::from_slice(&key[..M::KeySize::to_usize()]));
+        let mac = <M as Mac>::new(GenericArray::from_slice(&key[..M::KeySize::to_usize()]));
 
         Self {
             encryption_key,
@@ -89,8 +93,8 @@ where
 
 impl<C, M> Siv<C, M>
 where
-    C: NewCipher<NonceSize = U16> + StreamCipher,
-    M: Mac<OutputSize = U16> + NewMac,
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
 {
     /// Encrypt the given plaintext, allocating and returning a `Vec<u8>` for
     /// the ciphertext.
@@ -220,8 +224,8 @@ where
         self.xor_with_keystream(*siv_tag, ciphertext);
         let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext)?;
 
-        // Note: constant-time comparison of `crypto_mac::Output` values
-        if crypto_mac::Output::<M>::new(computed_siv_tag) == crypto_mac::Output::new(*siv_tag) {
+        // Note: `CtOutput` provides constant-time equality
+        if CtOutput::<M>::new(computed_siv_tag) == CtOutput::new(*siv_tag) {
             Ok(())
         } else {
             // Re-encrypt the decrypted plaintext to avoid revealing it
@@ -238,13 +242,14 @@ where
         iv[8] &= 0x7f;
         iv[12] &= 0x7f;
 
-        C::new(GenericArray::from_slice(&self.encryption_key), &iv).apply_keystream(msg);
+        Ctr128BE::<C>::inner_iv_init(C::new(&self.encryption_key), &iv)
+            .apply_keystream_partial(msg.into());
     }
 }
 
 impl<C, M> Drop for Siv<C, M>
 where
-    C: NewCipher<NonceSize = U16> + StreamCipher,
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16>,
 {
     fn drop(&mut self) {
@@ -263,11 +268,11 @@ where
 /// initialization vector (for AES-CTR encryption) and MAC.
 fn s2v<M, I, T>(mac: &mut M, headers: I, message: &[u8]) -> Result<Tag, Error>
 where
-    M: Mac<OutputSize = U16>,
+    M: Mac<OutputSize = U16> + FixedOutputReset,
     I: IntoIterator<Item = T>,
     T: AsRef<[u8]>,
 {
-    mac.update(&Tag::default());
+    Mac::update(mac, &Tag::default());
     let mut state = mac.finalize_reset().into_bytes();
 
     for (i, header) in headers.into_iter().enumerate() {
@@ -276,7 +281,7 @@ where
         }
 
         state = state.dbl();
-        mac.update(header.as_ref());
+        Mac::update(mac, header.as_ref());
         let code = mac.finalize_reset().into_bytes();
         xor_in_place(&mut state, &code);
     }
@@ -284,7 +289,7 @@ where
     if message.len() >= IV_SIZE {
         let n = message.len().checked_sub(IV_SIZE).unwrap();
 
-        mac.update(&message[..n]);
+        Mac::update(mac, &message[..n]);
         xor_in_place(&mut state, &message[n..]);
     } else {
         state = state.dbl();
@@ -292,7 +297,7 @@ where
         state[message.len()] ^= 0x80;
     };
 
-    mac.update(state.as_ref());
+    Mac::update(mac, state.as_ref());
     Ok(mac.finalize_reset().into_bytes())
 }
 

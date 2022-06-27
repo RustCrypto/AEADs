@@ -1,6 +1,6 @@
 [package]
 name = "ccm"
-version = "0.4.4"
+version = "0.5.0-pre"
 description = "Generic implementation of the Counter with CBC-MAC (CCM) mode"
 authors = ["RustCrypto Developers"]
 edition = "2018"
@@ -14,14 +14,14 @@ keywords = ["encryption", "aead"]
 
 [dependencies]
 aead = { version = "0.4", default-features = false }
-cipher = { version = "0.3", default-features = false }
-ctr = { version = "0.8", default-features = false }
+cipher = { version = "0.4.3", default-features = false }
+ctr = { version = "0.9.1", default-features = false }
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.4", features = ["dev"], default-features = false }
-aes = { version = "0.7", features = ["force-soft"] } # Uses `force-soft` for MSRV 1.41
-hex-literal = "0.2"
+aes = { version = "0.8.1" }
+hex-literal = "0.3.4"
 
 [features]
 default = ["alloc"]

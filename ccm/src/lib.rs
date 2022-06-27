@@ -51,9 +51,12 @@ use aead::{
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
     AeadCore, AeadInPlace, Error, Key, NewAead,
 };
-use cipher::{Block, BlockCipher, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher};
+use cipher::{
+    Block, BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, KeyInit, StreamCipher,
+    StreamCipherSeek,
+};
 use core::marker::PhantomData;
-use ctr::{Ctr32BE, Ctr64BE};
+use ctr::{Ctr32BE, Ctr64BE, CtrCore};
 use subtle::ConstantTimeEq;
 
 mod private;
@@ -95,8 +98,7 @@ impl<T: private::SealedNonce> NonceSize for T {}
 #[derive(Clone)]
 pub struct Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -106,8 +108,7 @@ where
 
 impl<C, M, N> Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -173,8 +174,7 @@ where
 
 impl<C, M, N> From<C> for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -188,8 +188,7 @@ where
 
 impl<C, M, N> NewAead for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -202,8 +201,7 @@ where
 
 impl<C, M, N> AeadCore for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -214,8 +212,7 @@ where
 
 impl<C, M, N> AeadInPlace for Ccm<C, M, N>
 where
-    C: BlockCipher<BlockSize = U16> + BlockEncrypt,
-    C::ParBlocks: ArrayLength<Block<C>>,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
@@ -232,11 +229,11 @@ where
         let cb = C::BlockSize::USIZE - N::USIZE - 1;
 
         if cb > 4 {
-            let mut ctr = Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
+            let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
             ctr.apply_keystream(buffer);
         } else {
-            let mut ctr = Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
+            let mut ctr = Ctr32BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
             ctr.apply_keystream(buffer);
         }
@@ -256,22 +253,22 @@ where
         let cb = C::BlockSize::USIZE - N::USIZE - 1;
 
         if cb > 4 {
-            let mut ctr = Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
-            ctr.seek_block(1);
+            let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
+            ctr.seek(C::BlockSize::USIZE);
             ctr.apply_keystream(buffer);
         } else {
-            let mut ctr = Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
-            ctr.seek_block(1);
+            let mut ctr = Ctr32BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
+            ctr.seek(C::BlockSize::USIZE);
             ctr.apply_keystream(buffer);
         }
 
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
 
         if cb > 4 {
-            let mut ctr = Ctr64BE::from_block_cipher(&self.cipher, &ext_nonce);
+            let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
         } else {
-            let mut ctr = Ctr32BE::from_block_cipher(&self.cipher, &ext_nonce);
+            let mut ctr = Ctr32BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
         }
 

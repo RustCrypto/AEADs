@@ -340,7 +340,7 @@ dependencies = [
 
 [[package]]
 name = "eax"
-version = "0.4.1"
+version = "0.5.0-pre"
 dependencies = [
  "aead",
  "aes 0.7.5",
@@ -496,7 +496,7 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
 name = "mgm"
-version = "0.4.6"
+version = "0.5.0-pre"
 dependencies = [
  "aead",
  "cfg-if",

@@ -14,7 +14,8 @@ homepage = "https://github.com/RustCrypto"
 keywords = ["aead", "deoxys", "deoxys-i", "deoxys-ii"]
 categories = ["cryptography", "no-std"]
 readme = "README.md"
-edition = "2018"
+edition = "2021"
+rust-version = "1.56"
 
 [dependencies]
 aead = { version = "0.4", default-features = false }

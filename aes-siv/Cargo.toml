@@ -7,13 +7,14 @@ Encryption Cipher (RFC 5297) with optional architecture-specific
 hardware acceleration
 """
 authors = ["RustCrypto Developers"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/aes-siv"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "aes", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
+rust-version = "1.56"
 
 [dependencies]
 aead = "0.4"

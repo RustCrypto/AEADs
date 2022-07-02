@@ -1,9 +1,9 @@
 [package]
 name = "mgm"
-version = "0.4.6"
+version = "0.5.0-pre"
 description = "Generic implementation of the Multilinear Galois Mode (MGM) cipher"
 authors = ["RustCrypto Developers"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/mgm"
@@ -11,6 +11,7 @@ homepage = "https://github.com/RustCrypto/AEADs"
 repository = "https://github.com/RustCrypto/AEADs/tree/master/mgm"
 categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
+rust-version = "1.56"
 
 [dependencies]
 aead = { version = "0.4", default-features = false }

@@ -7,13 +7,14 @@ Encryption Cipher (RFC 8452) with optional architecture-specific
 hardware acceleration
 """
 authors = ["RustCrypto Developers"]
-edition = "2018"
+edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 documentation = "https://docs.rs/aes-gcm-siv"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "aes", "aes-gcm", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
+rust-version = "1.56"
 
 [dependencies]
 aead = { version = "0.4", default-features = false }

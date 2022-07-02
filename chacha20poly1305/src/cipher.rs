@@ -3,7 +3,6 @@
 use ::cipher::{StreamCipher, StreamCipherSeek};
 use aead::generic_array::GenericArray;
 use aead::Error;
-use core::convert::TryInto;
 use poly1305::{
     universal_hash::{NewUniversalHash, UniversalHash},
     Poly1305,

@@ -6,13 +6,14 @@ Pure Rust implementation of the XSalsa20Poly1305 (a.k.a. NaCl crypto_secretbox)
 authenticated encryption algorithm
 """
 authors = ["RustCrypto Developers"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/xsalsa20poly1305"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "salsa20", "poly1305", "xsalsa20"]
 categories = ["cryptography", "no-std"]
+rust-version = "1.56"
 
 [dependencies]
 aead = { version = "0.4", default-features = false }

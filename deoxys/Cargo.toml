@@ -1,6 +1,6 @@
 [package]
 name = "deoxys"
-version = "0.1.0-pre"
+version = "0.1.0-pre.1"
 description = """
 Pure Rust implementation of the Deoxys Authenticated Encryption with Associated
 Data (AEAD) cipher, including the Deoxys-II variant which was selected by the

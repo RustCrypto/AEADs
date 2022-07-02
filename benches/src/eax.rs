@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use criterion_cycles_per_byte::CyclesPerByte;
 
-use eax::aead::{Aead, NewAead};
+use eax::aead::{Aead, KeyInit};
 
 type EaxAes128 = eax::Eax<aes::Aes128>;
 type EaxAes256 = eax::Eax<aes::Aes256>;

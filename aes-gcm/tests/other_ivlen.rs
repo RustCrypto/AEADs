@@ -5,7 +5,7 @@
 
 use aead::{
     generic_array::{typenum, GenericArray},
-    Aead, NewAead,
+    Aead, KeyInit,
 };
 use aes::Aes128;
 use aes_gcm::AesGcm;

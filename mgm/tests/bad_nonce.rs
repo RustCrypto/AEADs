@@ -1,5 +1,5 @@
 //! Tests for nonce validity checks
-use aead::{generic_array::GenericArray, Aead, NewAead};
+use aead::{generic_array::GenericArray, Aead, KeyInit};
 use mgm::Mgm;
 
 #[test]

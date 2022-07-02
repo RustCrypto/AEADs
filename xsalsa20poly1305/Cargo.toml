@@ -16,7 +16,7 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.56"
 
 [dependencies]
-aead = { version = "0.4", default-features = false }
+aead = { version = "=0.5.0-pre.2", default-features = false }
 salsa20 = { version = "0.10", features = ["zeroize"] }
 poly1305 = "0.7"
 rand_core = { version = "0.6", optional = true }
@@ -27,6 +27,7 @@ zeroize = { version = "1", default-features = false }
 default = ["alloc", "rand_core", "aead/rand_core"]
 std = ["aead/std", "alloc", "rand_core/std"]
 alloc = ["aead/alloc"]
+getrandom  = ["aead/getrandom"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
 

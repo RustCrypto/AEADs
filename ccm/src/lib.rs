@@ -8,7 +8,7 @@
 //!
 //! ```
 //! use ccm::{Ccm, consts::{U10, U13}};
-//! use ccm::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use ccm::aead::{Aead, KeyInit, generic_array::GenericArray};
 //! use aes::Aes256;
 //!
 //! // AES-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
@@ -43,17 +43,14 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead;
-pub use aead::consts;
+pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use aead::{
     consts::{U0, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    AeadCore, AeadInPlace, Error, Key, NewAead,
 };
 use cipher::{
-    Block, BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, KeyInit, StreamCipher,
-    StreamCipherSeek,
+    Block, BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
 };
 use core::marker::PhantomData;
 use ctr::{Ctr32BE, Ctr64BE, CtrCore};
@@ -186,14 +183,21 @@ where
     }
 }
 
-impl<C, M, N> NewAead for Ccm<C, M, N>
+impl<C, M, N> KeySizeUser for Ccm<C, M, N>
 where
     C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
     type KeySize = C::KeySize;
+}
 
+impl<C, M, N> KeyInit for Ccm<C, M, N>
+where
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
+{
     fn new(key: &Key<Self>) -> Self {
         Self::from(C::new(key))
     }

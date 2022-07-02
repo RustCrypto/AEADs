@@ -3,7 +3,7 @@
 //! Adapted from NaCl's `tests/secretbox.c` and `tests/secretbox.out`
 
 use xsalsa20poly1305::aead::generic_array::GenericArray;
-use xsalsa20poly1305::aead::{Aead, NewAead};
+use xsalsa20poly1305::aead::{Aead, KeyInit};
 use xsalsa20poly1305::XSalsa20Poly1305;
 
 const KEY: &[u8; 32] = &[

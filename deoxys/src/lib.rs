@@ -15,9 +15,9 @@
 //! # Usage
 //! ```
 //! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, NewAead};
+//! use deoxys::aead::{Aead, KeyInit};
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
+//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
 //! let cipher = DeoxysII256::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
@@ -35,9 +35,9 @@
 //! Deoxys can authenticate additionnal data that is not encrypted alongside with the ciphertext.
 //! ```
 //! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, NewAead, Payload};
+//! use deoxys::aead::{Aead, KeyInit, Payload};
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
+//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
 //! let cipher = DeoxysII256::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
@@ -80,10 +80,10 @@
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadInPlace, NewAead};
+//! use deoxys::aead::{AeadInPlace, KeyInit};
 //! use deoxys::aead::heapless::Vec;
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
+//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
 //! let cipher = DeoxysII256::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
@@ -120,15 +120,13 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
-use core::marker::PhantomData;
-
-pub use aead;
+pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use aead::{
     consts::{U0, U16},
     generic_array::{ArrayLength, GenericArray},
-    AeadCore, AeadInPlace, Error, NewAead,
 };
+use core::marker::PhantomData;
 
 use zeroize::Zeroize;
 
@@ -145,9 +143,6 @@ pub type DeoxysII128 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc256>, deoxys_bc
 /// Deoxys-II with 256-bit keys
 #[allow(clippy::upper_case_acronyms)]
 pub type DeoxysII256 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc384>, deoxys_bc::DeoxysBc384>;
-
-/// Deoxys keys
-pub type Key<KeySize> = GenericArray<u8, KeySize>;
 
 /// Deoxys nonces
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
@@ -191,7 +186,9 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     type KeySize: ArrayLength<u8>;
 
     /// Precompute the subkeys
-    fn precompute_subkeys(key: &Key<Self::KeySize>) -> GenericArray<[u8; 16], Self::SubkeysSize>;
+    fn precompute_subkeys(
+        key: &GenericArray<u8, Self::KeySize>,
+    ) -> GenericArray<[u8; 16], Self::SubkeysSize>;
 
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
@@ -247,14 +244,20 @@ where
     mode: PhantomData<M>,
 }
 
-impl<M, B> NewAead for Deoxys<M, B>
+impl<M, B> KeySizeUser for Deoxys<M, B>
 where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
     type KeySize = B::KeySize;
+}
 
-    fn new(key: &Key<B::KeySize>) -> Self {
+impl<M, B> KeyInit for Deoxys<M, B>
+where
+    M: DeoxysMode<B>,
+    B: DeoxysBcType,
+{
+    fn new(key: &Key<Self>) -> Self {
         Self {
             subkeys: B::precompute_subkeys(key),
             mode: PhantomData,

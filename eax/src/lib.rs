@@ -8,7 +8,7 @@
 //! ```
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use eax::aead::{Aead, KeyInit, generic_array::GenericArray};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let cipher = Eax::<Aes256>::new(key);
@@ -44,7 +44,7 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use eax::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 //! use eax::aead::heapless::Vec;
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
@@ -77,7 +77,7 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use eax::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 //! use eax::aead::heapless::Vec;
 //! use eax::aead::consts::{U8, U128};
 //!
@@ -115,7 +115,7 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, NewAead};
+pub use aead::{self, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
 pub use cipher;
 
 use cipher::{
@@ -171,18 +171,25 @@ where
     _tag_size: PhantomData<M>,
 }
 
-impl<Cipher, M> NewAead for Eax<Cipher, M>
+impl<Cipher, M> KeySizeUser for Eax<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
     Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
     M: TagSize,
 {
     type KeySize = Cipher::KeySize;
+}
 
+impl<Cipher, M> KeyInit for Eax<Cipher, M>
+where
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
+    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    M: TagSize,
+{
     fn new(key: &BlockCipherKey<Cipher>) -> Self {
         Self {
             key: key.clone(),
-            _tag_size: Default::default(),
+            _tag_size: PhantomData,
         }
     }
 }

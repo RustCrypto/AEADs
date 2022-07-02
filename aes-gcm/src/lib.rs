@@ -33,7 +33,7 @@
 //!
 //! ```
 //! use aes_gcm::{Aes256Gcm, Key, Nonce}; // Or `Aes128Gcm`
-//! use aes_gcm::aead::{Aead, NewAead};
+//! use aes_gcm::aead::{Aead, KeyInit};
 //!
 //! let key = Key::<Aes256Gcm>::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256Gcm::new(key);
@@ -67,7 +67,7 @@
 #![cfg_attr(feature = "heapless", doc = " ```")]
 #![cfg_attr(not(feature = "heapless"), doc = " ```ignore")]
 //! use aes_gcm::{Aes256Gcm, Key, Nonce}; // Or `Aes128Gcm`
-//! use aes_gcm::aead::{AeadInPlace, NewAead};
+//! use aes_gcm::aead::{AeadInPlace, KeyInit};
 //! use aes_gcm::aead::heapless::Vec;
 //!
 //! let key = Key::<Aes256Gcm>::from_slice(b"an example very very secret key.");
@@ -103,8 +103,7 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, NewAead};
-pub use cipher::Key;
+pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 #[cfg(feature = "aes")]
 pub use aes;
@@ -112,7 +111,7 @@ pub use aes;
 use cipher::{
     consts::{U0, U16},
     generic_array::{ArrayLength, GenericArray},
-    BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, KeyInit, KeySizeUser, StreamCipherCore,
+    BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use core::marker::PhantomData;
 use ghash::{
@@ -184,17 +183,15 @@ pub struct AesGcm<Aes, NonceSize> {
 
 impl<Aes, NonceSize> KeySizeUser for AesGcm<Aes, NonceSize>
 where
-    Aes: KeyInit,
+    Aes: KeySizeUser,
 {
     type KeySize = Aes::KeySize;
 }
 
-impl<Aes, NonceSize> NewAead for AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize> KeyInit for AesGcm<Aes, NonceSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
-    type KeySize = Aes::KeySize;
-
     fn new(key: &Key<Self>) -> Self {
         Aes::new(key).into()
     }

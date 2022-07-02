@@ -7,7 +7,7 @@
 mod common;
 
 use self::common::TestVector;
-use aes_gcm_siv::aead::{generic_array::GenericArray, Aead, NewAead, Payload};
+use aes_gcm_siv::aead::{generic_array::GenericArray, Aead, KeyInit, Payload};
 use aes_gcm_siv::Aes256GcmSiv;
 
 /// Test vectors from RFC8452 Appendix C.3. Counter Wrap Tests

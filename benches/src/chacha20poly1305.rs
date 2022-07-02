@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use criterion_cycles_per_byte::CyclesPerByte;
 
-use chacha20poly1305::aead::{Aead, NewAead};
+use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::ChaCha20Poly1305;
 
 const KB: usize = 1024;

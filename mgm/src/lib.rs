@@ -6,7 +6,7 @@
 //! # {
 //! use mgm::Mgm;
 //! use kuznyechik::Kuznyechik;
-//! use mgm::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use mgm::aead::{Aead, KeyInit, generic_array::GenericArray};
 //!
 //! let key = GenericArray::from_slice(b"very secret key very secret key ");
 //! let cipher = Mgm::<Kuznyechik>::new(key);
@@ -27,13 +27,18 @@
 //!
 //! [1]: https://eprint.iacr.org/2019/123.pdf
 //! [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption
+
 #![no_std]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
 #![warn(missing_docs, rust_2018_idioms)]
-use aead::{consts::U0, generic_array::GenericArray, AeadCore, AeadInPlace, Error, Key, NewAead};
+
+use aead::{
+    consts::U0, generic_array::GenericArray, AeadCore, AeadInPlace, Error, Key, KeyInit,
+    KeySizeUser,
+};
 use cfg_if::cfg_if;
 use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
 
@@ -86,13 +91,19 @@ where
     }
 }
 
-impl<C> NewAead for Mgm<C>
+impl<C> KeySizeUser for Mgm<C>
 where
     C: BlockEncrypt + NewBlockCipher,
     C::BlockSize: MgmBlockSize,
 {
     type KeySize = C::KeySize;
+}
 
+impl<C> KeyInit for Mgm<C>
+where
+    C: BlockEncrypt + NewBlockCipher,
+    C::BlockSize: MgmBlockSize,
+{
     fn new(key: &Key<Self>) -> Self {
         Self::from(C::new(key))
     }

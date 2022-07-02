@@ -17,7 +17,7 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.56"
 
 [dependencies]
-aead = { version = "0.4", default-features = false }
+aead = { version = "=0.5.0-pre.2", default-features = false }
 aes = { version = "0.8", optional = true }
 cipher = "0.4"
 ctr = "0.9"
@@ -26,7 +26,7 @@ subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.4", features = ["dev"], default-features = false }
+aead = { version = "=0.5.0-pre.2", features = ["dev"], default-features = false }
 hex-literal = "0.3"
 
 [features]
@@ -35,6 +35,7 @@ std        = ["aead/std", "alloc"]
 alloc      = ["aead/alloc"]
 armv8      = ["ghash/armv8"] # nightly-only
 force-soft = ["ghash/force-soft"]
+getrandom  = ["aead/getrandom"]
 heapless   = ["aead/heapless"]
 stream     = ["aead/stream"]
 

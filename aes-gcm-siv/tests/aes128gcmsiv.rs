@@ -4,7 +4,7 @@
 mod common;
 
 use self::common::TestVector;
-use aes_gcm_siv::aead::{generic_array::GenericArray, Aead, NewAead, Payload};
+use aes_gcm_siv::aead::{generic_array::GenericArray, Aead, KeyInit, Payload};
 use aes_gcm_siv::Aes128GcmSiv;
 
 /// Test vectors from RFC8452 Appendix C.1: AEAD_AES_128_GCM_SIV

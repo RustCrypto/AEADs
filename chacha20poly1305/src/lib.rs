@@ -34,7 +34,7 @@
 //! # #[cfg(feature = "alloc")]
 //! # {
 //! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
-//! use chacha20poly1305::aead::{Aead, NewAead};
+//! use chacha20poly1305::aead::{Aead, KeyInit};
 //!
 //! let key = Key::from_slice(b"an example very very secret key."); // 32-bytes
 //! let cipher = ChaCha20Poly1305::new(key);
@@ -69,7 +69,7 @@
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
-//! use chacha20poly1305::aead::{AeadInPlace, NewAead};
+//! use chacha20poly1305::aead::{AeadInPlace, KeyInit};
 //! use chacha20poly1305::aead::heapless::Vec;
 //!
 //! let key = Key::from_slice(b"an example very very secret key.");
@@ -125,7 +125,7 @@
 //! # #[cfg(feature = "alloc")]
 //! # {
 //! use chacha20poly1305::{XChaCha20Poly1305, Key, XNonce};
-//! use chacha20poly1305::aead::{Aead, NewAead};
+//! use chacha20poly1305::aead::{Aead, KeyInit};
 //!
 //! let key = Key::from_slice(b"an example very very secret key."); // 32-bytes
 //! let aead = XChaCha20Poly1305::new(key);
@@ -155,14 +155,13 @@
 
 mod cipher;
 
-pub use aead;
+pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
 
 use self::cipher::Cipher;
 use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
 use aead::{
     consts::{U0, U12, U16, U24, U32},
     generic_array::{ArrayLength, GenericArray},
-    AeadCore, AeadInPlace, Error, NewAead,
 };
 use core::marker::PhantomData;
 use zeroize::Zeroize;
@@ -224,35 +223,40 @@ pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
 /// Generic ChaCha+Poly1305 Authenticated Encryption with Additional Data (AEAD) construction.
 ///
 /// See the [toplevel documentation](index.html) for a usage example.
-pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12>
-where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
-{
-    /// Secret key
-    key: GenericArray<u8, U32>,
+pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12> {
+    /// Secret key.
+    key: Key,
 
-    /// ChaCha stream cipher
+    /// ChaCha stream cipher.
     stream_cipher: PhantomData<C>,
+
+    /// Nonce size.
+    nonce_size: PhantomData<N>,
 }
 
-impl<C, N> NewAead for ChaChaPoly1305<C, N>
+impl<C, N> KeySizeUser for ChaChaPoly1305<C, N>
 where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     type KeySize = U32;
+}
 
+impl<C, N> KeyInit for ChaChaPoly1305<C, N>
+where
+    N: ArrayLength<u8>,
+{
+    #[inline]
     fn new(key: &Key) -> Self {
         Self {
             key: *key,
             stream_cipher: PhantomData,
+            nonce_size: PhantomData,
         }
     }
 }
 
 impl<C, N> AeadCore for ChaChaPoly1305<C, N>
 where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     type NonceSize = N;
@@ -291,20 +295,19 @@ where
 
 impl<C, N> Clone for ChaChaPoly1305<C, N>
 where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn clone(&self) -> Self {
         Self {
             key: self.key,
             stream_cipher: PhantomData,
+            nonce_size: PhantomData,
         }
     }
 }
 
 impl<C, N> Drop for ChaChaPoly1305<C, N>
 where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArrayLength<u8>,
 {
     fn drop(&mut self) {

@@ -1,4 +1,4 @@
-use aead::{generic_array::GenericArray, Aead, AeadInPlace, NewAead, Payload};
+use aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
 use aes::{Aes128, Aes192, Aes256};
 use ccm::{
     consts::{U10, U11, U12, U13, U14, U16, U4, U6, U7, U8, U9},

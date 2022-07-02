@@ -53,9 +53,9 @@
 //!
 //! ```
 //! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{Aead, NewAead};
+//! use aes_gcm_siv::aead::{Aead, KeyInit};
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
+//! let key = Key::<Aes256GcmSiv>::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256GcmSiv::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
@@ -89,10 +89,10 @@
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{AeadInPlace, NewAead};
+//! use aes_gcm_siv::aead::{AeadInPlace, KeyInit};
 //! use aes_gcm_siv::aead::heapless::Vec;
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
+//! let key = Key::<Aes256GcmSiv>::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256GcmSiv::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
@@ -127,13 +127,12 @@
 )]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead;
+pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
-use aead::{AeadCore, AeadInPlace, Error, NewAead};
 use cipher::{
     consts::{U0, U12, U16},
     generic_array::GenericArray,
-    BlockCipher, BlockEncrypt, InnerIvInit, KeyInit, StreamCipherCore,
+    BlockCipher, BlockEncrypt, InnerIvInit, StreamCipherCore,
 };
 use polyval::{
     universal_hash::{NewUniversalHash, UniversalHash},
@@ -154,9 +153,6 @@ pub const P_MAX: u64 = 1 << 36;
 /// Maximum length of ciphertext (from RFC 8452 Section 6)
 pub const C_MAX: u64 = (1 << 36) + 16;
 
-/// AES-GCM-SIV keys
-pub type Key<KeySize> = GenericArray<u8, KeySize>;
-
 /// AES-GCM-SIV nonces
 pub type Nonce = GenericArray<u8, U12>;
 
@@ -176,21 +172,23 @@ type Ctr32LE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32LE>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
-pub struct AesGcmSiv<Aes>
-where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-{
+pub struct AesGcmSiv<Aes> {
     /// Key generating key used to derive AES-GCM-SIV subkeys
     key_generating_key: Aes,
 }
 
-impl<Aes> NewAead for AesGcmSiv<Aes>
+impl<Aes> KeySizeUser for AesGcmSiv<Aes>
+where
+    Aes: KeySizeUser,
+{
+    type KeySize = Aes::KeySize;
+}
+
+impl<Aes> KeyInit for AesGcmSiv<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
-    type KeySize = Aes::KeySize;
-
-    fn new(key_bytes: &Key<Aes::KeySize>) -> Self {
+    fn new(key_bytes: &Key<Self>) -> Self {
         Self {
             key_generating_key: Aes::new(key_bytes),
         }
@@ -267,7 +265,7 @@ where
     /// message-encryption keys.
     pub(crate) fn new(key_generating_key: &Aes, nonce: &Nonce) -> Self {
         let mut mac_key = polyval::Key::default();
-        let mut enc_key = Key::default();
+        let mut enc_key = GenericArray::default();
         let mut block = cipher::Block::<Aes>::default();
         let mut counter = 0u32;
 

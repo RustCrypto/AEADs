@@ -17,7 +17,7 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.56"
 
 [dependencies]
-aead = "0.4"
+aead = "=0.5.0-pre.2"
 aes = "0.8"
 cipher = "0.4"
 cmac = "0.7"
@@ -37,6 +37,7 @@ hex-literal = "0.3"
 default = ["alloc"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
+getrandom  = ["aead/getrandom"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
 

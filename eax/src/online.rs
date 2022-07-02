@@ -57,18 +57,24 @@
 //! [`Decrypt`]: struct.Decrypt.html
 //! [`finish`]: #method.finish
 
-use crate::*;
-
-use crate::Tag;
+use crate::{Block, Cmac, Error, Nonce, Tag, TagSize};
+use aead::consts::U16;
+use cipher::{
+    generic_array::{functional::FunctionalSequence, ArrayLength},
+    BlockCipher, BlockCipherKey, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher,
+};
+use cmac::{Mac, NewMac};
 use core::marker::PhantomData;
 
 pub use Eax as EaxOnline;
 
 /// Marker trait denoting whether the EAX stream is used for encryption/decryption.
 pub trait CipherOp {}
+
 /// Marker struct for EAX stream used in encryption mode.
 pub struct Encrypt;
 impl CipherOp for Encrypt {}
+
 /// Marker struct for EAX stream used in decryption mode.
 pub struct Decrypt;
 impl CipherOp for Decrypt {}
@@ -381,23 +387,32 @@ where
 }
 
 // Because the current AEAD test harness expects the types to implement both
-// `NewAead` and `AeadMutInPlace` traits, do so here so that we can test the
+// `KeyInit` and `AeadMutInPlace` traits, do so here so that we can test the
 // internal logic used by the public interface for the online EAX variant.
 // These are not publicly implemented in general, because the traits are
 // designed for offline usage and are somewhat wasteful when used in online mode.
 #[cfg(test)]
 mod test_impl {
     use super::*;
-    use aead::AeadMutInPlace;
+    use aead::{
+        consts::U0, generic_array::GenericArray, AeadCore, AeadMutInPlace, KeyInit, KeySizeUser,
+    };
 
-    impl<Cipher, M> NewAead for EaxImpl<Cipher, M>
+    impl<Cipher, M> KeySizeUser for EaxImpl<Cipher, M>
     where
         Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
         Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
         M: TagSize,
     {
         type KeySize = Cipher::KeySize;
+    }
 
+    impl<Cipher, M> KeyInit for EaxImpl<Cipher, M>
+    where
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
+        Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        M: TagSize,
+    {
         fn new(key: &BlockCipherKey<Cipher>) -> Self {
             // HACK: The nonce will be initialized by the appropriate
             // decrypt/encrypt functions from `AeadMutInPlace` implementation.

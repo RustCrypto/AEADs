@@ -1,6 +1,6 @@
 // Uses the official test vectors.
 use deoxys::aead::generic_array::GenericArray;
-use deoxys::aead::{Aead, NewAead, Payload};
+use deoxys::aead::{Aead, KeyInit, Payload};
 use deoxys::DeoxysI256;
 
 use hex_literal::hex;

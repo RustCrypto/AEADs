@@ -1,6 +1,6 @@
 [package]
 name = "deoxys"
-version = "0.0.2"
+version = "0.1.0-pre"
 description = """
 Pure Rust implementation of the Deoxys Authenticated Encryption with Associated
 Data (AEAD) cipher, including the Deoxys-II variant which was selected by the
@@ -18,19 +18,20 @@ edition = "2021"
 rust-version = "1.56"
 
 [dependencies]
-aead = { version = "0.4", default-features = false }
+aead = { version = "=0.5.0-pre.2", default-features = false }
 aes = { version = "0.7.5", features=["hazmat"], default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.4", features = ["dev"], default-features = false }
+aead = { version = "=0.5.0-pre.2", features = ["dev"], default-features = false }
 hex-literal = "0.3"
 
 [features]
 default = ["alloc"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
+getrandom  = ["aead/getrandom"]
 heapless = ["aead/heapless"]
 stream = ["aead/stream"]
 

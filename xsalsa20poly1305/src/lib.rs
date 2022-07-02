@@ -23,7 +23,7 @@
 //!
 //! ```
 //! use xsalsa20poly1305::XSalsa20Poly1305;
-//! use xsalsa20poly1305::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use xsalsa20poly1305::aead::{Aead, KeyInit, generic_array::GenericArray};
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
 //! let cipher = XSalsa20Poly1305::new(key);
@@ -59,7 +59,7 @@
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use xsalsa20poly1305::XSalsa20Poly1305;
-//! use xsalsa20poly1305::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use xsalsa20poly1305::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 //! use xsalsa20poly1305::aead::heapless::Vec;
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
@@ -98,13 +98,13 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-pub use aead;
+pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
 pub use salsa20::{Key, XNonce as Nonce};
 
 use aead::{
     consts::{U0, U16, U24, U32},
     generic_array::GenericArray,
-    AeadCore, AeadInPlace, Buffer, Error, NewAead,
+    Buffer,
 };
 use poly1305::{universal_hash::NewUniversalHash, Poly1305};
 use salsa20::{
@@ -125,20 +125,6 @@ pub const NONCE_SIZE: usize = 24;
 /// Size of a Poly1305 tag in bytes
 pub const TAG_SIZE: usize = 16;
 
-/// Generate a random nonce: every message MUST have a unique nonce!
-///
-/// Do *NOT* ever reuse the same nonce for two messages!
-#[cfg(feature = "rand_core")]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand_core")))]
-pub fn generate_nonce<T>(csprng: &mut T) -> Nonce
-where
-    T: RngCore + CryptoRng,
-{
-    let mut nonce = [0u8; NONCE_SIZE];
-    csprng.fill_bytes(&mut nonce);
-    nonce.into()
-}
-
 /// Poly1305 tags
 pub type Tag = GenericArray<u8, U16>;
 
@@ -150,9 +136,27 @@ pub struct XSalsa20Poly1305 {
     key: Key,
 }
 
-impl NewAead for XSalsa20Poly1305 {
-    type KeySize = U32;
+impl XSalsa20Poly1305 {
+    /// Generate a random nonce: every message MUST have a unique nonce!
+    ///
+    /// Do *NOT* ever reuse the same nonce for two messages!
+    #[cfg(feature = "rand_core")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rand_core")))]
+    pub fn generate_nonce<T>(csprng: &mut T) -> Nonce
+    where
+        T: RngCore + CryptoRng,
+    {
+        let mut nonce = [0u8; NONCE_SIZE];
+        csprng.fill_bytes(&mut nonce);
+        nonce.into()
+    }
+}
 
+impl KeySizeUser for XSalsa20Poly1305 {
+    type KeySize = U32;
+}
+
+impl KeyInit for XSalsa20Poly1305 {
     fn new(key: &Key) -> Self {
         XSalsa20Poly1305 { key: *key }
     }

@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use criterion_cycles_per_byte::CyclesPerByte;
 
-use deoxys::aead::{Aead, NewAead};
+use deoxys::aead::{Aead, KeyInit};
 use deoxys::{DeoxysI128, DeoxysI256, DeoxysII128, DeoxysII256};
 
 const KB: usize = 1024;

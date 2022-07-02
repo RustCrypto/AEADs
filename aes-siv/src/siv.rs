@@ -3,12 +3,14 @@
 //!
 //! [1]: https://tools.ietf.org/html/rfc5297
 
-use crate::{KeySize, Tag};
-use aead::generic_array::{
-    typenum::{Unsigned, U16},
-    ArrayLength, GenericArray,
+use crate::Tag;
+use aead::{
+    generic_array::{
+        typenum::{Unsigned, U16},
+        ArrayLength, GenericArray,
+    },
+    Buffer, Error,
 };
-use aead::{Buffer, Error};
 use aes::{Aes128, Aes256};
 use cipher::{
     BlockCipher, BlockEncryptMut, InnerIvInit, Key, KeyInit, KeySizeUser, StreamCipherCore,
@@ -33,6 +35,9 @@ pub const MAX_HEADERS: usize = 126;
 
 /// Counter mode with a 128-bit big endian counter.
 type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
+
+/// Size of an AES-SIV key given a particular cipher
+pub type KeySize<C> = <<C as KeySizeUser>::KeySize as Add>::Output;
 
 /// Synthetic Initialization Vector (SIV) mode, providing misuse-resistant
 /// authenticated encryption (MRAE).
@@ -69,7 +74,17 @@ pub type Aes128PmacSiv = PmacSiv<Aes128>;
 #[cfg_attr(docsrs, doc(cfg(feature = "pmac")))]
 pub type Aes256PmacSiv = PmacSiv<Aes256>;
 
-impl<C, M> Siv<C, M>
+impl<C, M> KeySizeUser for Siv<C, M>
+where
+    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
+    <C as KeySizeUser>::KeySize: Add,
+    KeySize<C>: ArrayLength<u8>,
+{
+    type KeySize = KeySize<C>;
+}
+
+impl<C, M> KeyInit for Siv<C, M>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
@@ -77,7 +92,7 @@ where
     KeySize<C>: ArrayLength<u8>,
 {
     /// Create a new AES-SIV instance
-    pub fn new(key: GenericArray<u8, KeySize<C>>) -> Self {
+    fn new(key: &GenericArray<u8, KeySize<C>>) -> Self {
         // Use the first half of the key as the encryption key
         let encryption_key = GenericArray::clone_from_slice(&key[M::key_size()..]);
 

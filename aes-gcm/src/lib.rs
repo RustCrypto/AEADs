@@ -114,10 +114,7 @@ use cipher::{
     BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use core::marker::PhantomData;
-use ghash::{
-    universal_hash::{NewUniversalHash, UniversalHash},
-    GHash,
-};
+use ghash::{universal_hash::UniversalHash, GHash};
 
 #[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
@@ -304,8 +301,8 @@ where
             let mut block = ghash::Block::default();
             let nonce_bits = (NonceSize::to_usize() as u64) * 8;
             block[8..].copy_from_slice(&nonce_bits.to_be_bytes());
-            ghash.update(&block);
-            ghash.finalize().into_bytes()
+            ghash.update(&[block]);
+            ghash.finalize()
         };
 
         let mut ctr = Ctr32BE::inner_iv_init(&self.cipher, &j0);
@@ -326,9 +323,9 @@ where
         let mut block = ghash::Block::default();
         block[..8].copy_from_slice(&associated_data_bits.to_be_bytes());
         block[8..].copy_from_slice(&buffer_bits.to_be_bytes());
-        ghash.update(&block);
+        ghash.update(&[block]);
 
-        let mut tag = ghash.finalize().into_bytes();
+        let mut tag = ghash.finalize();
         for (a, b) in tag.as_mut_slice().iter_mut().zip(mask.as_slice()) {
             *a ^= *b;
         }

@@ -272,9 +272,9 @@ where
 
         let expected_tag = &expected_tag[..tag.len()];
 
-        // Check mac using secure comparison
+        // Constant-time MAC comparison
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).into() {
             // Decrypt
             let mut cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
             cipher.apply_keystream(buffer);

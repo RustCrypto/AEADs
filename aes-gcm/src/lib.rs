@@ -266,7 +266,7 @@ where
         ctr.apply_keystream_partial(buffer.into());
 
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
             Err(Error)

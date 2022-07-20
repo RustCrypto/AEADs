@@ -106,7 +106,7 @@ use aead::{
     generic_array::GenericArray,
     Buffer,
 };
-use poly1305::{universal_hash::NewUniversalHash, Poly1305};
+use poly1305::Poly1305;
 use salsa20::{
     cipher::{KeyIvInit, StreamCipher, StreamCipherSeek},
     XSalsa20,
@@ -285,7 +285,7 @@ where
         }
 
         self.cipher.apply_keystream(buffer);
-        Ok(self.mac.compute_unpadded(buffer).into_bytes())
+        Ok(self.mac.compute_unpadded(buffer))
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity
@@ -302,10 +302,10 @@ where
         }
 
         use subtle::ConstantTimeEq;
-        let expected_tag = self.mac.compute_unpadded(buffer).into_bytes();
+        let expected_tag = self.mac.compute_unpadded(buffer);
 
         // This performs a constant-time comparison using the `subtle` crate
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).into() {
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {

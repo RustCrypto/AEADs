@@ -190,7 +190,7 @@ dependencies = [
  "aead",
  "chacha20",
  "cipher 0.4.3",
- "poly1305 0.8.0-pre.1",
+ "poly1305",
  "zeroize",
 ]
 
@@ -543,24 +543,13 @@ dependencies = [
 
 [[package]]
 name = "poly1305"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "048aeb476be11a4b6ca432ca569e375810de9294ae78f4774e78ea98a9246ede"
-dependencies = [
- "cpufeatures",
- "opaque-debug",
- "universal-hash 0.4.1",
-]
-
-[[package]]
-name = "poly1305"
 version = "0.8.0-pre.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "387528277972ee66b5957001b0665b4f8bc36c175a409808ae7b4eed3c61ad75"
 dependencies = [
  "cpufeatures",
  "opaque-debug",
- "universal-hash 0.5.0-pre.1",
+ "universal-hash",
 ]
 
 [[package]]
@@ -572,7 +561,7 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "opaque-debug",
- "universal-hash 0.5.0-pre.1",
+ "universal-hash",
 ]
 
 [[package]]
@@ -711,16 +700,6 @@ checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
 
 [[package]]
 name = "universal-hash"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f214e8f697e925001e66ec2c6e37a4ef93f0f78c2eed7814394e10c62025b05"
-dependencies = [
- "generic-array",
- "subtle",
-]
-
-[[package]]
-name = "universal-hash"
 version = "0.5.0-pre.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ddf84cbf3ff76dc1546cd2d7fb8e98f3fecb4de9a4ef68243bc76c14244f557"
@@ -767,7 +746,7 @@ name = "xsalsa20poly1305"
 version = "0.9.0-pre.1"
 dependencies = [
  "aead",
- "poly1305 0.7.2",
+ "poly1305",
  "rand_core",
  "salsa20",
  "subtle",

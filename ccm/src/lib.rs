@@ -276,12 +276,12 @@ where
             ctr.apply_keystream(&mut full_tag);
         }
 
-        if full_tag[..tag.len()].ct_eq(tag).unwrap_u8() == 0 {
+        if full_tag[..tag.len()].ct_eq(tag).into() {
+            Ok(())
+        } else {
             buffer.iter_mut().for_each(|v| *v = 0);
-            return Err(Error);
+            Err(Error)
         }
-
-        Ok(())
     }
 }
 

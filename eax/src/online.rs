@@ -378,7 +378,7 @@ where
         use subtle::ConstantTimeEq;
 
         let resulting_tag = &self.tag()[..expected.len()];
-        if resulting_tag.ct_eq(expected).unwrap_u8() == 1 {
+        if resulting_tag.ct_eq(expected).into() {
             Ok(())
         } else {
             Err(Error)
@@ -474,7 +474,7 @@ mod test_impl {
 
             // Check mac using secure comparison
             use subtle::ConstantTimeEq;
-            if expected_tag.ct_eq(&tag).unwrap_u8() == 1 {
+            if expected_tag.ct_eq(&tag).into() {
                 Ok(())
             } else {
                 Err(Error)

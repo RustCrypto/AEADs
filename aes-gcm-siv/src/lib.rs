@@ -134,10 +134,7 @@ use cipher::{
     generic_array::GenericArray,
     BlockCipher, BlockEncrypt, InnerIvInit, StreamCipherCore,
 };
-use polyval::{
-    universal_hash::{NewUniversalHash, UniversalHash},
-    Polyval,
-};
+use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
 
 /// AES is optional to allow swapping in hardware-specific backends
@@ -322,8 +319,10 @@ where
             return Err(Error);
         }
 
-        // TODO(tarcieri): interleave authentication and encryption
-        let tag = self.compute_tag(associated_data, buffer);
+        self.polyval.update_padded(associated_data);
+        self.polyval.update_padded(buffer);
+
+        let tag = self.finish_tag(associated_data.len(), buffer.len());
         init_ctr(&self.enc_cipher, &tag).apply_keystream_partial(buffer.into());
 
         Ok(tag)
@@ -350,7 +349,7 @@ where
         let expected_tag = self.finish_tag(associated_data.len(), buffer.len());
 
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
@@ -358,13 +357,6 @@ where
             init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer.into());
             Err(Error)
         }
-    }
-
-    /// Authenticate the given plaintext and associated data using POLYVAL
-    fn compute_tag(&mut self, associated_data: &[u8], buffer: &mut [u8]) -> Tag {
-        self.polyval.update_padded(associated_data);
-        self.polyval.update_padded(buffer);
-        self.finish_tag(associated_data.len(), buffer.len())
     }
 
     /// Finish computing POLYVAL tag for AAD and buffer of the given length
@@ -375,9 +367,9 @@ where
         let mut block = polyval::Block::default();
         block[..8].copy_from_slice(&associated_data_bits.to_le_bytes());
         block[8..].copy_from_slice(&buffer_bits.to_le_bytes());
-        self.polyval.update(&block);
+        self.polyval.update(&[block]);
 
-        let mut tag = self.polyval.finalize_reset().into_bytes();
+        let mut tag = self.polyval.finalize_reset();
 
         // XOR the nonce into the resulting tag
         for (i, byte) in tag[..12].iter_mut().enumerate() {

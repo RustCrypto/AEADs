@@ -14,7 +14,7 @@ keywords = ["encryption", "aead"]
 rust-version = "1.56"
 
 [dependencies]
-aead = { version = "=0.5.0-pre.2", default-features = false }
+aead = { version = "0.5", default-features = false }
 cipher = "0.3"
 subtle = { version = "2", default-features = false }
 cfg-if = "1"
@@ -23,7 +23,7 @@ cfg-if = "1"
 cpufeatures = "0.2"
 
 [dev-dependencies]
-aead = { version = "=0.5.0-pre.2", features = ["dev"], default-features = false }
+aead = { version = "0.5", features = ["dev"], default-features = false }
 kuznyechik = "0.7"
 magma = "0.7"
 hex-literal = "0.2"

@@ -5,9 +5,9 @@ version = 3
 
 [[package]]
 name = "aead"
-version = "0.5.0-pre.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebd885afa9fa966b7715dc1c46bf47330b9156eec79a09d2003c5af03d153ba0"
+checksum = "ae06cea71059b6b79d879afcdd237a33ac61afc052fdd605815e6f3916254abf"
 dependencies = [
  "blobby",
  "crypto-common",

@@ -21,7 +21,7 @@ aead = { version = "0.5", default-features = false }
 aes = { version = "0.8", optional = true }
 cipher = "0.4"
 ctr = "0.9"
-polyval = { version = "=0.6.0-pre.1", default-features = false }
+polyval = { version = "=0.6.0-pre.2", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 
@@ -29,14 +29,12 @@ zeroize = { version = "1", default-features = false }
 aead = { version = "0.5", features = ["dev"], default-features = false }
 
 [features]
-default    = ["aes", "alloc"]
-std        = ["aead/std", "alloc"]
-alloc      = ["aead/alloc"]
-armv8      = ["polyval/armv8"] # nightly-only
-force-soft = ["polyval/force-soft"]
-getrandom  = ["aead/getrandom"]
-heapless   = ["aead/heapless"]
-stream     = ["aead/stream"]
+default   = ["aes", "alloc"]
+std       = ["aead/std", "alloc"]
+alloc     = ["aead/alloc"]
+getrandom = ["aead/getrandom"]
+heapless  = ["aead/heapless"]
+stream    = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -481,12 +481,11 @@ dependencies = [
 
 [[package]]
 name = "magma"
-version = "0.7.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53792c7fca348c3d880c5ab2b0a2378a28edca57d080feabc4b60b4633dff91b"
+checksum = "ab2769afcfdd8e74b86e29ad12ef7f89e1e9c5d0b78cb50a6233a502c60d62f0"
 dependencies = [
- "cipher 0.3.0",
- "opaque-debug",
+ "cipher 0.4.3",
 ]
 
 [[package]]

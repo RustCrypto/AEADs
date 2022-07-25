@@ -31,7 +31,7 @@ aead = { version = "0.5", features = ["dev"], default-features = false }
 aes = "0.7"
 
 [features]
-default = ["alloc"]
+default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 getrandom  = ["aead/getrandom"]

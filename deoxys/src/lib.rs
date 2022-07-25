@@ -13,22 +13,24 @@
 //! **USE AT YOUR OWN RISK.**
 //!
 //! # Usage
-//! ```
-//! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, KeyInit};
 //!
-//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
-//! let cipher = DeoxysII256::new(key);
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use deoxys::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
+//!     Nonce // Or `Aes128Gcm`
+//! };
 //!
+//! let key = DeoxysII256::generate_key(&mut OsRng);
+//! let cipher = DeoxysII256::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Usage with AAD

@@ -6,22 +6,22 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! use aes_siv::{Aes128SivAead, Key, Nonce}; // Or `Aes256SivAead`
-//! use aes_siv::aead::{Aead, KeyInit};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_siv::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     Aes256SivAead, Nonce // Or `Aes128SivAead`
+//! };
 //!
-//! let key = Key::<Aes128SivAead>::from_slice(b"an example very very secret key.");
-//! let cipher = Aes128SivAead::new(key);
-//!
+//! let key = Aes256SivAead::generate_key(&mut OsRng);
+//! let cipher = Aes256SivAead::new(&key);
 //! let nonce = Nonce::from_slice(b"any unique nonce"); // 128-bits; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -39,30 +39,37 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # #[cfg(feature = "heapless")]
-//! # {
-//! use aes_siv::{Aes128SivAead, Key, Nonce}; // Or `Aes256SivAead`
-//! use aes_siv::aead::{AeadInPlace, KeyInit};
-//! use aes_siv::aead::heapless::Vec;
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_siv::{
+//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     Aes256SivAead, Nonce, // Or `Aes128SivAead`
+//! };
 //!
-//! let key = Key::<Aes128SivAead>::from_slice(b"an example very very secret key.");
-//! let cipher = Aes128SivAead::new(key);
-//!
+//! let key = Aes256SivAead::generate_key(&mut OsRng);
+//! let cipher = Aes256SivAead::new(&key);
 //! let nonce = Nonce::from_slice(b"any unique nonce"); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!

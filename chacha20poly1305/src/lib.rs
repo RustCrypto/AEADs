@@ -30,23 +30,21 @@
 //!
 //! # Usage
 //!
-//! ```
-//! # #[cfg(feature = "alloc")]
-//! # {
-//! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
-//! use chacha20poly1305::aead::{Aead, KeyInit};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use chacha20poly1305::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     ChaCha20Poly1305, Nonce
+//! };
 //!
-//! let key = Key::from_slice(b"an example very very secret key."); // 32-bytes
-//! let cipher = ChaCha20Poly1305::new(key);
-//!
+//! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+//! let cipher = ChaCha20Poly1305::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 12-bytes; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!");  // NOTE: handle this error to avoid panics!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!");  // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!
@@ -65,30 +63,37 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # #[cfg(feature = "heapless")]
-//! # {
-//! use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce}; // Or `XChaCha20Poly1305`
-//! use chacha20poly1305::aead::{AeadInPlace, KeyInit};
-//! use chacha20poly1305::aead::heapless::Vec;
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use chacha20poly1305::{
+//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     ChaCha20Poly1305, Nonce,
+//! };
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
-//! let cipher = ChaCha20Poly1305::new(key);
+//! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+//! let cipher = ChaCha20Poly1305::new(&key);
+//! let nonce = Nonce::from_slice(b"unique nonce"); // 12-bytes; unique per message
 //!
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
-//!
-//! let mut buffer: Vec<u8, 128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!
@@ -121,19 +126,21 @@
 //!
 //! # Usage
 //!
-//! ```
-//! # #[cfg(feature = "alloc")]
-//! # {
-//! use chacha20poly1305::{XChaCha20Poly1305, Key, XNonce};
-//! use chacha20poly1305::aead::{Aead, KeyInit};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use chacha20poly1305::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     XChaCha20Poly1305, XNonce
+//! };
 //!
-//! let key = Key::from_slice(b"an example very very secret key."); // 32-bytes
-//! let aead = XChaCha20Poly1305::new(key);
-//!
+//! let key = XChaCha20Poly1305::generate_key(&mut OsRng);
+//! let cipher = XChaCha20Poly1305::new(&key);
 //! let nonce = XNonce::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
-//! let ciphertext = aead.encrypt(nonce, b"plaintext message".as_ref()).expect("encryption failure!");
-//! let plaintext = aead.decrypt(nonce, ciphertext.as_ref()).expect("decryption failure!");
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!

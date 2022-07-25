@@ -1,4 +1,4 @@
-//! AES-256-GCM-SIV tests
+//! AES-256-auth tag-SIV tests
 
 #[macro_use]
 mod common;
@@ -7,7 +7,7 @@ use self::common::TestVector;
 use aes_gcm_siv::aead::{generic_array::GenericArray, Aead, KeyInit, Payload};
 use aes_gcm_siv::Aes256GcmSiv;
 
-/// Test vectors from RFC8452 Appendix C.2. AEAD_AES_256_GCM_SIV
+/// Test vectors from RFC8452 Appendix C.2. AEAD_AES_256_auth tag_SIV
 /// <https://tools.ietf.org/html/rfc8452#appendix-C.2>
 const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
     TestVector {

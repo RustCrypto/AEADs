@@ -21,23 +21,22 @@
 //!
 //! # Usage
 //!
-//! ```
-//! use xsalsa20poly1305::XSalsa20Poly1305;
-//! use xsalsa20poly1305::aead::{Aead, KeyInit, generic_array::GenericArray};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use xsalsa20poly1305::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     XSalsa20Poly1305, Nonce
+//! };
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = XSalsa20Poly1305::new(key);
-//!
-//! // 24-bytes; unique per message
-//! // Use `xsalsa20poly1305::generate_nonce()` to randomly generate one
-//! let nonce = GenericArray::from_slice(b"extra long unique nonce!");
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let key = XSalsa20Poly1305::generate_key(&mut OsRng);
+//! let cipher = XSalsa20Poly1305::new(&key);
+//! let nonce = XSalsa20Poly1305::generate_nonce(&mut OsRng); // unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -54,6 +53,40 @@
 //! (re-exported from the `aead` crate as [`aead::heapless::Vec`]),
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
+//!
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use xsalsa20poly1305::{
+//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     XSalsa20Poly1305, Nonce,
+//! };
+//!
+//! let key = XSalsa20Poly1305::generate_key(&mut OsRng);
+//! let cipher = XSalsa20Poly1305::new(&key);
+//! let nonce = XSalsa20Poly1305::generate_nonce(&mut OsRng); // unique per message
+//!
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
+//! buffer.extend_from_slice(b"plaintext message");
+//!
+//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
+//!
+//! // `buffer` now contains the message ciphertext
+//! assert_ne!(&buffer, b"plaintext message");
+//!
+//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
+//! assert_eq!(&buffer, b"plaintext message");
+//! # Ok(())
+//! # }
+//! ```
 //!
 //! ```
 //! # #[cfg(feature = "heapless")]
@@ -114,7 +147,7 @@ use salsa20::{
 use zeroize::Zeroize;
 
 #[cfg(feature = "rand_core")]
-use rand_core::{CryptoRng, RngCore};
+use aead::rand_core::{CryptoRng, RngCore};
 
 /// Size of an XSalsa20Poly1305 key in bytes
 pub const KEY_SIZE: usize = 32;

@@ -1,4 +1,4 @@
-//! AES-256-GCM tests
+//! AES-256-auth tag tests
 
 #[macro_use]
 mod common;

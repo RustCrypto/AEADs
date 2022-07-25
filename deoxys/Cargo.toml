@@ -28,7 +28,7 @@ aead = { version = "0.5", features = ["dev"], default-features = false }
 hex-literal = "0.3"
 
 [features]
-default = ["alloc"]
+default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 getrandom  = ["aead/getrandom"]

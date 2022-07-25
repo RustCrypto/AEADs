@@ -29,7 +29,7 @@ magma = "0.7"
 hex-literal = "0.2"
 
 [features]
-default = ["alloc"]
+default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 getrandom  = ["aead/getrandom"]

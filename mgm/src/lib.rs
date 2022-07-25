@@ -1,27 +1,25 @@
 //! Generic implementation of [Multilinear Galous Mode][1] [AEAD] construction.
 //!
 //! # Example
-//! ```
-//! # #[cfg(feature = "alloc")]
-//! # {
-//! use mgm::Mgm;
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use kuznyechik::Kuznyechik;
-//! use mgm::aead::{Aead, KeyInit, generic_array::GenericArray};
+//! use mgm::Mgm;
+//! use mgm::aead::{Aead, KeyInit, OsRng, generic_array::GenericArray};
 //!
-//! let key = GenericArray::from_slice(b"very secret key very secret key ");
-//! let cipher = Mgm::<Kuznyechik>::new(key);
+//! let key =  Mgm::<Kuznyechik>::generate_key(&mut OsRng);
+//! let cipher = Mgm::<Kuznyechik>::new(&key);
 //!
 //! // 127-bit nonce value, since API has to accept 128 bits, first nonce bit
 //! // MUST be equal to zero, otherwise encryption and decryption will fail
 //! let nonce = GenericArray::from_slice(b"unique nonce val");
 //!
-//! // NOTE: handle errors to avoid panics!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!");
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!");
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //!
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!

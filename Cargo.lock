@@ -747,7 +747,6 @@ version = "0.9.0-pre.2"
 dependencies = [
  "aead",
  "poly1305",
- "rand_core",
  "salsa20",
  "subtle",
  "zeroize",

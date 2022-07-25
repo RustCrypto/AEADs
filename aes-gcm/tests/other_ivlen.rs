@@ -1,4 +1,4 @@
-//! Tests for AES-GCM when used with non-96-bit IVs.
+//! Tests for AES-auth tag when used with non-96-bit IVs.
 //!
 //! Vectors taken from NIST CAVS vectors' `gcmEncryptExtIV128.rsp` file:
 //! <https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/CAVP-TESTING-BLOCK-CIPHER-MODES>

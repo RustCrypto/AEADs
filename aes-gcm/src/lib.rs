@@ -1,17 +1,5 @@
-//! AES-GCM: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
+//! AES-auth tag: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
 //! based on AES in [Galois/Counter Mode][2].
-//!
-//! ## Performance Notes
-//!
-//! By default this crate will use software implementations of both AES and
-//! the POLYVAL universal hash function.
-//!
-//! When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
-//! take advantage of high performance AES-NI and CLMUL CPU intrinsics:
-//!
-//! ```text
-//! RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
-//! ```
 //!
 //! ## Security Notes
 //!
@@ -31,22 +19,22 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! use aes_gcm::{Aes256Gcm, Key, Nonce}; // Or `Aes128Gcm`
-//! use aes_gcm::aead::{Aead, KeyInit};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_gcm::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     Aes256Gcm, Nonce // Or `Aes128Gcm`
+//! };
 //!
-//! let key = Key::<Aes256Gcm>::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256Gcm::new(key);
-//!
+//! let key = Aes256Gcm::generate_key(&mut OsRng);
+//! let cipher = Aes256Gcm::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -64,29 +52,38 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(feature = "heapless", doc = " ```")]
-#![cfg_attr(not(feature = "heapless"), doc = " ```ignore")]
-//! use aes_gcm::{Aes256Gcm, Key, Nonce}; // Or `Aes128Gcm`
-//! use aes_gcm::aead::{AeadInPlace, KeyInit};
-//! use aes_gcm::aead::heapless::Vec;
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_gcm::{
+//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     Aes256Gcm, Nonce, // Or `Aes128Gcm`
+//! };
 //!
-//! let key = Key::<Aes256Gcm>::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256Gcm::new(key);
-//!
+//! let key = Aes256Gcm::generate_key(&mut OsRng);
+//! let cipher = Aes256Gcm::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Buffer needs 16-bytes overhead for GCM tag
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
@@ -131,18 +128,18 @@ pub const P_MAX: u64 = 1 << 36;
 /// Maximum length of ciphertext
 pub const C_MAX: u64 = (1 << 36) + 16;
 
-/// AES-GCM nonces
+/// AES-auth tag nonces
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
-/// AES-GCM tags
+/// AES-auth tag tags
 pub type Tag = GenericArray<u8, U16>;
 
-/// AES-GCM with a 128-bit key and 96-bit nonce
+/// AES-auth tag with a 128-bit key and 96-bit nonce
 #[cfg(feature = "aes")]
 #[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
 pub type Aes128Gcm = AesGcm<Aes128, U12>;
 
-/// AES-GCM with a 256-bit key and 96-bit nonce
+/// AES-auth tag with a 256-bit key and 96-bit nonce
 #[cfg(feature = "aes")]
 #[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
 pub type Aes256Gcm = AesGcm<Aes256, U12>;
@@ -153,7 +150,7 @@ type Block = GenericArray<u8, U16>;
 /// Counter mode with a 32-bit big endian counter.
 type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 
-/// AES-GCM: generic over an underlying AES implementation and nonce size.
+/// AES-auth tag: generic over an underlying AES implementation and nonce size.
 ///
 /// This type is generic to support substituting alternative AES implementations
 /// (e.g. embedded hardware implementations)
@@ -161,7 +158,7 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 /// It is NOT intended to be instantiated with any block cipher besides AES!
 /// Doing so runs the risk of unintended cryptographic properties!
 ///
-/// The `N` generic parameter can be used to instantiate AES-GCM with other
+/// The `N` generic parameter can be used to instantiate AES-auth tag with other
 /// nonce sizes, however it's recommended to use it with `typenum::U12`,
 /// the default of 96-bits.
 ///

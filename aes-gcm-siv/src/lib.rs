@@ -1,31 +1,19 @@
-//! [AES-GCM-SIV][1] ([RFC 8452][2]): high-performance
+//! [AES-auth tag-SIV][1] ([RFC 8452][2]): high-performance
 //! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
 //! provides [nonce reuse misuse resistance][4].
 //!
-//! Suitable as a general purpose symmetric encryption cipher, AES-GCM-SIV also
-//! removes many of the "sharp edges" of AES-GCM, providing significantly better
+//! Suitable as a general purpose symmetric encryption cipher, AES-auth tag-SIV also
+//! removes many of the "sharp edges" of AES-auth tag, providing significantly better
 //! security bounds while simultaneously eliminating the most catastrophic risks
-//! of nonce reuse that exist in AES-GCM.
+//! of nonce reuse that exist in AES-auth tag.
 //!
-//! Decryption performance is equivalent to AES-GCM.
+//! Decryption performance is equivalent to AES-auth tag.
 //! Encryption is marginally slower.
 //!
 //! See also:
 //!
-//! - [Adam Langley: AES-GCM-SIV][5]
+//! - [Adam Langley: AES-auth tag-SIV][5]
 //! - [Coda Hale: Towards A Safer Footgun][6]
-//!
-//! ## Performance Notes
-//!
-//! By default this crate will use software implementations of both AES and
-//! the POLYVAL universal hash function.
-//!
-//! When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
-//! take advantage of high performance AES-NI and CLMUL CPU intrinsics:
-//!
-//! ```text
-//! RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
-//! ```
 //!
 //! ## Security Warning
 //!
@@ -51,23 +39,22 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{Aead, KeyInit};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_gcm_siv::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
+//! };
 //!
-//! let key = Key::<Aes256GcmSiv>::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256GcmSiv::new(key);
-//!
+//! let key = Aes256GcmSiv::generate_key(&mut OsRng);
+//! let cipher = Aes256GcmSiv::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!");  // NOTE: handle this error to avoid panics!
-//!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!");  // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -85,34 +72,41 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # #[cfg(feature = "heapless")]
-//! # {
-//! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{AeadInPlace, KeyInit};
-//! use aes_gcm_siv::aead::heapless::Vec;
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_gcm_siv::{
+//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
+//! };
 //!
-//! let key = Key::<Aes256GcmSiv>::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256GcmSiv::new(key);
-//!
+//! let key = Aes256GcmSiv::generate_key(&mut OsRng);
+//! let cipher = Aes256GcmSiv::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!
-//! [1]: https://en.wikipedia.org/wiki/AES-GCM-SIV
+//! [1]: https://en.wikipedia.org/wiki/AES-auth tag-SIV
 //! [2]: https://tools.ietf.org/html/rfc8452
 //! [3]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
@@ -150,27 +144,27 @@ pub const P_MAX: u64 = 1 << 36;
 /// Maximum length of ciphertext (from RFC 8452 Section 6)
 pub const C_MAX: u64 = (1 << 36) + 16;
 
-/// AES-GCM-SIV nonces
+/// AES-auth tag-SIV nonces
 pub type Nonce = GenericArray<u8, U12>;
 
-/// AES-GCM-SIV tags
+/// AES-auth tag-SIV tags
 pub type Tag = GenericArray<u8, U16>;
 
-/// AES-GCM-SIV with a 128-bit key
+/// AES-auth tag-SIV with a 128-bit key
 #[cfg(feature = "aes")]
 pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
 
-/// AES-GCM-SIV with a 256-bit key
+/// AES-auth tag-SIV with a 256-bit key
 #[cfg(feature = "aes")]
 pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// Counter mode with a 32-bit little endian counter.
 type Ctr32LE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32LE>;
 
-/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
+/// AES-auth tag-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 #[derive(Clone)]
 pub struct AesGcmSiv<Aes> {
-    /// Key generating key used to derive AES-GCM-SIV subkeys
+    /// Key generating key used to derive AES-auth tag-SIV subkeys
     key_generating_key: Aes,
 }
 
@@ -239,7 +233,7 @@ where
     }
 }
 
-/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
+/// AES-auth tag-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
 struct Cipher<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
@@ -258,7 +252,7 @@ impl<Aes> Cipher<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
-    /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
+    /// Initialize AES-auth tag-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
     pub(crate) fn new(key_generating_key: &Aes, nonce: &Nonce) -> Self {
         let mut mac_key = polyval::Key::default();

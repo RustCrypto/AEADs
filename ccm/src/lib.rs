@@ -6,27 +6,29 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! use ccm::{Ccm, consts::{U10, U13}};
-//! use ccm::aead::{Aead, KeyInit, generic_array::GenericArray};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
+//! use ccm::{
+//!     aead::{Aead, KeyInit, OsRng, generic_array::GenericArray},
+//!     consts::{U10, U13},
+//!     Ccm,
+//! };
 //!
-//! // AES-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
-//! type AesCcm = Ccm<Aes256, U10, U13>;
+//! // AES-256-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
+//! pub type Aes256Ccm = Ccm<Aes256, U10, U13>;
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = AesCcm::new(key);
-//!
+//! let key = Aes256Ccm::generate_key(&mut OsRng);
+//! let cipher = Aes256Ccm::new(&key);
 //! let nonce = GenericArray::from_slice(b"unique nonce."); // 13-bytes; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
+//!
 //! This crate implements traits from the [`aead`] crate and is capable to perfrom
 //! encryption and decryption in-place wihout relying on `alloc`.
 //!

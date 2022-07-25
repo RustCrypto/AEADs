@@ -5,23 +5,25 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
-//! use eax::Eax;
-//! use eax::aead::{Aead, KeyInit, generic_array::GenericArray};
+//! use eax::{
+//!     aead::{Aead, KeyInit, OsRng, generic_array::GenericArray},
+//!     Eax, Nonce
+//! };
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = Eax::<Aes256>::new(key);
+//! pub type Aes256Eax = Eax<Aes256>;
 //!
+//! let key = Aes256Eax::generate_key(&mut OsRng);
+//! let cipher = Aes256Eax::new(&key);
 //! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)

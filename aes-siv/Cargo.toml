@@ -34,7 +34,7 @@ blobby = "0.3"
 hex-literal = "0.3"
 
 [features]
-default = ["alloc"]
+default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 getrandom  = ["aead/getrandom"]

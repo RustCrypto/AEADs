@@ -171,7 +171,7 @@ use aead::{
     generic_array::{ArrayLength, GenericArray},
 };
 use core::marker::PhantomData;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use chacha20::{ChaCha20, XChaCha20};
 
@@ -321,3 +321,5 @@ where
         self.key.as_mut_slice().zeroize();
     }
 }
+
+impl<C, N: ArrayLength<u8>> ZeroizeOnDrop for ChaChaPoly1305<C, N> {}

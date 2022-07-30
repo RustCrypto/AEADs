@@ -17,18 +17,6 @@ dependencies = [
 
 [[package]]
 name = "aes"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e8b47f52ea9bae42228d07ec09eb676433d7c4ed1ebdf0f1d1c29ed446f1ab8"
-dependencies = [
- "cfg-if",
- "cipher 0.3.0",
- "cpufeatures",
- "opaque-debug",
-]
-
-[[package]]
-name = "aes"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfe0133578c0986e1fe3dfcd4af1cc5b2dd6c3dbf534d69916ce16a2701d40ba"
@@ -43,9 +31,9 @@ name = "aes-gcm"
 version = "0.10.0-pre.2"
 dependencies = [
  "aead",
- "aes 0.8.1",
+ "aes",
  "cipher 0.4.3",
- "ctr 0.9.1",
+ "ctr",
  "ghash",
  "hex-literal 0.3.4",
  "subtle",
@@ -57,9 +45,9 @@ name = "aes-gcm-siv"
 version = "0.11.0-pre.2"
 dependencies = [
  "aead",
- "aes 0.8.1",
+ "aes",
  "cipher 0.4.3",
- "ctr 0.9.1",
+ "ctr",
  "polyval",
  "subtle",
  "zeroize",
@@ -70,11 +58,11 @@ name = "aes-siv"
 version = "0.7.0"
 dependencies = [
  "aead",
- "aes 0.8.1",
+ "aes",
  "blobby",
  "cipher 0.4.3",
- "cmac 0.7.1",
- "ctr 0.9.1",
+ "cmac",
+ "ctr",
  "dbl",
  "digest",
  "hex-literal 0.3.4",
@@ -159,9 +147,9 @@ name = "ccm"
 version = "0.5.0"
 dependencies = [
  "aead",
- "aes 0.8.1",
+ "aes",
  "cipher 0.4.3",
- "ctr 0.9.1",
+ "ctr",
  "hex-literal 0.3.4",
  "subtle",
 ]
@@ -212,16 +200,6 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
-]
-
-[[package]]
-name = "cmac"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b70e37282d9624283878ffda1d1e53883bcf868cf441bddda44127620b39572d"
-dependencies = [
- "crypto-mac",
- "dbl",
 ]
 
 [[package]]
@@ -280,26 +258,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crypto-mac"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1d1a86f49236c215f271d40892d5fc950490551400b02ef360692c29815c714"
-dependencies = [
- "cipher 0.3.0",
- "generic-array",
- "subtle",
-]
-
-[[package]]
-name = "ctr"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "049bb91fb4aaf0e3c7efa6cd5ef877dbbbd15b39dad06d9948de4ec8a75761ea"
-dependencies = [
- "cipher 0.3.0",
-]
-
-[[package]]
 name = "ctr"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -322,7 +280,7 @@ name = "deoxys"
 version = "0.1.0-pre.1"
 dependencies = [
  "aead",
- "aes 0.8.1",
+ "aes",
  "hex-literal 0.3.4",
  "subtle",
  "zeroize",
@@ -344,10 +302,10 @@ name = "eax"
 version = "0.5.0-pre.1"
 dependencies = [
  "aead",
- "aes 0.7.5",
- "cipher 0.3.0",
- "cmac 0.6.0",
- "ctr 0.8.0",
+ "aes",
+ "cipher 0.4.3",
+ "cmac",
+ "ctr",
  "subtle",
 ]
 

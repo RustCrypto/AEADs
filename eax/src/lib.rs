@@ -122,11 +122,10 @@ pub use cipher;
 
 use cipher::{
     consts::{U0, U16},
-    crypto_common::OutputSizeUser,
     generic_array::{functional::FunctionalSequence, GenericArray},
     BlockCipher, BlockEncrypt, InnerIvInit, StreamCipherCore,
 };
-use cmac::{Cmac, Mac};
+use cmac::{digest::Output, Cmac, Mac};
 use core::marker::PhantomData;
 
 mod traits;
@@ -299,7 +298,7 @@ where
         key: &GenericArray<u8, Cipher::KeySize>,
         iv: u8,
         data: &[u8],
-    ) -> GenericArray<u8, <Cmac<Cipher> as OutputSizeUser>::OutputSize> {
+    ) -> Output<Cmac<Cipher>> {
         let mut mac = <Cmac<Cipher> as Mac>::new(key);
         mac.update(&[0; 15]);
         mac.update(&[iv]);

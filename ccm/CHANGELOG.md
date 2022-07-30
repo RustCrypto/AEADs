@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.0 (2022-07-30)
+### Added
+- `getrandom` feature ([#446])
+
+### Changed
+- Relax `zeroize` requirement to `^1` ([#360])
+- Bump `ctr`, `cipher`, annd `hex-literal` dependencies ([#432])
+- Rust 2021 edition upgrade; MSRV 1.56+ ([#435])
+- Bump `aead` crate dependency to v0.5 ([#444])
+
+### Removed
+- `subtle` pinning ([#408])
+
+[#360]: https://github.com/RustCrypto/AEADs/pull/360
+[#408]: https://github.com/RustCrypto/AEADs/pull/408
+[#432]: https://github.com/RustCrypto/AEADs/pull/432
+[#435]: https://github.com/RustCrypto/AEADs/pull/435
+[#444]: https://github.com/RustCrypto/AEADs/pull/444
+[#446]: https://github.com/RustCrypto/AEADs/pull/446
+
 ## 0.4.4 (2021-07-20)
 ### Changed
 - Pin `subtle` dependency to v2.4 ([#349])

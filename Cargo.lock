@@ -322,7 +322,7 @@ name = "deoxys"
 version = "0.1.0-pre.1"
 dependencies = [
  "aead",
- "aes 0.7.5",
+ "aes 0.8.1",
  "hex-literal 0.3.4",
  "subtle",
  "zeroize",

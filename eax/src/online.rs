@@ -57,13 +57,13 @@
 //! [`Decrypt`]: struct.Decrypt.html
 //! [`finish`]: #method.finish
 
-use crate::{Block, Cmac, Error, Nonce, Tag, TagSize};
+use crate::{Cmac, Error, Nonce, Tag, TagSize};
 use aead::consts::U16;
 use cipher::{
-    generic_array::{functional::FunctionalSequence, ArrayLength},
-    BlockCipher, BlockCipherKey, BlockEncrypt, FromBlockCipher, NewBlockCipher, StreamCipher,
+    generic_array::functional::FunctionalSequence, BlockCipher, BlockEncrypt, Key, KeyInit,
+    KeyIvInit, StreamCipher,
 };
-use cmac::{Mac, NewMac};
+use cmac::Mac;
 use core::marker::PhantomData;
 
 pub use Eax as EaxOnline;
@@ -150,8 +150,7 @@ impl CipherOp for Decrypt {}
 /// [`finish`]: #method.finish
 pub struct Eax<Cipher, Op, M = U16>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     Op: CipherOp,
     M: TagSize,
 {
@@ -162,17 +161,13 @@ where
 
 impl<Cipher, Op, M> Eax<Cipher, Op, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     Op: CipherOp,
     M: TagSize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
-    pub fn with_key_and_nonce(
-        key: &BlockCipherKey<Cipher>,
-        nonce: &Nonce<Cipher::BlockSize>,
-    ) -> Self {
+    pub fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
         let imp = EaxImpl::<Cipher, M>::with_key_and_nonce(key, nonce);
 
         Self {
@@ -201,8 +196,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, Encrypt, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Applies encryption to the plaintext.
@@ -223,8 +217,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, Decrypt, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Applies decryption to the ciphertext **without** verifying the
@@ -272,8 +265,8 @@ where
 #[doc(hidden)]
 struct EaxImpl<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+
     M: TagSize,
 {
     nonce: Nonce<Cipher::BlockSize>,
@@ -282,21 +275,20 @@ where
     ctr: ctr::Ctr128BE<Cipher>,
     // HACK: Needed for the test harness due to AEAD trait online/offline interface mismatch
     #[cfg(test)]
-    key: BlockCipherKey<Cipher>,
+    key: Key<Cipher>,
     _tag_size: PhantomData<M>,
 }
 
 impl<Cipher, M> EaxImpl<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
-    fn with_key_and_nonce(key: &BlockCipherKey<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
+    fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
         let prepend_cmac = |key, init_val, data| {
-            let mut cmac = Cmac::<Cipher>::new(key);
+            let mut cmac = <Cmac<Cipher> as Mac>::new(key);
             cmac.update(&[0; 15]);
             cmac.update(&[init_val]);
             cmac.update(data);
@@ -318,7 +310,7 @@ where
         // 3. c ← OMAC(2 || enc)
         let c = prepend_cmac(key, 2, &[]);
 
-        let cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(key), &n);
+        let cipher = ctr::Ctr128BE::<Cipher>::new(key, &n);
 
         Self {
             nonce: n,
@@ -400,8 +392,7 @@ mod test_impl {
 
     impl<Cipher, M> KeySizeUser for EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-        Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
         M: TagSize,
     {
         type KeySize = Cipher::KeySize;
@@ -409,11 +400,10 @@ mod test_impl {
 
     impl<Cipher, M> KeyInit for EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-        Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
         M: TagSize,
     {
-        fn new(key: &BlockCipherKey<Cipher>) -> Self {
+        fn new(key: &Key<Cipher>) -> Self {
             // HACK: The nonce will be initialized by the appropriate
             // decrypt/encrypt functions from `AeadMutInPlace` implementation.
             // This is currently done so because that trait only implements
@@ -427,8 +417,7 @@ mod test_impl {
 
     impl<Cipher, M> AeadCore for super::EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-        Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
         M: TagSize,
     {
         type NonceSize = Cipher::BlockSize;
@@ -438,8 +427,7 @@ mod test_impl {
 
     impl<Cipher, M> AeadMutInPlace for super::EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-        Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
         M: TagSize,
     {
         fn encrypt_in_place_detached(

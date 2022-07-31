@@ -4,7 +4,6 @@
 [![Docs][docs-image]][docs-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
-[![CodeCov Status][codecov-image]][codecov-link]
 [![Project Chat][chat-image]][chat-link]
 [![Build Status][build-image]][build-link]
 
@@ -30,14 +29,12 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://img.shields.io/crates/v/eax.svg
+[crate-image]: https://buildstats.info/crate/eax
 [crate-link]: https://crates.io/crates/eax
 [docs-image]: https://docs.rs/eax/badge.svg
 [docs-link]: https://docs.rs/eax/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.56+-blue.svg
-[codecov-image]: https://codecov.io/gh/RustCrypto/AEADs/branch/master/graph/badge.svg
-[codecov-link]: https://codecov.io/gh/RustCrypto/AEADs
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/eax/badge.svg?branch=master&event=push

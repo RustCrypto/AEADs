@@ -98,27 +98,27 @@ use zeroize::Zeroize;
 #[cfg(feature = "aes")]
 use aes::{cipher::consts::U12, Aes128, Aes256};
 
-/// Maximum length of associated data
+/// Maximum length of associated data.
 pub const A_MAX: u64 = 1 << 36;
 
-/// Maximum length of plaintext
+/// Maximum length of plaintext.
 pub const P_MAX: u64 = 1 << 36;
 
-/// Maximum length of ciphertext
+/// Maximum length of ciphertext.
 pub const C_MAX: u64 = (1 << 36) + 16;
 
-/// AES-auth tag nonces
+/// AES-GCM nonces.
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
-/// AES-auth tag tags
+/// AES-GCM tags.
 pub type Tag = GenericArray<u8, U16>;
 
-/// AES-auth tag with a 128-bit key and 96-bit nonce
+/// AES-GCM with a 128-bit key and 96-bit nonce.
 #[cfg(feature = "aes")]
 #[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
 pub type Aes128Gcm = AesGcm<Aes128, U12>;
 
-/// AES-auth tag with a 256-bit key and 96-bit nonce
+/// AES-GCM with a 256-bit key and 96-bit nonce.
 #[cfg(feature = "aes")]
 #[cfg_attr(docsrs, doc(cfg(feature = "aes")))]
 pub type Aes256Gcm = AesGcm<Aes256, U12>;
@@ -129,7 +129,7 @@ type Block = GenericArray<u8, U16>;
 /// Counter mode with a 32-bit big endian counter.
 type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 
-/// AES-auth tag: generic over an underlying AES implementation and nonce size.
+/// AES-GCM: generic over an underlying AES implementation and nonce size.
 ///
 /// This type is generic to support substituting alternative AES implementations
 /// (e.g. embedded hardware implementations)
@@ -137,20 +137,20 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 /// It is NOT intended to be instantiated with any block cipher besides AES!
 /// Doing so runs the risk of unintended cryptographic properties!
 ///
-/// The `N` generic parameter can be used to instantiate AES-auth tag with other
+/// The `N` generic parameter can be used to instantiate AES-GCM with other
 /// nonce sizes, however it's recommended to use it with `typenum::U12`,
 /// the default of 96-bits.
 ///
 /// If in doubt, use the built-in [`Aes128Gcm`] and [`Aes256Gcm`] type aliases.
 #[derive(Clone)]
 pub struct AesGcm<Aes, NonceSize> {
-    /// Encryption cipher
+    /// Encryption cipher.
     cipher: Aes,
 
-    /// GHASH authenticator
+    /// GHASH authenticator.
     ghash: GHash,
 
-    /// Length of the nonce
+    /// Length of the nonce.
     nonce_size: PhantomData<NonceSize>,
 }
 
@@ -287,7 +287,7 @@ where
         (ctr, tag_mask)
     }
 
-    /// Authenticate the given plaintext and associated data using GHASH
+    /// Authenticate the given plaintext and associated data using GHASH.
     fn compute_tag(&self, mask: Block, associated_data: &[u8], buffer: &[u8]) -> Tag {
         let mut ghash = self.ghash.clone();
         ghash.update_padded(associated_data);

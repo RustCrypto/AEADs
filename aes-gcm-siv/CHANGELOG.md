@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.11.0 (2022-07-31)
+### Added
+- `getrandom` feature ([#446])
+
+### Changed
+- Rust 2021 edition upgrade; MSRV 1.56+ ([#435])
+- Bump `aead` dependency to v0.5 ([#444])
+- Bump `polyval` dependency to v0.6 ([#454])
+
+[#435]: https://github.com/RustCrypto/AEADs/pull/435
+[#444]: https://github.com/RustCrypto/AEADs/pull/444
+[#446]: https://github.com/RustCrypto/AEADs/pull/446
+[#454]: https://github.com/RustCrypto/AEADs/pull/454
+
 ## 0.10.3 (2021-08-28)
 ### Changed
 - Relax `subtle` and `zeroize` requirements ([#360])

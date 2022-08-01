@@ -9,12 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getrandom` feature ([#446])
 
 ### Changed
-- Bump `aes` dependency to v0.8 ([#409])
+- Bump `aes` dependency to v0.8 ([#430])
 - Rust 2021 edition upgrade; MSRV 1.56+ ([#435])
 - Bump `aead` dependency to v0.5 ([#444])
 - Bump `ghash` dependency to v0.5 ([#454])
 
-[#409]: https://github.com/RustCrypto/AEADs/pull/409
 [#435]: https://github.com/RustCrypto/AEADs/pull/435
 [#444]: https://github.com/RustCrypto/AEADs/pull/444
 [#446]: https://github.com/RustCrypto/AEADs/pull/446

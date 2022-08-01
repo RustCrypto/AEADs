@@ -1,6 +1,12 @@
-//! Generic implementation of [Multilinear Galous Mode][1] [AEAD] construction.
-//!
-//! # Example
+#![no_std]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms)]
+
+//! # Usage Example
 #![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
 #![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -8,7 +14,7 @@
 //! use mgm::Mgm;
 //! use mgm::aead::{Aead, KeyInit, OsRng, generic_array::GenericArray};
 //!
-//! let key =  Mgm::<Kuznyechik>::generate_key(&mut OsRng);
+//! let key = Mgm::<Kuznyechik>::generate_key(&mut OsRng);
 //! let cipher = Mgm::<Kuznyechik>::new(&key);
 //!
 //! // 127-bit nonce value, since API has to accept 128 bits, first nonce bit
@@ -22,16 +28,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-//! [1]: https://eprint.iacr.org/2019/123.pdf
-//! [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption
-
-#![no_std]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 use aead::{
     consts::U0, generic_array::GenericArray, AeadCore, AeadInPlace, Error, Key, KeyInit,

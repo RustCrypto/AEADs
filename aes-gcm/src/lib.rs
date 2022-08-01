@@ -1,20 +1,13 @@
-//! AES-auth tag: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
-//! based on AES in [Galois/Counter Mode][2].
-//!
-//! ## Security Notes
-//!
-//! This crate has received one [security audit by NCC Group][3], with no significant
-//! findings. We would like to thank [MobileCoin][4] for funding the audit.
-//!
-//! All implementations contained in the crate are designed to execute in constant
-//! time, either by relying on hardware intrinsics (i.e. AES-NI and CLMUL on
-//! x86/x86_64), or using a portable implementation which is only constant time
-//! on processors which implement constant-time multiplication.
-//!
-//! It is not suitable for use on processors with a variable-time multiplication
-//! operation (e.g. short circuit on multiply-by-zero / multiply-by-one, such as
-//! certain 32-bit PowerPC CPUs and some non-ARM microcontrollers).
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![deny(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
@@ -85,20 +78,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-//! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [2]: https://en.wikipedia.org/wiki/Galois/Counter_Mode
-//! [3]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
-//! [4]: https://www.mobilecoin.com/
-
-#![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 

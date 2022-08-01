@@ -1,6 +1,13 @@
-//! EAX: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
-//! based on AES in counter mode.
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![deny(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
@@ -105,17 +112,6 @@
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
-//!
-//! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-
-#![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 pub use cipher;
@@ -158,9 +154,7 @@ type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
 /// This type is generic to support substituting alternative cipher
 /// implementations.
 ///
-/// If in doubt, use the built-in [`Aes128Eax`] and [`Aes256Eax`] type aliases.
-///
-/// Type parameters:
+/// ## Type parameters
 /// - `Cipher`: block cipher.
 /// - `M`: size of MAC tag, valid values: up to `U16`.
 #[derive(Clone)]

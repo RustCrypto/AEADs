@@ -1,7 +1,13 @@
-//! [`ChaCha20Poly1305`] ([RFC 8439][1]) is an
-//! [Authenticated Encryption with Associated Data (AEAD)][2]
-//! cipher amenable to fast, constant-time implementations in software, based on
-//! the [ChaCha20][3] stream cipher and [Poly1305][4] universal hash function.
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms)]
+
+//! ## Supported Algorithms
 //!
 //! This crate contains pure Rust implementations of [`ChaCha20Poly1305`]
 //! (with optional AVX2 acceleration) as well as the following variants thereof:
@@ -13,20 +19,6 @@
 //!   When in doubt, prefer [`ChaCha20Poly1305`].
 //! - [`XChaCha8Poly1305`] / [`XChaCha12Poly1305`] - same as above,
 //!   but with an extended 192-bit (24-byte) nonce.
-//!
-//! ## Security Notes
-//!
-//! This crate has received one [security audit by NCC Group][6], with no significant
-//! findings. We would like to thank [MobileCoin][7] for funding the audit.
-//!
-//! All implementations contained in the crate are designed to execute in
-//! constant time, either by relying on hardware intrinsics (i.e. AVX2 on
-//! x86/x86_64), or using a portable implementation which is only constant time
-//! on processors which implement constant-time multiplication.
-//!
-//! It is not suitable for use on processors with a variable-time multiplication
-//! operation (e.g. short circuit on multiply-by-zero / multiply-by-one, such as
-//! certain 32-bit PowerPC CPUs and some non-ARM microcontrollers).
 //!
 //! # Usage
 //!
@@ -143,22 +135,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-//! [1]: https://tools.ietf.org/html/rfc8439
-//! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
-//! [4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
-//! [5]: https://eprint.iacr.org/2019/1492.pdf
-//! [6]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
-//! [7]: https://www.mobilecoin.com/
-
-#![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 mod cipher;
 

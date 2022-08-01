@@ -88,40 +88,40 @@ use cipher::{
 use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
 
-/// AES is optional to allow swapping in hardware-specific backends
+/// AES is optional to allow swapping in hardware-specific backends.
 #[cfg(feature = "aes")]
 use aes::{Aes128, Aes256};
 
-/// Maximum length of associated data (from RFC 8452 Section 6)
+/// Maximum length of associated data (from RFC8452 § 6).
 pub const A_MAX: u64 = 1 << 36;
 
-/// Maximum length of plaintext (from RFC 8452 Section 6)
+/// Maximum length of plaintext (from RFC8452 § 6).
 pub const P_MAX: u64 = 1 << 36;
 
-/// Maximum length of ciphertext (from RFC 8452 Section 6)
+/// Maximum length of ciphertext (from RFC8452 § 6).
 pub const C_MAX: u64 = (1 << 36) + 16;
 
-/// AES-auth tag-SIV nonces
+/// AES-GCM-SIV nonces.
 pub type Nonce = GenericArray<u8, U12>;
 
-/// AES-auth tag-SIV tags
+/// AES-GCM-SIV tags.
 pub type Tag = GenericArray<u8, U16>;
 
-/// AES-auth tag-SIV with a 128-bit key
+/// AES-GCM-SIV with a 128-bit key.
 #[cfg(feature = "aes")]
 pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
 
-/// AES-auth tag-SIV with a 256-bit key
+/// AES-GCM-SIV with a 256-bit key.
 #[cfg(feature = "aes")]
 pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// Counter mode with a 32-bit little endian counter.
 type Ctr32LE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32LE>;
 
-/// AES-auth tag-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
+/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452).
 #[derive(Clone)]
 pub struct AesGcmSiv<Aes> {
-    /// Key generating key used to derive AES-auth tag-SIV subkeys
+    /// Key generating key used to derive AES-GCM-SIV subkeys.
     key_generating_key: Aes,
 }
 
@@ -190,18 +190,18 @@ where
     }
 }
 
-/// AES-auth tag-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
+/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC8452).
 struct Cipher<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
 {
-    /// Encryption cipher
+    /// Encryption cipher.
     enc_cipher: Aes,
 
-    /// POLYVAL universal hash
+    /// POLYVAL universal hash.
     polyval: Polyval,
 
-    /// Nonce
+    /// Nonce.
     nonce: Nonce,
 }
 
@@ -209,7 +209,7 @@ impl<Aes> Cipher<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
-    /// Initialize AES-auth tag-SIV, deriving per-nonce message-authentication and
+    /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
     pub(crate) fn new(key_generating_key: &Aes, nonce: &Nonce) -> Self {
         let mut mac_key = polyval::Key::default();
@@ -219,8 +219,7 @@ where
 
         // Derive subkeys from the master key-generating-key in counter mode.
         //
-        // From RFC 8452 Section 4:
-        // <https://tools.ietf.org/html/rfc8452#section-4>
+        // From RFC8452 § 4: <https://tools.ietf.org/html/rfc8452#section-4>
         //
         // > The message-authentication key is 128 bit, and the message-encryption
         // > key is either 128 (for AES-128) or 256 bit (for AES-256).
@@ -260,7 +259,7 @@ where
         result
     }
 
-    /// Encrypt the given message in-place, returning the authentication tag
+    /// Encrypt the given message in-place, returning the authentication tag.
     pub(crate) fn encrypt_in_place_detached(
         mut self,
         associated_data: &[u8],
@@ -310,7 +309,7 @@ where
         }
     }
 
-    /// Finish computing POLYVAL tag for AAD and buffer of the given length
+    /// Finish computing POLYVAL tag for AAD and buffer of the given length.
     fn finish_tag(&mut self, associated_data_len: usize, buffer_len: usize) -> Tag {
         let associated_data_bits = (associated_data_len as u64) * 8;
         let buffer_bits = (buffer_len as u64) * 8;
@@ -337,8 +336,7 @@ where
 
 /// Initialize counter mode.
 ///
-/// From RFC 8452 Section 4:
-/// <https://tools.ietf.org/html/rfc8452#section-4>
+/// From RFC8452 § 4: <https://tools.ietf.org/html/rfc8452#section-4>
 ///
 /// > The initial counter block is the tag with the most significant bit
 /// > of the last byte set to one.

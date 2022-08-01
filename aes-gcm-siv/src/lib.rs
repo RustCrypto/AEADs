@@ -1,40 +1,11 @@
-//! [AES-auth tag-SIV][1] ([RFC 8452][2]): high-performance
-//! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
-//! provides [nonce reuse misuse resistance][4].
-//!
-//! Suitable as a general purpose symmetric encryption cipher, AES-auth tag-SIV also
-//! removes many of the "sharp edges" of AES-auth tag, providing significantly better
-//! security bounds while simultaneously eliminating the most catastrophic risks
-//! of nonce reuse that exist in AES-auth tag.
-//!
-//! Decryption performance is equivalent to AES-auth tag.
-//! Encryption is marginally slower.
-//!
-//! See also:
-//!
-//! - [Adam Langley: AES-auth tag-SIV][5]
-//! - [Coda Hale: Towards A Safer Footgun][6]
-//!
-//! ## Security Warning
-//!
-//! No security audits of this crate have ever been performed.
-//!
-//! Some of this crate's dependencies were [audited by by NCC Group][7] as part of
-//! an audit of the `aes-gcm` crate, including the AES implementations (both AES-NI
-//! and a portable software implementation), as well as the `polyval` crate which
-//! is used as an authenticator. There were no significant findings.
-//!
-//! All implementations contained in the crate are designed to execute in constant
-//! time, either by relying on hardware intrinsics (i.e. AES-NI and CLMUL on
-//! x86/x86_64), or using a portable implementation which is only constant time
-//! on processors which implement constant-time multiplication.
-//!
-//! It is not suitable for use on processors with a variable-time multiplication
-//! operation (e.g. short circuit on multiply-by-zero / multiply-by-one, such as
-//! certain 32-bit PowerPC CPUs and some non-ARM microcontrollers).
-//!
-//! USE AT YOUR OWN RISK!
-//!
+#![no_std]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
@@ -105,21 +76,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-//! [1]: https://en.wikipedia.org/wiki/AES-auth tag-SIV
-//! [2]: https://tools.ietf.org/html/rfc8452
-//! [3]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
-//! [5]: https://www.imperialviolet.org/2017/05/14/aesgcmsiv.html
-//! [6]: https://codahale.com/towards-a-safer-footgun/
-//! [7]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
-
-#![no_std]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 

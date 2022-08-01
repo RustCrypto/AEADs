@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.11.1 (2022-07-31)
+### Fixed
+- rustdoc typos and formatting ([#460], [#461], [#462])
+
+[#460]: https://github.com/RustCrypto/AEADs/pull/460
+[#461]: https://github.com/RustCrypto/AEADs/pull/461
+[#462]: https://github.com/RustCrypto/AEADs/pull/462
+
 ## 0.11.0 (2022-07-31)
 ### Added
 - `getrandom` feature ([#446])

@@ -1,7 +1,12 @@
-//! [AES-SIV][1] ([RFC 5297][2]):
-//! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
-//! provides [nonce reuse misuse resistance][4].
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
@@ -72,19 +77,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-//! [1]: https://github.com/miscreant/meta/wiki/AES-SIV
-//! [2]: https://tools.ietf.org/html/rfc5297
-//! [3]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
-
-#![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;

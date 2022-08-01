@@ -1,24 +1,13 @@
-//! **XSalsa20Poly1305** (a.k.a. NaCl [`crypto_secretbox`][1]) is an
-//! [authenticated encryption][2] cipher amenable to fast, constant-time
-//! implementations in software, based on the [Salsa20][3] stream cipher
-//! (with [XSalsa20] 192-bit nonce extension) and the [Poly1305] universal
-//! hash function, which acts as a message authentication code.
-//!
-//! This algorithm has largely been replaced by the newer [ChaCha20Poly1305][4]
-//! (and the associated [XChaCha20Poly1305][5]) AEAD ciphers ([RFC 8439][6]),
-//! but is useful for interoperability with legacy NaCl-based protocols.
-//!
-//! ## Security Warning
-//!
-//! No security audits of this crate have ever been performed, and it has not been
-//! thoroughly assessed to ensure its operation is constant-time on common CPU
-//! architectures.
-//!
-//! Where possible the implementation uses constant-time hardware intrinsics,
-//! or otherwise falls back to an implementation which contains no secret-dependent
-//! branches or table lookups, however it's possible LLVM may insert such
-//! operations in certain scenarios.
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![forbid(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 #![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
@@ -121,15 +110,6 @@
 //! [4]: http://docs.rs/chacha20poly1305
 //! [5]: https://docs.rs/chacha20poly1305/latest/chacha20poly1305/struct.XChaCha20Poly1305.html
 //! [6]: https://tools.ietf.org/html/rfc8439
-
-#![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![forbid(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
 pub use salsa20::{Key, XNonce as Nonce};

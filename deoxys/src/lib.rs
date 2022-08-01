@@ -1,17 +1,11 @@
-//! The [Deoxys][1] [Authenticated Encryption and Associated Data (AEAD)][2] cipher.
-//!
-//! The Deoxys-II variant has been selected as the first choice for defense in-depth
-//! scenario during the [CAESAR competition][3].
-//!
-//! ## Security Notes
-//!
-//! This crate has *NOT* received any security audit.
-//!
-//! Although encryption and decryption passes the test vector, there is no guarantee
-//! of constant-time operation.
-//!
-//! **USE AT YOUR OWN RISK.**
-//!
+#![no_std]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 #![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
@@ -104,17 +98,6 @@
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
-//!
-//! [1]: https://sites.google.com/view/deoxyscipher
-//! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [3]: https://competitions.cr.yp.to/caesar-submissions.html
-
-#![no_std]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 /// Deoxys-BC implementations.
 mod deoxys_bc;

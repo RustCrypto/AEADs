@@ -1,7 +1,12 @@
-//! Counter with CBC-MAC ([CCM]): [Authenticated Encryption and Associated Data (AEAD)][1]
-//! algorithm generic over block ciphers with block size equal to 128 bits as specified in
-//! [RFC 3610].
-//!
+#![no_std]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![deny(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
@@ -36,14 +41,6 @@
 //! [CCM]: https://en.wikipedia.org/wiki/CCM_mode
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-
-#![no_std]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 

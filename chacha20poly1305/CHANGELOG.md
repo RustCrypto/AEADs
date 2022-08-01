@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Impl `ZeroizeOnDrop` for `ChaChaPoly1305` ([#447])
 
 ### Changed
-- Bump `chacha20` to v0.9 ([#402])
+- Bump `chacha20` dependency to v0.9 ([#402])
 - Rust 2021 edition upgrade; MSRV 1.56+ ([#435])
 - Bump `aead` dependency to v0.5 ([#444])
 - Bump `poly1305` dependency to v0.8 ([#454])

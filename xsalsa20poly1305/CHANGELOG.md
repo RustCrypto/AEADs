@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.9.0 (2022-07-31)
+### Added
+- `getrandom` feature ([#446])
+
+### Changed
+- Bump `salsa20` dependency to v0.10 ([#402])
+- Rust 2021 edition upgrade; MSRV 1.56+ ([#435])
+- Bump `aead` dependency to v0.5 ([#444])
+- Bump `poly1305` dependency to v0.8 ([#454])
+
+[#402]: https://github.com/RustCrypto/AEADs/pull/402
+[#435]: https://github.com/RustCrypto/AEADs/pull/435
+[#444]: https://github.com/RustCrypto/AEADs/pull/444
+[#446]: https://github.com/RustCrypto/AEADs/pull/446
+[#447]: https://github.com/RustCrypto/AEADs/pull/447
+[#454]: https://github.com/RustCrypto/AEADs/pull/454
+
 ## 0.8.0 (2021-08-30)
 ### Changed
 - Bump `salsa20` dependency to v0.9 ([#366])

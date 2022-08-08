@@ -32,9 +32,9 @@
 //!
 //! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 12-bytes; unique per message
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 12-bytes; *MUST* be unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -71,19 +71,19 @@
 //!
 //! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 12-bytes; unique per message
+//! let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 12-bytes; *MUST* be unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -151,6 +151,9 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use chacha20::{ChaCha20, XChaCha20};
 
+#[cfg(feature = "rand_core")]
+use aead::rand_core::{CryptoRng, RngCore};
+
 #[cfg(feature = "reduced-round")]
 use chacha20::{ChaCha12, ChaCha8, XChaCha12, XChaCha8};
 
@@ -215,6 +218,22 @@ pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12> {
 
     /// Nonce size.
     nonce_size: PhantomData<N>,
+}
+
+impl<C, N> ChaChaPoly1305<C, N>
+where
+    N: ArrayLength<u8>,
+{
+    /// Generate a random nonce: every message MUST have a unique nonce!
+    ///
+    /// Do *NOT* ever reuse the same nonce for two messages!
+    #[cfg(feature = "rand_core")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rand_core")))]
+    pub fn generate_nonce(mut csprng: impl RngCore + CryptoRng) -> aead::Nonce<Self> {
+        let mut nonce = aead::Nonce::<Self>::default();
+        csprng.fill_bytes(&mut nonce);
+        nonce
+    }
 }
 
 impl<C, N> KeySizeUser for ChaChaPoly1305<C, N>

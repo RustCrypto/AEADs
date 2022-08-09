@@ -1,14 +1,10 @@
-use core::convert::TryFrom;
-use core::marker::PhantomData;
-
+use super::{DeoxysBcType, DeoxysMode};
 use aead::{
     consts::{U15, U16, U8},
     generic_array::GenericArray,
 };
+use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
-
-use super::DeoxysBcType;
-use super::DeoxysMode;
 
 const TWEAK_AD: u8 = 0x20;
 const TWEAK_AD_LAST: u8 = 0x60;

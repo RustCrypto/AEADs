@@ -40,12 +40,12 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://img.shields.io/crates/v/deoxys.svg
+[crate-image]: https://buildstats.info/crate/deoxys
 [crate-link]: https://crates.io/crates/deoxys
 [docs-image]: https://docs.rs/deoxys/badge.svg
 [docs-link]: https://docs.rs/deoxys/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.50+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.56+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/deoxys/badge.svg?branch=master&event=push

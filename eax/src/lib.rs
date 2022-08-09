@@ -1,27 +1,36 @@
-//! EAX: [Authenticated Encryption and Associated Data (AEAD)][1] cipher
-//! based on AES in counter mode.
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![deny(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
-//! use eax::Eax;
-//! use eax::aead::{Aead, NewAead, generic_array::GenericArray};
+//! use eax::{
+//!     aead::{Aead, KeyInit, OsRng, generic_array::GenericArray},
+//!     Eax, Nonce
+//! };
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = Eax::<Aes256>::new(key);
+//! pub type Aes256Eax = Eax<Aes256>;
 //!
+//! let key = Aes256Eax::generate_key(&mut OsRng);
+//! let cipher = Aes256Eax::new(&key);
 //! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -44,7 +53,7 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use eax::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 //! use eax::aead::heapless::Vec;
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
@@ -77,7 +86,7 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use eax::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 //! use eax::aead::heapless::Vec;
 //! use eax::aead::consts::{U8, U128};
 //!
@@ -103,28 +112,16 @@
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
-//!
-//! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 
-#![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
-
-pub use aead::{self, AeadCore, AeadInPlace, Error, NewAead};
+pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 pub use cipher;
 
 use cipher::{
     consts::{U0, U16},
-    generic_array::{functional::FunctionalSequence, ArrayLength, GenericArray},
-    Block, BlockCipher, BlockCipherKey, BlockEncrypt, FromBlockCipher, NewBlockCipher,
-    StreamCipher,
+    generic_array::{functional::FunctionalSequence, GenericArray},
+    BlockCipher, BlockEncrypt, InnerIvInit, StreamCipherCore,
 };
-use cmac::{crypto_mac::NewMac, Cmac, Mac};
+use cmac::{digest::Output, Cmac, Mac};
 use core::marker::PhantomData;
 
 mod traits;
@@ -149,48 +146,52 @@ pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 pub mod online;
 
+/// Counter mode with a 128-bit big endian counter.
+type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
+
 /// EAX: generic over an underlying block cipher implementation.
 ///
 /// This type is generic to support substituting alternative cipher
 /// implementations.
 ///
-/// If in doubt, use the built-in [`Aes128Eax`] and [`Aes256Eax`] type aliases.
-///
-/// Type parameters:
+/// ## Type parameters
 /// - `Cipher`: block cipher.
 /// - `M`: size of MAC tag, valid values: up to `U16`.
 #[derive(Clone)]
 pub struct Eax<Cipher, M = U16>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Encryption key
-    key: BlockCipherKey<Cipher>,
+    key: Key<Cipher>,
     _tag_size: PhantomData<M>,
 }
 
-impl<Cipher, M> NewAead for Eax<Cipher, M>
+impl<Cipher, M> KeySizeUser for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     type KeySize = Cipher::KeySize;
+}
 
-    fn new(key: &BlockCipherKey<Cipher>) -> Self {
+impl<Cipher, M> KeyInit for Eax<Cipher, M>
+where
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    M: TagSize,
+{
+    fn new(key: &Key<Cipher>) -> Self {
         Self {
             key: key.clone(),
-            _tag_size: Default::default(),
+            _tag_size: PhantomData,
         }
     }
 }
 
 impl<Cipher, M> AeadCore for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     type NonceSize = Cipher::BlockSize;
@@ -200,8 +201,7 @@ where
 
 impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     fn encrypt_in_place_detached(
@@ -226,8 +226,8 @@ where
         let h = Self::cmac_with_iv(&self.key, 1, associated_data);
 
         // 3. enc ← CTR(M) using n as iv
-        let mut cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
-        cipher.apply_keystream(buffer);
+        Ctr128BE::<Cipher>::inner_iv_init(Cipher::new(&self.key), &n)
+            .apply_keystream_partial(buffer.into());
 
         // 4. c ← OMAC(2 || enc)
         let c = Self::cmac_with_iv(&self.key, 2, buffer);
@@ -265,12 +265,13 @@ where
 
         let expected_tag = &expected_tag[..tag.len()];
 
-        // Check mac using secure comparison
+        // Constant-time MAC comparison
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).into() {
             // Decrypt
-            let mut cipher = ctr::Ctr128BE::<Cipher>::from_block_cipher(Cipher::new(&self.key), &n);
-            cipher.apply_keystream(buffer);
+            Ctr128BE::<Cipher>::inner_iv_init(Cipher::new(&self.key), &n)
+                .apply_keystream_partial(buffer.into());
+
             Ok(())
         } else {
             Err(Error)
@@ -280,8 +281,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + NewBlockCipher + Clone,
-    Cipher::ParBlocks: ArrayLength<Block<Cipher>>,
+    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// CMAC/OMAC1
@@ -292,8 +292,8 @@ where
         key: &GenericArray<u8, Cipher::KeySize>,
         iv: u8,
         data: &[u8],
-    ) -> GenericArray<u8, <Cmac<Cipher> as Mac>::OutputSize> {
-        let mut mac = Cmac::<Cipher>::new(key);
+    ) -> Output<Cmac<Cipher>> {
+        let mut mac = <Cmac<Cipher> as Mac>::new(key);
         mac.update(&[0; 15]);
         mac.update(&[iv]);
         mac.update(data);

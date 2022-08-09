@@ -1,6 +1,6 @@
 [package]
 name = "chacha20poly1305"
-version = "0.10.0-pre"
+version = "0.10.0"
 description = """
 Pure Rust implementation of the ChaCha20Poly1305 Authenticated Encryption
 with Additional Data Cipher (RFC 8439) with optional architecture-specific
@@ -9,7 +9,7 @@ extended nonce variant of ChaCha20Poly1305, and the reduced-round
 ChaCha8Poly1305 and ChaCha12Poly1305 lightweight variants.
 """
 authors = ["RustCrypto Developers"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/chacha20poly1305"
@@ -18,23 +18,23 @@ keywords = ["aead", "chacha20", "poly1305", "xchacha20", "xchacha20poly1305"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-aead = { version = "0.4", default-features = false }
+aead = { version = "0.5", default-features = false }
 chacha20 = { version = "0.9", features = ["zeroize"] }
 cipher = "0.4"
-poly1305 = "0.7"
-zeroize = { version = "1", default-features = false }
+poly1305 = "0.8"
+zeroize = { version = "1.5", default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.4", features = ["dev"], default-features = false }
+aead = { version = "0.5", features = ["dev"], default-features = false }
 
 [features]
-default = ["alloc"]
-std = ["aead/std", "alloc"]
-alloc = ["aead/alloc"]
-heapless = ["aead/heapless"]
-stream = ["aead/stream"]
+default       = ["alloc", "getrandom"]
+std           = ["aead/std", "alloc"]
+alloc         = ["aead/alloc"]
+getrandom     = ["aead/getrandom"]
+heapless      = ["aead/heapless"]
 reduced-round = []
-force-soft = ["poly1305/force-soft"]
+stream        = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -1,10 +1,10 @@
-//! AES-256-GCM tests
+//! AES-256-auth tag tests
 
 #[macro_use]
 mod common;
 
 use self::common::TestVector;
-use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead, Payload};
+use aes_gcm::aead::{generic_array::GenericArray, Aead, KeyInit, Payload};
 use aes_gcm::Aes256Gcm;
 use hex_literal::hex;
 

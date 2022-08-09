@@ -1,43 +1,31 @@
-//! **XSalsa20Poly1305** (a.k.a. NaCl [`crypto_secretbox`][1]) is an
-//! [authenticated encryption][2] cipher amenable to fast, constant-time
-//! implementations in software, based on the [Salsa20][3] stream cipher
-//! (with [XSalsa20] 192-bit nonce extension) and the [Poly1305] universal
-//! hash function, which acts as a message authentication code.
-//!
-//! This algorithm has largely been replaced by the newer [ChaCha20Poly1305][4]
-//! (and the associated [XChaCha20Poly1305][5]) AEAD ciphers ([RFC 8439][6]),
-//! but is useful for interoperability with legacy NaCl-based protocols.
-//!
-//! ## Security Warning
-//!
-//! No security audits of this crate have ever been performed, and it has not been
-//! thoroughly assessed to ensure its operation is constant-time on common CPU
-//! architectures.
-//!
-//! Where possible the implementation uses constant-time hardware intrinsics,
-//! or otherwise falls back to an implementation which contains no secret-dependent
-//! branches or table lookups, however it's possible LLVM may insert such
-//! operations in certain scenarios.
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![forbid(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
-//! ```
-//! use xsalsa20poly1305::XSalsa20Poly1305;
-//! use xsalsa20poly1305::aead::{Aead, NewAead, generic_array::GenericArray};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use xsalsa20poly1305::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     XSalsa20Poly1305, Nonce
+//! };
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = XSalsa20Poly1305::new(key);
-//!
-//! // 24-bytes; unique per message
-//! // Use `xsalsa20poly1305::generate_nonce()` to randomly generate one
-//! let nonce = GenericArray::from_slice(b"extra long unique nonce!");
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let key = XSalsa20Poly1305::generate_key(&mut OsRng);
+//! let cipher = XSalsa20Poly1305::new(&key);
+//! let nonce = XSalsa20Poly1305::generate_nonce(&mut OsRng); // unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -55,11 +43,45 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use xsalsa20poly1305::{
+//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     XSalsa20Poly1305, Nonce,
+//! };
+//!
+//! let key = XSalsa20Poly1305::generate_key(&mut OsRng);
+//! let cipher = XSalsa20Poly1305::new(&key);
+//! let nonce = XSalsa20Poly1305::generate_nonce(&mut OsRng); // unique per message
+//!
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
+//! buffer.extend_from_slice(b"plaintext message");
+//!
+//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
+//!
+//! // `buffer` now contains the message ciphertext
+//! assert_ne!(&buffer, b"plaintext message");
+//!
+//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
+//! assert_eq!(&buffer, b"plaintext message");
+//! # Ok(())
+//! # }
+//! ```
+//!
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use xsalsa20poly1305::XSalsa20Poly1305;
-//! use xsalsa20poly1305::aead::{AeadInPlace, NewAead, generic_array::GenericArray};
+//! use xsalsa20poly1305::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 //! use xsalsa20poly1305::aead::heapless::Vec;
 //!
 //! let key = GenericArray::from_slice(b"an example very very secret key.");
@@ -89,24 +111,15 @@
 //! [5]: https://docs.rs/chacha20poly1305/latest/chacha20poly1305/struct.XChaCha20Poly1305.html
 //! [6]: https://tools.ietf.org/html/rfc8439
 
-#![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![forbid(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
-
-pub use aead;
+pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
 pub use salsa20::{Key, XNonce as Nonce};
 
 use aead::{
     consts::{U0, U16, U24, U32},
     generic_array::GenericArray,
-    AeadCore, AeadInPlace, Buffer, Error, NewAead,
+    Buffer,
 };
-use poly1305::{universal_hash::NewUniversalHash, Poly1305};
+use poly1305::Poly1305;
 use salsa20::{
     cipher::{KeyIvInit, StreamCipher, StreamCipherSeek},
     XSalsa20,
@@ -114,7 +127,7 @@ use salsa20::{
 use zeroize::Zeroize;
 
 #[cfg(feature = "rand_core")]
-use rand_core::{CryptoRng, RngCore};
+use aead::rand_core::{CryptoRng, RngCore};
 
 /// Size of an XSalsa20Poly1305 key in bytes
 pub const KEY_SIZE: usize = 32;
@@ -124,20 +137,6 @@ pub const NONCE_SIZE: usize = 24;
 
 /// Size of a Poly1305 tag in bytes
 pub const TAG_SIZE: usize = 16;
-
-/// Generate a random nonce: every message MUST have a unique nonce!
-///
-/// Do *NOT* ever reuse the same nonce for two messages!
-#[cfg(feature = "rand_core")]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand_core")))]
-pub fn generate_nonce<T>(csprng: &mut T) -> Nonce
-where
-    T: RngCore + CryptoRng,
-{
-    let mut nonce = [0u8; NONCE_SIZE];
-    csprng.fill_bytes(&mut nonce);
-    nonce.into()
-}
 
 /// Poly1305 tags
 pub type Tag = GenericArray<u8, U16>;
@@ -150,9 +149,27 @@ pub struct XSalsa20Poly1305 {
     key: Key,
 }
 
-impl NewAead for XSalsa20Poly1305 {
-    type KeySize = U32;
+impl XSalsa20Poly1305 {
+    /// Generate a random nonce: every message MUST have a unique nonce!
+    ///
+    /// Do *NOT* ever reuse the same nonce for two messages!
+    #[cfg(feature = "rand_core")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rand_core")))]
+    pub fn generate_nonce<T>(csprng: &mut T) -> Nonce
+    where
+        T: RngCore + CryptoRng,
+    {
+        let mut nonce = [0u8; NONCE_SIZE];
+        csprng.fill_bytes(&mut nonce);
+        nonce.into()
+    }
+}
 
+impl KeySizeUser for XSalsa20Poly1305 {
+    type KeySize = U32;
+}
+
+impl KeyInit for XSalsa20Poly1305 {
     fn new(key: &Key) -> Self {
         XSalsa20Poly1305 { key: *key }
     }
@@ -281,7 +298,7 @@ where
         }
 
         self.cipher.apply_keystream(buffer);
-        Ok(self.mac.compute_unpadded(buffer).into_bytes())
+        Ok(self.mac.compute_unpadded(buffer))
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity
@@ -298,10 +315,10 @@ where
         }
 
         use subtle::ConstantTimeEq;
-        let expected_tag = self.mac.compute_unpadded(buffer).into_bytes();
+        let expected_tag = self.mac.compute_unpadded(buffer);
 
         // This performs a constant-time comparison using the `subtle` crate
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).into() {
             self.cipher.apply_keystream(buffer);
             Ok(())
         } else {

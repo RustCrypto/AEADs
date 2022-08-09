@@ -1,43 +1,39 @@
-//! The [Deoxys][1] [Authenticated Encryption and Associated Data (AEAD)][2] cipher.
-//!
-//! The Deoxys-II variant has been selected as the first choice for defense in-depth
-//! scenario during the [CAESAR competition][3].
-//!
-//! ## Security Notes
-//!
-//! This crate has *NOT* received any security audit.
-//!
-//! Although encryption and decryption passes the test vector, there is no guarantee
-//! of constant-time operation.
-//!
-//! **USE AT YOUR OWN RISK.**
-//!
+#![no_std]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
-//! ```
-//! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, NewAead};
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
-//! let cipher = DeoxysII256::new(key);
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use deoxys::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
+//!     Nonce // Or `Aes128Gcm`
+//! };
 //!
+//! let key = DeoxysII256::generate_key(&mut OsRng);
+//! let cipher = DeoxysII256::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Usage with AAD
 //! Deoxys can authenticate additionnal data that is not encrypted alongside with the ciphertext.
 //! ```
 //! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, NewAead, Payload};
+//! use deoxys::aead::{Aead, KeyInit, Payload};
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
+//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
 //! let cipher = DeoxysII256::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
@@ -80,10 +76,10 @@
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadInPlace, NewAead};
+//! use deoxys::aead::{AeadInPlace, KeyInit};
 //! use deoxys::aead::heapless::Vec;
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
+//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
 //! let cipher = DeoxysII256::new(key);
 //!
 //! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
@@ -102,17 +98,6 @@
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
-//!
-//! [1]: https://sites.google.com/view/deoxyscipher
-//! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [3]: https://competitions.cr.yp.to/caesar-submissions.html
-
-#![no_std]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 /// Deoxys-BC implementations.
 mod deoxys_bc;
@@ -120,15 +105,13 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
-use core::marker::PhantomData;
-
-pub use aead;
+pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use aead::{
     consts::{U0, U16},
     generic_array::{ArrayLength, GenericArray},
-    AeadCore, AeadInPlace, Error, NewAead,
 };
+use core::marker::PhantomData;
 
 use zeroize::Zeroize;
 
@@ -145,9 +128,6 @@ pub type DeoxysII128 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc256>, deoxys_bc
 /// Deoxys-II with 256-bit keys
 #[allow(clippy::upper_case_acronyms)]
 pub type DeoxysII256 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc384>, deoxys_bc::DeoxysBc384>;
-
-/// Deoxys keys
-pub type Key<KeySize> = GenericArray<u8, KeySize>;
 
 /// Deoxys nonces
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
@@ -191,7 +171,9 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     type KeySize: ArrayLength<u8>;
 
     /// Precompute the subkeys
-    fn precompute_subkeys(key: &Key<Self::KeySize>) -> GenericArray<[u8; 16], Self::SubkeysSize>;
+    fn precompute_subkeys(
+        key: &GenericArray<u8, Self::KeySize>,
+    ) -> GenericArray<[u8; 16], Self::SubkeysSize>;
 
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
@@ -247,14 +229,20 @@ where
     mode: PhantomData<M>,
 }
 
-impl<M, B> NewAead for Deoxys<M, B>
+impl<M, B> KeySizeUser for Deoxys<M, B>
 where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
     type KeySize = B::KeySize;
+}
 
-    fn new(key: &Key<B::KeySize>) -> Self {
+impl<M, B> KeyInit for Deoxys<M, B>
+where
+    M: DeoxysMode<B>,
+    B: DeoxysBcType,
+{
+    fn new(key: &Key<Self>) -> Self {
         Self {
             subkeys: B::precompute_subkeys(key),
             mode: PhantomData,

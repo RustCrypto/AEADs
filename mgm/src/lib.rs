@@ -1,39 +1,38 @@
-//! Generic implementation of [Multilinear Galous Mode][1] [AEAD] construction.
-//!
-//! # Example
-//! ```
-//! # #[cfg(feature = "alloc")]
-//! # {
-//! use mgm::Mgm;
-//! use kuznyechik::Kuznyechik;
-//! use mgm::aead::{Aead, NewAead, generic_array::GenericArray};
-//!
-//! let key = GenericArray::from_slice(b"very secret key very secret key ");
-//! let cipher = Mgm::<Kuznyechik>::new(key);
-//!
-//! // 127-bit nonce value, since API has to accept 128 bits, first nonce bit
-//! // MUST be equal to zero, otherwise encryption and decryption will fail
-//! let nonce = GenericArray::from_slice(b"unique nonce val");
-//!
-//! // NOTE: handle errors to avoid panics!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!");
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!");
-//!
-//! assert_eq!(&plaintext, b"plaintext message");
-//! # }
-//! ```
-//!
-//! [1]: https://eprint.iacr.org/2019/123.pdf
-//! [AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption
 #![no_std]
+#![doc = include_str!("../README.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
 #![warn(missing_docs, rust_2018_idioms)]
-use aead::{consts::U0, generic_array::GenericArray, AeadCore, AeadInPlace, Error, Key, NewAead};
+
+//! # Usage Example
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use kuznyechik::Kuznyechik;
+//! use mgm::Mgm;
+//! use mgm::aead::{Aead, KeyInit, OsRng, generic_array::GenericArray};
+//!
+//! let key = Mgm::<Kuznyechik>::generate_key(&mut OsRng);
+//! let cipher = Mgm::<Kuznyechik>::new(&key);
+//!
+//! // 127-bit nonce value, since API has to accept 128 bits, first nonce bit
+//! // MUST be equal to zero, otherwise encryption and decryption will fail
+//! let nonce = GenericArray::from_slice(b"unique nonce val");
+//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//!
+//! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
+//! ```
+
+use aead::{
+    consts::U0, generic_array::GenericArray, AeadCore, AeadInPlace, Error, Key, KeyInit,
+    KeySizeUser,
+};
 use cfg_if::cfg_if;
 use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
 
@@ -86,13 +85,19 @@ where
     }
 }
 
-impl<C> NewAead for Mgm<C>
+impl<C> KeySizeUser for Mgm<C>
 where
     C: BlockEncrypt + NewBlockCipher,
     C::BlockSize: MgmBlockSize,
 {
     type KeySize = C::KeySize;
+}
 
+impl<C> KeyInit for Mgm<C>
+where
+    C: BlockEncrypt + NewBlockCipher,
+    C::BlockSize: MgmBlockSize,
+{
     fn new(key: &Key<Self>) -> Self {
         Self::from(C::new(key))
     }

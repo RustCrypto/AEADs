@@ -1,73 +1,32 @@
-//! [AES-GCM-SIV][1] ([RFC 8452][2]): high-performance
-//! [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
-//! provides [nonce reuse misuse resistance][4].
-//!
-//! Suitable as a general purpose symmetric encryption cipher, AES-GCM-SIV also
-//! removes many of the "sharp edges" of AES-GCM, providing significantly better
-//! security bounds while simultaneously eliminating the most catastrophic risks
-//! of nonce reuse that exist in AES-GCM.
-//!
-//! Decryption performance is equivalent to AES-GCM.
-//! Encryption is marginally slower.
-//!
-//! See also:
-//!
-//! - [Adam Langley: AES-GCM-SIV][5]
-//! - [Coda Hale: Towards A Safer Footgun][6]
-//!
-//! ## Performance Notes
-//!
-//! By default this crate will use software implementations of both AES and
-//! the POLYVAL universal hash function.
-//!
-//! When targeting modern x86/x86_64 CPUs, use the following `RUSTFLAGS` to
-//! take advantage of high performance AES-NI and CLMUL CPU intrinsics:
-//!
-//! ```text
-//! RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
-//! ```
-//!
-//! ## Security Warning
-//!
-//! No security audits of this crate have ever been performed.
-//!
-//! Some of this crate's dependencies were [audited by by NCC Group][7] as part of
-//! an audit of the `aes-gcm` crate, including the AES implementations (both AES-NI
-//! and a portable software implementation), as well as the `polyval` crate which
-//! is used as an authenticator. There were no significant findings.
-//!
-//! All implementations contained in the crate are designed to execute in constant
-//! time, either by relying on hardware intrinsics (i.e. AES-NI and CLMUL on
-//! x86/x86_64), or using a portable implementation which is only constant time
-//! on processors which implement constant-time multiplication.
-//!
-//! It is not suitable for use on processors with a variable-time multiplication
-//! operation (e.g. short circuit on multiply-by-zero / multiply-by-one, such as
-//! certain 32-bit PowerPC CPUs and some non-ARM microcontrollers).
-//!
-//! USE AT YOUR OWN RISK!
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{Aead, NewAead};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_gcm_siv::{
+//!     aead::{Aead, KeyInit, OsRng},
+//!     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
+//! };
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256GcmSiv::new(key);
-//!
+//! let key = Aes256GcmSiv::generate_key(&mut OsRng);
+//! let cipher = Aes256GcmSiv::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!");  // NOTE: handle this error to avoid panics!
-//!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!");  // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -85,112 +44,99 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # #[cfg(feature = "heapless")]
-//! # {
-//! use aes_gcm_siv::{Aes256GcmSiv, Key, Nonce}; // Or `Aes128GcmSiv`
-//! use aes_gcm_siv::aead::{AeadInPlace, NewAead};
-//! use aes_gcm_siv::aead::heapless::Vec;
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use aes_gcm_siv::{
+//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
+//! };
 //!
-//! let key = Key::from_slice(b"an example very very secret key.");
-//! let cipher = Aes256GcmSiv::new(key);
-//!
+//! let key = Aes256GcmSiv::generate_key(&mut OsRng);
+//! let cipher = Aes256GcmSiv::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new();
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
-//!
-//! [1]: https://en.wikipedia.org/wiki/AES-GCM-SIV
-//! [2]: https://tools.ietf.org/html/rfc8452
-//! [3]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [4]: https://github.com/miscreant/meta/wiki/Nonce-Reuse-Misuse-Resistance
-//! [5]: https://www.imperialviolet.org/2017/05/14/aesgcmsiv.html
-//! [6]: https://codahale.com/towards-a-safer-footgun/
-//! [7]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
 
-#![no_std]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![warn(missing_docs, rust_2018_idioms)]
+pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
-pub use aead;
-
-use aead::{AeadCore, AeadInPlace, Error, NewAead};
 use cipher::{
     consts::{U0, U12, U16},
     generic_array::GenericArray,
-    BlockCipher, BlockEncrypt, InnerIvInit, KeyInit, StreamCipherCore,
+    BlockCipher, BlockEncrypt, InnerIvInit, StreamCipherCore,
 };
-use polyval::{
-    universal_hash::{NewUniversalHash, UniversalHash},
-    Polyval,
-};
+use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
 
-/// AES is optional to allow swapping in hardware-specific backends
+/// AES is optional to allow swapping in hardware-specific backends.
 #[cfg(feature = "aes")]
 use aes::{Aes128, Aes256};
 
-/// Maximum length of associated data (from RFC 8452 Section 6)
+/// Maximum length of associated data (from RFC8452 § 6).
 pub const A_MAX: u64 = 1 << 36;
 
-/// Maximum length of plaintext (from RFC 8452 Section 6)
+/// Maximum length of plaintext (from RFC8452 § 6).
 pub const P_MAX: u64 = 1 << 36;
 
-/// Maximum length of ciphertext (from RFC 8452 Section 6)
+/// Maximum length of ciphertext (from RFC8452 § 6).
 pub const C_MAX: u64 = (1 << 36) + 16;
 
-/// AES-GCM-SIV keys
-pub type Key<KeySize> = GenericArray<u8, KeySize>;
-
-/// AES-GCM-SIV nonces
+/// AES-GCM-SIV nonces.
 pub type Nonce = GenericArray<u8, U12>;
 
-/// AES-GCM-SIV tags
+/// AES-GCM-SIV tags.
 pub type Tag = GenericArray<u8, U16>;
 
-/// AES-GCM-SIV with a 128-bit key
+/// AES-GCM-SIV with a 128-bit key.
 #[cfg(feature = "aes")]
 pub type Aes128GcmSiv = AesGcmSiv<Aes128>;
 
-/// AES-GCM-SIV with a 256-bit key
+/// AES-GCM-SIV with a 256-bit key.
 #[cfg(feature = "aes")]
 pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 
 /// Counter mode with a 32-bit little endian counter.
 type Ctr32LE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32LE>;
 
-/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
+/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452).
 #[derive(Clone)]
-pub struct AesGcmSiv<Aes>
-where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
-{
-    /// Key generating key used to derive AES-GCM-SIV subkeys
+pub struct AesGcmSiv<Aes> {
+    /// Key generating key used to derive AES-GCM-SIV subkeys.
     key_generating_key: Aes,
 }
 
-impl<Aes> NewAead for AesGcmSiv<Aes>
+impl<Aes> KeySizeUser for AesGcmSiv<Aes>
+where
+    Aes: KeySizeUser,
+{
+    type KeySize = Aes::KeySize;
+}
+
+impl<Aes> KeyInit for AesGcmSiv<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
 {
-    type KeySize = Aes::KeySize;
-
-    fn new(key_bytes: &Key<Aes::KeySize>) -> Self {
+    fn new(key_bytes: &Key<Self>) -> Self {
         Self {
             key_generating_key: Aes::new(key_bytes),
         }
@@ -244,18 +190,18 @@ where
     }
 }
 
-/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452)
+/// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC8452).
 struct Cipher<Aes>
 where
     Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
 {
-    /// Encryption cipher
+    /// Encryption cipher.
     enc_cipher: Aes,
 
-    /// POLYVAL universal hash
+    /// POLYVAL universal hash.
     polyval: Polyval,
 
-    /// Nonce
+    /// Nonce.
     nonce: Nonce,
 }
 
@@ -267,14 +213,13 @@ where
     /// message-encryption keys.
     pub(crate) fn new(key_generating_key: &Aes, nonce: &Nonce) -> Self {
         let mut mac_key = polyval::Key::default();
-        let mut enc_key = Key::default();
+        let mut enc_key = GenericArray::default();
         let mut block = cipher::Block::<Aes>::default();
         let mut counter = 0u32;
 
         // Derive subkeys from the master key-generating-key in counter mode.
         //
-        // From RFC 8452 Section 4:
-        // <https://tools.ietf.org/html/rfc8452#section-4>
+        // From RFC8452 § 4: <https://tools.ietf.org/html/rfc8452#section-4>
         //
         // > The message-authentication key is 128 bit, and the message-encryption
         // > key is either 128 (for AES-128) or 256 bit (for AES-256).
@@ -314,7 +259,7 @@ where
         result
     }
 
-    /// Encrypt the given message in-place, returning the authentication tag
+    /// Encrypt the given message in-place, returning the authentication tag.
     pub(crate) fn encrypt_in_place_detached(
         mut self,
         associated_data: &[u8],
@@ -324,8 +269,10 @@ where
             return Err(Error);
         }
 
-        // TODO(tarcieri): interleave authentication and encryption
-        let tag = self.compute_tag(associated_data, buffer);
+        self.polyval.update_padded(associated_data);
+        self.polyval.update_padded(buffer);
+
+        let tag = self.finish_tag(associated_data.len(), buffer.len());
         init_ctr(&self.enc_cipher, &tag).apply_keystream_partial(buffer.into());
 
         Ok(tag)
@@ -352,7 +299,7 @@ where
         let expected_tag = self.finish_tag(associated_data.len(), buffer.len());
 
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).unwrap_u8() == 1 {
+        if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
@@ -362,14 +309,7 @@ where
         }
     }
 
-    /// Authenticate the given plaintext and associated data using POLYVAL
-    fn compute_tag(&mut self, associated_data: &[u8], buffer: &mut [u8]) -> Tag {
-        self.polyval.update_padded(associated_data);
-        self.polyval.update_padded(buffer);
-        self.finish_tag(associated_data.len(), buffer.len())
-    }
-
-    /// Finish computing POLYVAL tag for AAD and buffer of the given length
+    /// Finish computing POLYVAL tag for AAD and buffer of the given length.
     fn finish_tag(&mut self, associated_data_len: usize, buffer_len: usize) -> Tag {
         let associated_data_bits = (associated_data_len as u64) * 8;
         let buffer_bits = (buffer_len as u64) * 8;
@@ -377,9 +317,9 @@ where
         let mut block = polyval::Block::default();
         block[..8].copy_from_slice(&associated_data_bits.to_le_bytes());
         block[8..].copy_from_slice(&buffer_bits.to_le_bytes());
-        self.polyval.update(&block);
+        self.polyval.update(&[block]);
 
-        let mut tag = self.polyval.finalize_reset().into_bytes();
+        let mut tag = self.polyval.finalize_reset();
 
         // XOR the nonce into the resulting tag
         for (i, byte) in tag[..12].iter_mut().enumerate() {
@@ -396,8 +336,7 @@ where
 
 /// Initialize counter mode.
 ///
-/// From RFC 8452 Section 4:
-/// <https://tools.ietf.org/html/rfc8452#section-4>
+/// From RFC8452 § 4: <https://tools.ietf.org/html/rfc8452#section-4>
 ///
 /// > The initial counter block is the tag with the most significant bit
 /// > of the last byte set to one.

@@ -1,8 +1,5 @@
 //! AES-SIV tests for the raw SIV interface
 
-#[macro_use]
-extern crate hex_literal;
-
 use aes_siv::aead::generic_array::GenericArray;
 
 /// Test vectors
@@ -19,7 +16,7 @@ macro_rules! tests {
         #[test]
         fn encrypt() {
             for vector in $vectors {
-                let mut cipher = <$siv>::new(GenericArray::clone_from_slice(vector.key));
+                let mut cipher = <$siv>::new(GenericArray::from_slice(vector.key));
                 let ciphertext = cipher.encrypt(vector.aad, vector.plaintext).unwrap();
                 assert_eq!(vector.ciphertext, ciphertext.as_slice());
             }
@@ -28,7 +25,7 @@ macro_rules! tests {
         #[test]
         fn decrypt() {
             for vector in $vectors {
-                let mut cipher = <$siv>::new(GenericArray::clone_from_slice(vector.key));
+                let mut cipher = <$siv>::new(GenericArray::from_slice(vector.key));
                 let plaintext = cipher.decrypt(vector.aad, vector.ciphertext).unwrap();
                 assert_eq!(vector.plaintext, plaintext.as_slice());
             }
@@ -42,7 +39,7 @@ macro_rules! tests {
             // Tweak the first byte
             ciphertext[0] ^= 0xaa;
 
-            let mut cipher = <$siv>::new(GenericArray::clone_from_slice(vector.key));
+            let mut cipher = <$siv>::new(GenericArray::from_slice(vector.key));
             assert!(cipher.decrypt(vector.aad, &ciphertext).is_err());
 
             // TODO(tarcieri): test ciphertext is unmodified in in-place API
@@ -64,7 +61,7 @@ macro_rules! wycheproof_tests {
                 ct: &[u8],
                 pass: bool,
             ) -> Option<&'static str> {
-                let mut cipher = <$siv>::new(GenericArray::clone_from_slice(key));
+                let mut cipher = <$siv>::new(GenericArray::from_slice(key));
                 let ciphertext = cipher.encrypt(&[aad], pt).unwrap();
                 if pass && ct != ciphertext.as_slice() {
                     return Some("encryption mismatch");
@@ -113,7 +110,8 @@ macro_rules! wycheproof_tests {
 
 mod aes128cmacsiv {
     use super::{GenericArray, TestVector};
-    use aes_siv::siv::Aes128Siv;
+    use aes_siv::{siv::Aes128Siv, KeyInit};
+    use hex_literal::hex;
 
     /// AES-128-CMAC-SIV test vectors
     const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
@@ -154,7 +152,8 @@ mod aes128cmacsiv {
 
 mod aes256cmacsiv {
     use super::{GenericArray, TestVector};
-    use aes_siv::siv::Aes256Siv;
+    use aes_siv::{siv::Aes256Siv, KeyInit};
+    use hex_literal::hex;
 
     /// AES-256-CMAC-SIV test vectors
     const TEST_VECTORS: &[TestVector<[u8; 64]>] = &[
@@ -184,7 +183,8 @@ mod aes256cmacsiv {
 #[cfg(feature = "pmac")]
 mod aes128pmaccsiv {
     use super::{GenericArray, TestVector};
-    use aes_siv::siv::Aes128PmacSiv;
+    use aes_siv::{siv::Aes128PmacSiv, KeyInit};
+    use hex_literal::hex;
 
     /// AES-128-PMAC-SIV test vectors
     const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
@@ -224,7 +224,8 @@ mod aes128pmaccsiv {
 #[cfg(feature = "pmac")]
 mod aes256pmaccsiv {
     use super::{GenericArray, TestVector};
-    use aes_siv::siv::Aes256PmacSiv;
+    use aes_siv::{siv::Aes256PmacSiv, KeyInit};
+    use hex_literal::hex;
 
     /// AES-256-PMAC-SIV test vectors
     const TEST_VECTORS: &[TestVector<[u8; 64]>] = &[

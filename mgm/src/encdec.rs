@@ -172,6 +172,7 @@ where
         }
         iter.remainder()
     } else {
+        #[allow(clippy::needless_borrow)]
         &buffer
     };
 

@@ -105,7 +105,7 @@ macro_rules! tests {
 
 mod aes128cmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, NewAead, Payload};
+    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
     use aes_siv::Aes128SivAead;
 
     /// AES-128-CMAC-SIV test vectors
@@ -125,7 +125,7 @@ mod aes128cmacsivaead {
 #[cfg(feature = "pmac")]
 mod aes128pmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, NewAead, Payload};
+    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
     use aes_siv::Aes128PmacSivAead;
 
     /// AES-128-PMAC-SIV test vectors

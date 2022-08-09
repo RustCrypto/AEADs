@@ -4,8 +4,9 @@ version = "0.0.0"
 authors = ["RustCrypto Developers"]
 license = "Apache-2.0 OR MIT"
 description = "Criterion benchmarks of the AEAD crates"
-edition = "2018"
+edition = "2021"
 publish = false
+rust-version = "1.56"
 
 [workspace]
 

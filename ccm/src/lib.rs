@@ -1,32 +1,39 @@
-//! Counter with CBC-MAC ([CCM]): [Authenticated Encryption and Associated Data (AEAD)][1]
-//! algorithm generic over block ciphers with block size equal to 128 bits as specified in
-//! [RFC 3610].
-//!
+#![no_std]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![deny(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! use ccm::{Ccm, consts::{U10, U13}};
-//! use ccm::aead::{Aead, NewAead, generic_array::GenericArray};
+#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
+#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
+//! use ccm::{
+//!     aead::{Aead, KeyInit, OsRng, generic_array::GenericArray},
+//!     consts::{U10, U13},
+//!     Ccm,
+//! };
 //!
-//! // AES-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
-//! type AesCcm = Ccm<Aes256, U10, U13>;
+//! // AES-256-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
+//! pub type Aes256Ccm = Ccm<Aes256, U10, U13>;
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = AesCcm::new(key);
-//!
+//! let key = Aes256Ccm::generate_key(&mut OsRng);
+//! let cipher = Aes256Ccm::new(&key);
 //! let nonce = GenericArray::from_slice(b"unique nonce."); // 13-bytes; unique per message
-//!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
+//! # }
 //! ```
+//!
 //! This crate implements traits from the [`aead`] crate and is capable to perfrom
 //! encryption and decryption in-place wihout relying on `alloc`.
 //!
@@ -35,25 +42,14 @@
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 
-#![no_std]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
-)]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
-
-pub use aead;
-pub use aead::consts;
+pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use aead::{
     consts::{U0, U16},
     generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
-    AeadCore, AeadInPlace, Error, Key, NewAead,
 };
 use cipher::{
-    Block, BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, KeyInit, StreamCipher,
-    StreamCipherSeek,
+    Block, BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
 };
 use core::marker::PhantomData;
 use ctr::{Ctr32BE, Ctr64BE, CtrCore};
@@ -70,7 +66,7 @@ pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 /// Trait implemented for valid tag sizes, i.e.
 /// [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
 /// [`U10`][consts::U10], [`U12`][consts::U12], [`U14`][consts::U14], and
-/// [`U12`][consts::U12].
+/// [`U16`][consts::U16].
 pub trait TagSize: private::SealedTag {}
 
 impl<T: private::SealedTag> TagSize for T {}
@@ -186,14 +182,21 @@ where
     }
 }
 
-impl<C, M, N> NewAead for Ccm<C, M, N>
+impl<C, M, N> KeySizeUser for Ccm<C, M, N>
 where
     C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
     M: ArrayLength<u8> + TagSize,
     N: ArrayLength<u8> + NonceSize,
 {
     type KeySize = C::KeySize;
+}
 
+impl<C, M, N> KeyInit for Ccm<C, M, N>
+where
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
+    M: ArrayLength<u8> + TagSize,
+    N: ArrayLength<u8> + NonceSize,
+{
     fn new(key: &Key<Self>) -> Self {
         Self::from(C::new(key))
     }
@@ -272,12 +275,12 @@ where
             ctr.apply_keystream(&mut full_tag);
         }
 
-        if full_tag[..tag.len()].ct_eq(tag).unwrap_u8() == 0 {
+        if full_tag[..tag.len()].ct_eq(tag).into() {
+            Ok(())
+        } else {
             buffer.iter_mut().for_each(|v| *v = 0);
-            return Err(Error);
+            Err(Error)
         }
-
-        Ok(())
     }
 }
 

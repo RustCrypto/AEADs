@@ -120,7 +120,7 @@ use arch::{
     __m128i, _mm_loadu_si128, _mm_set_epi64x, _mm_setzero_si128, _mm_storeu_si128, _mm_xor_si128,
 };
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, NewAead};
+pub use aead::{self, AeadCore, AeadInPlace, Error};
 pub use cipher::Key;
 
 use cipher::{
@@ -164,12 +164,10 @@ where
     type KeySize = B::KeySize;
 }
 
-impl<B, NonceSize> NewAead for Colm0<B, NonceSize>
+impl<B, NonceSize> KeyInit for Colm0<B, NonceSize>
 where
     B: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt + KeyInit,
 {
-    type KeySize = B::KeySize;
-
     fn new(key: &Key<Self>) -> Self {
         B::new(key).into()
     }

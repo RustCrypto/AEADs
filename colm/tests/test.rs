@@ -1,4 +1,4 @@
-use colm_rs::aead::{Aead, NewAead, Payload};
+use colm_rs::aead::{KeyInit, Aead, Payload};
 use colm_rs::Colm0Aes128;
 
 #[test]

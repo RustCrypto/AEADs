@@ -1,4 +1,7 @@
-use colm_rs::{aead::{Aead, KeyInit}, AeadInPlace, Colm0Aes128};
+use colm_rs::{
+    aead::{Aead, KeyInit},
+    AeadInPlace, Colm0Aes128,
+};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use criterion_cycles_per_byte::CyclesPerByte;
 use rand::rngs::OsRng;

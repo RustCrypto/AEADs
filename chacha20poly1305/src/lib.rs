@@ -26,15 +26,15 @@
 #![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{Aead, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng},
 //!     ChaCha20Poly1305, Nonce
 //! };
 //!
 //! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 12-bytes; unique per message
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 96-bits; unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -65,25 +65,25 @@
 )]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInPlace, KeyInit, OsRng, heapless::Vec},
 //!     ChaCha20Poly1305, Nonce,
 //! };
 //!
 //! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 12-bytes; unique per message
+//! let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -122,15 +122,15 @@
 #![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{Aead, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng},
 //!     XChaCha20Poly1305, XNonce
 //! };
 //!
 //! let key = XChaCha20Poly1305::generate_key(&mut OsRng);
 //! let cipher = XChaCha20Poly1305::new(&key);
-//! let nonce = XNonce::from_slice(b"extra long unique nonce!"); // 24-bytes; unique
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = XChaCha20Poly1305::generate_nonce(&mut OsRng); // 192-bits; unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }

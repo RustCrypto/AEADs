@@ -37,8 +37,9 @@ hex-literal = "0.3"
 default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
-getrandom  = ["aead/getrandom"]
+getrandom  = ["aead/getrandom", "rand_core"]
 heapless = ["aead/heapless"]
+rand_core = ["aead/rand_core"]
 stream = ["aead/stream"]
 
 [package.metadata.docs.rs]

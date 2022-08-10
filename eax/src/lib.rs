@@ -17,7 +17,7 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
 //! use eax::{
-//!     aead::{Aead, KeyInit, OsRng, generic_array::GenericArray},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng, generic_array::GenericArray},
 //!     Eax, Nonce
 //! };
 //!
@@ -25,9 +25,9 @@
 //!
 //! let key = Aes256Eax::generate_key(&mut OsRng);
 //! let cipher = Aes256Eax::new(&key);
-//! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = Aes256Eax::generate_nonce(&mut OsRng); // 128-bits; unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -53,25 +53,30 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
-//! use eax::aead::heapless::Vec;
+//! use eax::aead::{
+//!     generic_array::GenericArray,
+//!     heapless::Vec,
+//!     AeadCore, AeadInPlace, KeyInit, OsRng
+//! };
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let cipher = Eax::<Aes256>::new(key);
+//! pub type Aes256Eax = Eax<Aes256>;
 //!
-//! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
+//! let key = Aes256Eax::generate_key(&mut OsRng);
+//! let cipher = Aes256Eax::new(&key);
+//!
+//! let nonce = Aes256Eax::generate_nonce(&mut OsRng); // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```

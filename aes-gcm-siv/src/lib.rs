@@ -15,15 +15,15 @@
 #![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_gcm_siv::{
-//!     aead::{Aead, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng},
 //!     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
 //! };
 //!
 //! let key = Aes256GcmSiv::generate_key(&mut OsRng);
 //! let cipher = Aes256GcmSiv::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = Aes256GcmSiv::generate_nonce(&mut OsRng); // 96-bits; unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -62,7 +62,7 @@
 //! let cipher = Aes256GcmSiv::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext

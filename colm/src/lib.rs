@@ -12,8 +12,8 @@
 //!
 //! # Usage
 //! ```
-//! use colm::{Colm0Aes128, Nonce}; // If you don't know what block cipher to use with COLM choose the pre-defined type with AES
-//! use colm::aead::{Aead, NewAead};
+//! use colm_rs::{Colm0Aes128, Nonce}; // If you don't know what block cipher to use with COLM choose the pre-defined type with AES
+//! use colm_rs::aead::{Aead, KeyInit};
 //!
 //! let key = b"just another key";
 //! let cipher = Colm0Aes128::new(key.into());
@@ -32,8 +32,8 @@
 //! ## Usage with AAD
 //! COLM can authenticate additional data that is not encrypted alongside with the ciphertext.
 //! ```
-//! use colm::{Colm0Aes128, Nonce}; // If you don't know what block cipher to use with COLM choose the pre-defined type with AES
-//! use colm::aead::{Aead, NewAead, Payload};
+//! use colm_rs::{Colm0Aes128, Nonce}; // If you don't know what block cipher to use with COLM choose the pre-defined type with AES
+//! use colm_rs::aead::{Aead, KeyInit, Payload};
 //!
 //! let key = b"just another key";
 //! let cipher = Colm0Aes128::new(key.into());
@@ -77,9 +77,9 @@
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
-//! use colm::{Colm0Aes128, Nonce}; // If you don't know what block cipher to use with COLM choose the pre-defined type with AES
-//! use deoxys::aead::{AeadInPlace, NewAead};
-//! use deoxys::aead::heapless::Vec;
+//! use colm_rs::{Colm0Aes128, Nonce}; // If you don't know what block cipher to use with COLM choose the pre-defined type with AES
+//! use colm_rs::aead::{AeadInPlace, KeyInit};
+//! use colm_rs::aead::heapless::Vec;
 //!
 //! let key = b"just another key";
 //! let cipher = Colm0Aes128::new(key,into());

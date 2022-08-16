@@ -12,16 +12,16 @@
 #![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use deoxys::{
-//!     aead::{Aead, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng},
 //!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
 //!     Nonce // Or `Aes128Gcm`
 //! };
 //!
 //! let key = DeoxysII256::generate_key(&mut OsRng);
 //! let cipher = DeoxysII256::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = DeoxysII256::generate_nonce(&mut OsRng); // 120-bits; unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -30,28 +30,28 @@
 //! ## Usage with AAD
 //! Deoxys can authenticate additionnal data that is not encrypted alongside with the ciphertext.
 //! ```
-//! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, KeyInit, Payload};
+//! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
+//! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload, OsRng};
 //!
-//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
-//! let cipher = DeoxysII256::new(key);
+//! let key = DeoxysII256::generate_key(&mut OsRng);
+//! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
+//! let nonce = DeoxysII256::generate_nonce(&mut OsRng); // 120-bits; unique per message
 //!
-//!let payload = Payload {
+//! let payload = Payload {
 //!    msg: &b"this will be encrypted".as_ref(),
 //!    aad: &b"this will NOT be encrypted, but will be authenticated".as_ref(),
-//!};
+//! };
 //!
-//! let ciphertext = cipher.encrypt(nonce, payload)
+//! let ciphertext = cipher.encrypt(&nonce, payload)
 //!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
 //!
-//!let payload = Payload {
+//! let payload = Payload {
 //!    msg: &ciphertext,
 //!    aad: &b"this will NOT be encrypted, but will be authenticated".as_ref(),
-//!};
+//! };
 //!
-//! let plaintext = cipher.decrypt(nonce, payload)
+//! let plaintext = cipher.decrypt(&nonce, payload)
 //!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
 //!
 //! assert_eq!(&plaintext, b"this will be encrypted");
@@ -75,26 +75,25 @@
 //! ```
 //! # #[cfg(feature = "heapless")]
 //! # {
-//! use deoxys::{DeoxysII256, Key, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadInPlace, KeyInit};
-//! use deoxys::aead::heapless::Vec;
+//! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
+//! use deoxys::aead::{AeadCore, AeadInPlace, KeyInit, OsRng, heapless::Vec};
 //!
-//! let key = Key::<DeoxysII256>::from_slice(b"an example very very secret key.");
-//! let cipher = DeoxysII256::new(key);
+//! let key = DeoxysII256::generate_key(&mut OsRng);
+//! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = Nonce::from_slice(b"unique nonce123"); // 64-bits for Deoxys-I or 120-bits for Deoxys-II; unique per message
+//! let nonce = DeoxysII256::generate_nonce(&mut OsRng); // 120-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Buffer needs 16-bytes overhead for tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```

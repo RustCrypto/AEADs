@@ -1,6 +1,6 @@
 [package]
 name = "chacha20poly1305"
-version = "0.10.0"
+version = "0.10.1"
 description = """
 Pure Rust implementation of the ChaCha20Poly1305 Authenticated Encryption
 with Additional Data Cipher (RFC 8439) with optional architecture-specific
@@ -13,7 +13,7 @@ edition = "2021"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/chacha20poly1305"
-repository = "https://github.com/RustCrypto/AEADs"
+repository = "https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305"
 keywords = ["aead", "chacha20", "poly1305", "xchacha20", "xchacha20poly1305"]
 categories = ["cryptography", "no-std"]
 
@@ -31,8 +31,9 @@ aead = { version = "0.5", features = ["dev"], default-features = false }
 default       = ["alloc", "getrandom"]
 std           = ["aead/std", "alloc"]
 alloc         = ["aead/alloc"]
-getrandom     = ["aead/getrandom"]
+getrandom     = ["aead/getrandom", "rand_core"]
 heapless      = ["aead/heapless"]
+rand_core     = ["aead/rand_core"]
 reduced-round = []
 stream        = ["aead/stream"]
 

@@ -15,15 +15,15 @@
 #![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_siv::{
-//!     aead::{Aead, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng},
 //!     Aes256SivAead, Nonce // Or `Aes128SivAead`
 //! };
 //!
 //! let key = Aes256SivAead::generate_key(&mut OsRng);
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Nonce::from_slice(b"any unique nonce"); // 128-bits; unique per message
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = Aes256SivAead::generate_nonce(&mut OsRng); // 128-bits; unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -54,25 +54,25 @@
 )]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_siv::{
-//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInPlace, KeyInit, OsRng, heapless::Vec},
 //!     Aes256SivAead, Nonce, // Or `Aes128SivAead`
 //! };
 //!
 //! let key = Aes256SivAead::generate_key(&mut OsRng);
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Nonce::from_slice(b"any unique nonce"); // 128-bits; unique per message
+//! let nonce = Aes256SivAead::generate_nonce(&mut OsRng); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
 //! # Ok(())
 //! # }

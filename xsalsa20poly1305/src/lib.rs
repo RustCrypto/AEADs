@@ -61,7 +61,7 @@
 //! let cipher = XSalsa20Poly1305::new(&key);
 //! let nonce = XSalsa20Poly1305::generate_nonce(&mut OsRng); // unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag tag
+//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
@@ -153,6 +153,7 @@ impl XSalsa20Poly1305 {
     /// Generate a random nonce: every message MUST have a unique nonce!
     ///
     /// Do *NOT* ever reuse the same nonce for two messages!
+    // TODO(tarcieri): remove this in favor of `AeadCore::generate_nonce`
     #[cfg(feature = "rand_core")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand_core")))]
     pub fn generate_nonce<T>(csprng: &mut T) -> Nonce

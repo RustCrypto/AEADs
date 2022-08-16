@@ -16,7 +16,7 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
 //! use ccm::{
-//!     aead::{Aead, KeyInit, OsRng, generic_array::GenericArray},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng, generic_array::GenericArray},
 //!     consts::{U10, U13},
 //!     Ccm,
 //! };
@@ -26,9 +26,9 @@
 //!
 //! let key = Aes256Ccm::generate_key(&mut OsRng);
 //! let cipher = Aes256Ccm::new(&key);
-//! let nonce = GenericArray::from_slice(b"unique nonce."); // 13-bytes; unique per message
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let nonce = Aes256Ccm::generate_nonce(&mut OsRng); // 13-bytes; unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }

@@ -1,5 +1,8 @@
-use colm_rs::aead::{Aead, KeyInit, Payload};
-use colm_rs::Colm0Aes128;
+use aead::Payload;
+use sundae::{
+    aead::{Aead, KeyInit},
+    SundaeAes,
+};
 
 #[test]
 fn extensive_test() {
@@ -16,25 +19,25 @@ fn extensive_test() {
     "ab",
     "0123456789abcde",
     "0123456789abcdef", // 16 bytes
-    "0123456789abcdef0",
+    "0123456789abcdefg",
     "0123456789abcdef0123456789abcde",
     "0123456789abcdef0123456789abcdef", // 32 bytes
-    "0123456789abcdef0123456789abcdef0", // 33 bytes
+    "0123456789abcdef0123456789abcdefg", // 33 bytes
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde", // 63 bytes
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", // 64 bytes
-    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0", // 65 bytes
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefg", // 65 bytes
     // 127 bytes
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde",
     // 128 bytes
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     // 129 bytes
-    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0",
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefi",
     // 255 bytes
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde",
     // 256 bytes
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     // 257 bytes
-    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0",
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefx",
     // 512 bytes
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 ];
@@ -56,7 +59,7 @@ fn extensive_test() {
 		// 128 bytes
 		"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 		// 129 bytes
-		"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0",
+		"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefo",
 		// 255 bytes
 		"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde",
 		// 256 bytes
@@ -73,15 +76,15 @@ fn extensive_test() {
 
     for (n, nonce) in nonces.iter().enumerate() {
         for (k, key) in keys.iter().enumerate() {
-            let cipher = Colm0Aes128::new(key.into());
-            for (a, ad) in ad.iter().enumerate() {
+            let cipher = SundaeAes::new(key.into());
+            for ad in ad.iter() {
                 for p in plaintexts.iter().map(|s| s.as_bytes()) {
                     let payload = Payload {
                         msg: p,
                         aad: ad.as_bytes(),
                     };
                     let size = p.len();
-                    println!("Verifying n={}, k={}, a={}, p={}", n, k, a, size);
+                    println!("Verifying n={}, k={}, a={}, p={}", n, k, ad.len(), size);
 
                     println!("E+D ");
                     println!("adlen={}", ad.len());
@@ -104,4 +107,23 @@ fn extensive_test() {
         "All {} combinations passed.",
         nonces.len() * keys.len() * ad.len() * plaintexts.len()
     );
+}
+
+#[test]
+#[should_panic]
+fn tag_test() {
+    let key = [0u8; 16];
+    let nonce = [0u8; 8];
+    let m = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0";
+
+    let cipher = SundaeAes::new(&key.into());
+    let mut c = cipher.encrypt(&nonce.into(), m.as_bytes()).expect("");
+
+    println!("{:#02x?}", c);
+
+    c[m.len() + 15] = 0x17;
+
+    println!("{:#02x?}", c);
+
+    cipher.decrypt(&nonce.into(), c.as_ref()).expect("");
 }

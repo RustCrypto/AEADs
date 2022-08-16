@@ -3,10 +3,10 @@
 //! SUNDAE made it to round 2 of the [NIST lightweight cryptography competition][3] as part of SUNDAE-GIFT.
 //!
 //! ## Security notes
-//! 
-//! SUNDAE guarantees creation of unique ciphertext for every unique pair of plaintext + associated data, 
+//!
+//! SUNDAE guarantees creation of unique ciphertext for every unique pair of plaintext + associated data,
 //! if only one of them is different the output will be different, making the NONCE unnecessary in situations where
-//! this can be guaranteed. This is why SUNDAE is a good choice for encryption on devices that lack proper randomness sources for generating NONCEs, or have limited secure storage. 
+//! this can be guaranteed. This is why SUNDAE is a good choice for encryption on devices that lack proper randomness sources for generating NONCEs, or have limited secure storage.
 //! However, in situations in which the same plaintext + associated data pair is encrypted regularly, or it can not be
 //! guaranteed that at least one part is distinct each time, it is advisable to use SUNDAE with a NONCE.
 //!
@@ -405,7 +405,7 @@ where
                 *v = _mm_xor_si128(_mm_shuffle_epi8(block, mul2), _mm_shuffle_epi8(block, xor2));
                 *v = self.bc_encrypt(*v);
                 _mm_storeu_si128(tag.as_ptr() as *mut __m128i, *v);
-            }     
+            }
 
             tag
         }

@@ -2,7 +2,10 @@ use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Through
 use criterion_cycles_per_byte::CyclesPerByte;
 use rand::rngs::OsRng;
 use rand::RngCore;
-use sundae::{aead::{Aead, KeyInit}, AeadInPlace, SundaeAes};
+use sundae::{
+    aead::{Aead, KeyInit},
+    AeadInPlace, SundaeAes,
+};
 
 pub const KB: usize = 1024;
 

@@ -81,9 +81,9 @@ dependencies = [
 
 [[package]]
 name = "atomic-polyfill"
-version = "0.1.8"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e14bf7b4f565e5e717d7a7a65b2a05c0b8c96e4db636d6f780f03b15108cdd1b"
+checksum = "9c041a8d9751a520ee19656232a18971f18946a7900f1520ee4400002244dd89"
 dependencies = [
  "critical-section",
 ]
@@ -215,9 +215,9 @@ dependencies = [
 
 [[package]]
 name = "cortex-m"
-version = "0.7.5"
+version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd20d4ac4aa86f4f75f239d59e542ef67de87cce2c282818dc6e84155d3ea126"
+checksum = "70858629a458fdfd39f9675c4dc309411f2a3f83bede76988d81bf1a0ecee9e0"
 dependencies = [
  "bare-metal 0.2.5",
  "bitfield",
@@ -227,9 +227,9 @@ dependencies = [
 
 [[package]]
 name = "cpufeatures"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59a6001667ab124aebae2a495118e11d30984c3a653e99d86d58971708cf5e4b"
+checksum = "1079fb8528d9f9c888b1e8aa651e6e079ade467323d58f75faf1d30b1808f540"
 dependencies = [
  "libc",
 ]
@@ -321,9 +321,9 @@ dependencies = [
 
 [[package]]
 name = "generic-array"
-version = "0.14.5"
+version = "0.14.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd48d33ec7f05fbfa152300fdad764757cbded343c1aa1cff2fbaf4134851803"
+checksum = "bff49e947297f3312447abdca79f45f4738097cc82b06e72054d2223f601f1b9"
 dependencies = [
  "typenum",
  "version_check",
@@ -361,9 +361,9 @@ dependencies = [
 
 [[package]]
 name = "heapless"
-version = "0.7.14"
+version = "0.7.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "065681e99f9ef7e0e813702a0326aedbcbbde7db5e55f097aedd1bf50b9dca43"
+checksum = "db04bc24a18b9ea980628ecf00e6c0264f3c1426dac36c00cb49b6fbad8b0743"
 dependencies = [
  "atomic-polyfill",
  "hash32",
@@ -423,9 +423,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.126"
+version = "0.2.132"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
+checksum = "8371e4e5341c3a96db127eb2465ac681ced4c433e01dd0e938adbef26ba93ba5"
 
 [[package]]
 name = "lock_api"
@@ -539,9 +539,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.6"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d83f127d94bdbcda4c8cc2e50f6f84f4b611f69c902699ca385a39c3a75f9ff1"
+checksum = "4c4eb3267174b8c6c2f654116623910a0fef09c4753f8dd83db29c48a0df988b"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -550,9 +550,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.26"
+version = "0.6.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
+checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
 name = "riscv"
@@ -590,7 +590,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
 dependencies = [
- "semver 1.0.10",
+ "semver 1.0.13",
 ]
 
 [[package]]
@@ -619,9 +619,9 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "1.0.10"
+version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a41d061efea015927ac527063765e73601444cdc344ba855bc7bd44578b25e1c"
+checksum = "93f6841e709003d68bb2deee8c343572bf446003ec20a583e76f7b15cebf3711"
 
 [[package]]
 name = "semver-parser"
@@ -631,9 +631,9 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "spin"
-version = "0.9.3"
+version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c530c2b0d0bf8b69304b39fe2001993e267461948b890cd037d8ad4293fa1a0d"
+checksum = "7f6002a767bff9e83f8eeecf883ecb8011875a21ae8da43bffb817a57e78cc09"
 dependencies = [
  "lock_api",
 ]

@@ -20,7 +20,7 @@
 //!     Aes256Gcm, Nonce // Or `Aes128Gcm`
 //! };
 //!
-//! let key = Aes256Gcm::generate_key(&mut OsRng);
+//! let key = Aes256Gcm::generate_key(&mut OsRng); // Or let key = Key::<Aes256Gcm>::from_slice(b"an example very very secret key.");
 //! let cipher = Aes256Gcm::new(&key);
 //! let nonce = Aes256Gcm::generate_nonce(&mut OsRng); // 96-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;

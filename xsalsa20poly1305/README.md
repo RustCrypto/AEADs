@@ -21,11 +21,9 @@ but is useful for interoperability with legacy NaCl-based protocols.
 
 ## Security Warning
 
-No security audits of this crate have ever been performed, and it has not been
-thoroughly assessed to ensure its operation is constant-time on common CPU
-architectures.
-
-USE AT YOUR OWN RISK!
+This crate has received one [security audit by Cure53][9] (version 0.8.0), with
+no significant findings. We would like to thank [Threema][10] for funding the
+audit.
 
 ## License
 
@@ -65,3 +63,5 @@ dual licensed as above, without any additional terms or conditions.
 [6]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
 [7]: https://docs.rs/chacha20poly1305/latest/chacha20poly1305/struct.XChaCha20Poly1305.html
 [8]: https://tools.ietf.org/html/rfc8439
+[9]: https://cure53.de/pentest-report_rust-libs_2022.pdf
+[10]: https://threema.ch/

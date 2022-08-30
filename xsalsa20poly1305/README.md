@@ -19,7 +19,7 @@ but is useful for interoperability with legacy NaCl-based protocols.
 
 [Documentation][docs-link]
 
-## Security Warning
+## Security Notes
 
 This crate has received one [security audit by Cure53][9] (version 0.8.0), with
 no significant findings. We would like to thank [Threema][10] for funding the

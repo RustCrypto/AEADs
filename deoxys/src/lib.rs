@@ -28,7 +28,7 @@
 //! ```
 //!
 //! ## Usage with AAD
-//! Deoxys can authenticate additionnal data that is not encrypted alongside with the ciphertext.
+//! Deoxys can authenticate additional data that is not encrypted alongside with the ciphertext.
 //! ```
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
 //! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload, OsRng};

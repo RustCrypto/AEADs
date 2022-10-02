@@ -34,8 +34,8 @@
 //! # }
 //! ```
 //!
-//! This crate implements traits from the [`aead`] crate and is capable to perfrom
-//! encryption and decryption in-place wihout relying on `alloc`.
+//! This crate implements traits from the [`aead`] crate and is capable to perform
+//! encryption and decryption in-place without relying on `alloc`.
 //!
 //! [RFC 3610]: https://tools.ietf.org/html/rfc3610
 //! [CCM]: https://en.wikipedia.org/wiki/CCM_mode

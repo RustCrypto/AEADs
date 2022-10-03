@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Cache cargo bin
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-audit-v0.12

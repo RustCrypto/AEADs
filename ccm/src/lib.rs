@@ -86,7 +86,7 @@ impl<T: private::SealedNonce> NonceSize for T {}
 /// - `M`: size of MAC tag in bytes, valid values:
 /// [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
 /// [`U10`][consts::U10], [`U12`][consts::U12], [`U14`][consts::U14],
-/// [`U12`][consts::U12].
+/// [`U16`][consts::U16].
 /// - `N`: size of nonce, valid values:
 /// [`U7`][consts::U7], [`U8`][consts::U8], [`U9`][consts::U9],
 /// [`U10`][consts::U10], [`U11`][consts::U11], [`U12`][consts::U12],

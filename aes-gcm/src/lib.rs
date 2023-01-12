@@ -116,6 +116,8 @@ use zeroize::Zeroize;
 #[cfg(feature = "aes")]
 use aes::{cipher::consts::U12, Aes128, Aes256};
 
+mod private;
+
 /// Maximum length of associated data.
 pub const A_MAX: u64 = 1 << 36;
 
@@ -129,7 +131,14 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// AES-GCM tags.
-pub type Tag = GenericArray<u8, U16>;
+pub type Tag<TagSize = U16> = GenericArray<u8, TagSize>;
+
+/// Trait implemented for valid tag sizes, i.e.
+/// [`U12`][consts::U12], [`U13`][consts::U13], [`U14`][consts::U14],
+/// [`U15`][consts::U15] and [`U16`][consts::U16].
+pub trait TagSizeLen: private::SealedTag {}
+
+impl<T: private::SealedTag> TagSizeLen for T {}
 
 /// AES-GCM with a 128-bit key and 96-bit nonce.
 #[cfg(feature = "aes")]
@@ -155,13 +164,20 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 /// It is NOT intended to be instantiated with any block cipher besides AES!
 /// Doing so runs the risk of unintended cryptographic properties!
 ///
-/// The `N` generic parameter can be used to instantiate AES-GCM with other
+/// The `NonceSize` generic parameter can be used to instantiate AES-GCM with other
 /// nonce sizes, however it's recommended to use it with `typenum::U12`,
 /// the default of 96-bits.
 ///
+/// The `TagSize` generic parameter can be used to instantiate AES-GCM with other
+/// authorization tag sizes, however it's recommended to use it with `typenum::U16`,
+/// the default of 128-bits.
+///
 /// If in doubt, use the built-in [`Aes128Gcm`] and [`Aes256Gcm`] type aliases.
 #[derive(Clone)]
-pub struct AesGcm<Aes, NonceSize> {
+pub struct AesGcm<Aes, NonceSize, TagSize = U16>
+where
+    TagSize: TagSizeLen,
+{
     /// Encryption cipher.
     cipher: Aes,
 
@@ -170,27 +186,33 @@ pub struct AesGcm<Aes, NonceSize> {
 
     /// Length of the nonce.
     nonce_size: PhantomData<NonceSize>,
+
+    /// Length of the tag.
+    tag_size: PhantomData<TagSize>,
 }
 
-impl<Aes, NonceSize> KeySizeUser for AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize, TagSize> KeySizeUser for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: KeySizeUser,
+    TagSize: TagSizeLen,
 {
     type KeySize = Aes::KeySize;
 }
 
-impl<Aes, NonceSize> KeyInit for AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize, TagSize> KeyInit for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
+    TagSize: TagSizeLen,
 {
     fn new(key: &Key<Self>) -> Self {
         Aes::new(key).into()
     }
 }
 
-impl<Aes, NonceSize> From<Aes> for AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize, TagSize> From<Aes> for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    TagSize: TagSizeLen,
 {
     fn from(cipher: Aes) -> Self {
         let mut ghash_key = ghash::Key::default();
@@ -205,30 +227,33 @@ where
             cipher,
             ghash,
             nonce_size: PhantomData,
+            tag_size: PhantomData,
         }
     }
 }
 
-impl<Aes, NonceSize> AeadCore for AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize, TagSize> AeadCore for AesGcm<Aes, NonceSize, TagSize>
 where
     NonceSize: ArrayLength<u8>,
+    TagSize: TagSizeLen,
 {
     type NonceSize = NonceSize;
-    type TagSize = U16;
+    type TagSize = TagSize;
     type CiphertextOverhead = U0;
 }
 
-impl<Aes, NonceSize> AeadInPlace for AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize, TagSize> AeadInPlace for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: ArrayLength<u8>,
+    TagSize: TagSizeLen,
 {
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-    ) -> Result<Tag, Error> {
+    ) -> Result<Tag<TagSize>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
@@ -238,7 +263,9 @@ where
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
         ctr.apply_keystream_partial(buffer.into());
-        Ok(self.compute_tag(mask, associated_data, buffer))
+
+        let full_tag = self.compute_tag(mask, associated_data, buffer);
+        Ok(Tag::clone_from_slice(&full_tag[..TagSize::to_usize()]))
     }
 
     fn decrypt_in_place_detached(
@@ -246,7 +273,7 @@ where
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &Tag,
+        tag: &Tag<TagSize>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -260,7 +287,7 @@ where
         ctr.apply_keystream_partial(buffer.into());
 
         use subtle::ConstantTimeEq;
-        if expected_tag.ct_eq(tag).into() {
+        if expected_tag[..TagSize::to_usize()].ct_eq(tag).into() {
             Ok(())
         } else {
             Err(Error)
@@ -268,10 +295,11 @@ where
     }
 }
 
-impl<Aes, NonceSize> AesGcm<Aes, NonceSize>
+impl<Aes, NonceSize, TagSize> AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: ArrayLength<u8>,
+    TagSize: TagSizeLen,
 {
     /// Initialize counter mode.
     ///

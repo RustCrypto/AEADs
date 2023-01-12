@@ -116,8 +116,6 @@ use zeroize::Zeroize;
 #[cfg(feature = "aes")]
 use aes::{cipher::consts::U12, Aes128, Aes256};
 
-mod private;
-
 /// Maximum length of associated data.
 pub const A_MAX: u64 = 1 << 36;
 
@@ -136,9 +134,23 @@ pub type Tag<TagSize = U16> = GenericArray<u8, TagSize>;
 /// Trait implemented for valid tag sizes, i.e.
 /// [`U12`][consts::U12], [`U13`][consts::U13], [`U14`][consts::U14],
 /// [`U15`][consts::U15] and [`U16`][consts::U16].
-pub trait TagSizeLen: private::SealedTag {}
+pub trait TagSize: private::SealedTagSize {}
 
-impl<T: private::SealedTag> TagSizeLen for T {}
+impl<T: private::SealedTagSize> TagSize for T {}
+
+mod private {
+    use aead::generic_array::ArrayLength;
+    use cipher::{consts, Unsigned};
+
+    // Sealed traits stop other crates from implementing any traits that use it.
+    pub trait SealedTagSize: ArrayLength<u8> + Unsigned {}
+
+    impl SealedTagSize for consts::U12 {}
+    impl SealedTagSize for consts::U13 {}
+    impl SealedTagSize for consts::U14 {}
+    impl SealedTagSize for consts::U15 {}
+    impl SealedTagSize for consts::U16 {}
+}
 
 /// AES-GCM with a 128-bit key and 96-bit nonce.
 #[cfg(feature = "aes")]
@@ -176,7 +188,7 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 #[derive(Clone)]
 pub struct AesGcm<Aes, NonceSize, TagSize = U16>
 where
-    TagSize: TagSizeLen,
+    TagSize: self::TagSize,
 {
     /// Encryption cipher.
     cipher: Aes,
@@ -194,7 +206,7 @@ where
 impl<Aes, NonceSize, TagSize> KeySizeUser for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: KeySizeUser,
-    TagSize: TagSizeLen,
+    TagSize: self::TagSize,
 {
     type KeySize = Aes::KeySize;
 }
@@ -202,7 +214,7 @@ where
 impl<Aes, NonceSize, TagSize> KeyInit for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
-    TagSize: TagSizeLen,
+    TagSize: self::TagSize,
 {
     fn new(key: &Key<Self>) -> Self {
         Aes::new(key).into()
@@ -212,7 +224,7 @@ where
 impl<Aes, NonceSize, TagSize> From<Aes> for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    TagSize: TagSizeLen,
+    TagSize: self::TagSize,
 {
     fn from(cipher: Aes) -> Self {
         let mut ghash_key = ghash::Key::default();
@@ -235,7 +247,7 @@ where
 impl<Aes, NonceSize, TagSize> AeadCore for AesGcm<Aes, NonceSize, TagSize>
 where
     NonceSize: ArrayLength<u8>,
-    TagSize: TagSizeLen,
+    TagSize: self::TagSize,
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
@@ -246,7 +258,7 @@ impl<Aes, NonceSize, TagSize> AeadInPlace for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: ArrayLength<u8>,
-    TagSize: TagSizeLen,
+    TagSize: self::TagSize,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -299,7 +311,7 @@ impl<Aes, NonceSize, TagSize> AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: ArrayLength<u8>,
-    TagSize: TagSizeLen,
+    TagSize: self::TagSize,
 {
     /// Initialize counter mode.
     ///

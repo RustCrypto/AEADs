@@ -32,6 +32,7 @@ hex-literal = "0.2"
 default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
+arrayvec = ["aead/arrayvec"]
 getrandom  = ["aead/getrandom", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]

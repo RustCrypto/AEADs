@@ -90,6 +90,10 @@
 //! # }
 //! ```
 //!
+//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]).
+//!
 //! ## [`XChaCha20Poly1305`]
 //!
 //! ChaCha20Poly1305 variant with an extended 192-bit (24-byte) nonce.

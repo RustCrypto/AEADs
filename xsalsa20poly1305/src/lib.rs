@@ -104,6 +104,10 @@
 //! # }
 //! ```
 //!
+//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]).
+//!
 //! [1]: https://nacl.cr.yp.to/secretbox.html
 //! [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
 //! [3]: https://docs.rs/salsa20

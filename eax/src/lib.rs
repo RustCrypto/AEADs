@@ -81,6 +81,10 @@
 //! # }
 //! ```
 //!
+//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]).
+//!
 //! ## Custom Tag Length
 //!
 //! The tag for eax is usually 16 bytes long but it can be shortened if needed.

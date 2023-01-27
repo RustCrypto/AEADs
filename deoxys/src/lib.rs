@@ -97,6 +97,10 @@
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
+//!
+//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]).
 
 /// Deoxys-BC implementations.
 mod deoxys_bc;

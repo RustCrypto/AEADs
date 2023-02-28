@@ -38,21 +38,3 @@ jobs:
           override: true
           profile: minimal
       - run: cargo clippy --all --all-features -- -D warnings
-
-  codecov:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-      - uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: latest
-          args: --all -- --test-threads 1
-      - uses: codecov/codecov-action@v3
-      - uses: actions/upload-artifact@v3
-        with:
-          name: code-coverage-report
-          path: cobertura.xml

@@ -5,10 +5,7 @@
 
 use crate::Tag;
 use aead::{
-    generic_array::{
-        typenum::{Unsigned, U16},
-        ArrayLength, GenericArray,
-    },
+    generic_array::{typenum::U16, ArrayLength, GenericArray},
     Buffer, Error,
 };
 use aes::{Aes128, Aes256};
@@ -93,15 +90,12 @@ where
 {
     /// Create a new AES-SIV instance
     fn new(key: &GenericArray<u8, KeySize<C>>) -> Self {
-        // Use the first half of the key as the encryption key
-        let encryption_key = GenericArray::clone_from_slice(&key[M::key_size()..]);
-
-        // Use the second half of the key as the MAC key
-        let mac = <M as Mac>::new(GenericArray::from_slice(&key[..M::KeySize::to_usize()]));
-
+        // Use the first half of the key as the MAC key and
+        // the second one as the encryption key
+        let (mac_key, enc_key) = key.split_at(M::key_size());
         Self {
-            encryption_key,
-            mac,
+            encryption_key: GenericArray::clone_from_slice(enc_key),
+            mac: <M as Mac>::new(GenericArray::from_slice(mac_key)),
         }
     }
 }

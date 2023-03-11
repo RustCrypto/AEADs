@@ -35,7 +35,7 @@
 //!
 //! # fn main() -> Result<(), aes_gcm::Error> {
 //! // Alternatively, the key can be transformed directly from a byte slice
-//! // (panicks on lenght mismatch):
+//! // (panicks on length mismatch):
 //! # let key: &[u8] = &[42; 32];
 //! let key = Key::<Aes256Gcm>::from_slice(key);
 //!

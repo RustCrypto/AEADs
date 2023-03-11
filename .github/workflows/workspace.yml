@@ -17,12 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           components: rustfmt
-          override: true
-          profile: minimal
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
@@ -31,10 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.56.0
           components: clippy
-          override: true
-          profile: minimal
       - run: cargo clippy --all --all-features -- -D warnings

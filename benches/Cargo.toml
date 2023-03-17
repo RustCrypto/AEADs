@@ -16,6 +16,7 @@ criterion-cycles-per-byte = "0.1"
 aes = "0.7.0-pre"
 aes-gcm = { path = "../aes-gcm/" }
 aes-gcm-siv = { path = "../aes-gcm-siv/" }
+ascon-aead = { path = "../ascon-aead/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
 deoxys = { path = "../deoxys/" }
 eax = { path = "../eax/" }
@@ -28,6 +29,11 @@ harness = false
 [[bench]]
 name = "aes-gcm-siv"
 path = "src/aes-gcm-siv.rs"
+harness = false
+
+[[bench]]
+name = "ascon-aead"
+path = "src/ascon-aead.rs"
 harness = false
 
 [[bench]]

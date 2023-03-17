@@ -20,20 +20,25 @@ const fn keyrot(lo2hi: u64, hi2lo: u64) -> u64 {
     lo2hi << 32 | hi2lo >> 32
 }
 
-#[inline(always)]
+// Helper functions to convert &[u8] to u64/u32. Once the `processing_*`
+// functions are rewritten with `as_chunks`, they can be dropped.
+
+#[inline]
 fn u64_from_be_bytes(input: &[u8]) -> u64 {
+    // Soundness: function is always called with slices of the correct size
     u64::from_be_bytes(input.try_into().unwrap())
 }
 
-#[inline(always)]
+#[inline]
 fn u64_from_be_bytes_partial(input: &[u8]) -> u64 {
     let mut tmp = [0u8; 8];
     tmp[0..input.len()].copy_from_slice(input);
     u64::from_be_bytes(tmp)
 }
 
-#[inline(always)]
+#[inline]
 fn u32_from_be_bytes(input: &[u8]) -> u32 {
+    // Soundness: function is always called with slices of the correct size
     u32::from_be_bytes(input.try_into().unwrap())
 }
 

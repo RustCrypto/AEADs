@@ -1,5 +1,5 @@
 // Copyright 2021-2022 Sebastian Ramacher
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use aead::{
     consts::{U16, U20},

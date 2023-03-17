@@ -1,0 +1,48 @@
+[package]
+name = "ascon-aead"
+version = "0.4.2-pre"
+description = "Implementation of the authenticated encryption schemes Ascon-128, Ascon-128a, and Ascon-80pq"
+authors = [
+    "Sebastian Ramacher <sebastian.ramacher@ait.ac.at>",
+    "RustCrypto Developers",
+]
+edition = "2021"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["AEAD", "ascon", "encryption"]
+categories = ["cryptography", "no-std"]
+rust-version = "1.60"
+
+[dependencies]
+aead = { version = "0.5", default-features = false }
+subtle = { version = "2", default-features = false }
+zeroize = { version = "1.5", optional = true, default-features = false, features = [
+    "derive",
+] }
+ascon = "0.3"
+
+[dev-dependencies]
+hex = "0.4"
+aead = { version = "0.5", features = ["alloc"] }
+spectral = "0.6"
+criterion = "0.4"
+rand = { version = "0.8", default-features = false, features = [
+    "std_rng",
+    "getrandom",
+] }
+
+[features]
+default = ["zeroize", "alloc"]
+std = ["aead/std", "alloc"]
+alloc = ["aead/alloc"]
+heapless = ["aead/heapless"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[[bench]]
+name = "asconbenches"
+harness = false
+required-features = ["default", "std"]

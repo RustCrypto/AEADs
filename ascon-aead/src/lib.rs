@@ -1,12 +1,15 @@
 // Copyright 2021-2022 Sebastian Ramacher
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! # [Authenticated Encryption and Associated Data (AEAD)][1] with [Ascon][2]
-//!
-//! ## Security Notes
-//!
-//! This crate has received no security audit. Use at your own risk.
-//!
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![warn(missing_docs)]
+
 //! ## Usage
 //!
 //! Simple usage (allocating, no associated data):
@@ -60,12 +63,6 @@
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
-//!
-//! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-//! [2]: https://ascon.iaik.tugraz.at/index.html
-
-#![no_std]
-#![warn(missing_docs)]
 
 pub use aead::{self, Error, Key, Nonce, Tag};
 use aead::{
@@ -80,7 +77,7 @@ use asconcore::{AEADCore, Parameters, Parameters128, Parameters128a, Parameters8
 /// Ascon generic over some Parameters
 ///
 /// This type is generic to support substituting various Ascon parameter sets. It is not intended to
-/// use directly. Use the [`Ascon128`], [`Ascon128a`], [`Ascon80pq`] type aliases instead.
+/// be uses directly. Use the [`Ascon128`], [`Ascon128a`], [`Ascon80pq`] type aliases instead.
 #[derive(Clone)]
 struct Ascon<P: Parameters> {
     key: P::InternalKey,

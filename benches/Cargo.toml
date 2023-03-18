@@ -11,14 +11,16 @@ rust-version = "1.56"
 [workspace]
 
 [dependencies]
-criterion = "0.3"
-criterion-cycles-per-byte = "0.1"
-aes = "0.7.0-pre"
+criterion = "0.4.0"
+aes = "0.8.2"
 aes-gcm = { path = "../aes-gcm/" }
 aes-gcm-siv = { path = "../aes-gcm-siv/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
 deoxys = { path = "../deoxys/" }
 eax = { path = "../eax/" }
+
+[target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))'.dependencies]
+criterion-cycles-per-byte = "0.4.0"
 
 [[bench]]
 name = "aes-gcm"

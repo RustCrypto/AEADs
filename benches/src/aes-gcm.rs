@@ -1,12 +1,16 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use criterion_cycles_per_byte::CyclesPerByte;
 
 use aes_gcm::aead::{Aead, KeyInit};
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
 
 const KB: usize = 1024;
 
-fn bench(c: &mut Criterion<CyclesPerByte>) {
+#[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
+type Benchmarker = Criterion;
+#[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+type Benchmarker = Criterion<criterion_cycles_per_byte::CyclesPerByte>;
+
+fn bench(c: &mut Benchmarker) {
     let mut group = c.benchmark_group("aes-gcm");
 
     for size in &[KB, 2 * KB, 4 * KB, 8 * KB, 16 * KB] {
@@ -36,9 +40,18 @@ fn bench(c: &mut Criterion<CyclesPerByte>) {
     group.finish();
 }
 
+#[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
+criterion_group!(
+    name = benches;
+    config = Criterion::default();
+    targets = bench
+);
+
+#[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 criterion_group!(
     name = benches;
     config = Criterion::default().with_measurement(CyclesPerByte);
     targets = bench
 );
+
 criterion_main!(benches);

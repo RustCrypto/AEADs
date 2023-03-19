@@ -25,7 +25,7 @@ ascon = "0.3"
 [dev-dependencies]
 hex = "0.4"
 aead = { version = "0.5", features = ["alloc"] }
-spectral = "0.6"
+spectral = { version = "0.6", default-features = false }
 
 [features]
 default = ["zeroize", "alloc"]

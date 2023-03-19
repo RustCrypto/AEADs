@@ -1,4 +1,4 @@
-// Copyright 2021-2022 Sebastian Ramacher
+// Copyright 2021-2023 Sebastian Ramacher
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use aead::{

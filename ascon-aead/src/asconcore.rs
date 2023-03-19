@@ -167,12 +167,12 @@ impl Parameters for Parameters80pq {
 }
 
 /// Core implementation of Ascon for one encryption/decryption operation
-pub(crate) struct AEADCore<'a, P: Parameters> {
+pub(crate) struct AsconCore<'a, P: Parameters> {
     state: State,
     key: &'a P::InternalKey,
 }
 
-impl<'a, P: Parameters> AEADCore<'a, P> {
+impl<'a, P: Parameters> AsconCore<'a, P> {
     pub(crate) fn new(internal_key: &'a P::InternalKey, nonce: &GenericArray<u8, U16>) -> Self {
         let mut state = State::new(
             if P::KeySize::USIZE == 20 {

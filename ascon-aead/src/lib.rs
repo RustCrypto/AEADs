@@ -72,7 +72,7 @@ use aead::{
 
 mod asconcore;
 
-use asconcore::{AEADCore, Parameters, Parameters128, Parameters128a, Parameters80pq};
+use asconcore::{AsconCore, Parameters, Parameters128, Parameters128a, Parameters80pq};
 
 /// Ascon generic over some Parameters
 ///
@@ -115,7 +115,7 @@ impl<P: Parameters> AeadInPlace for Ascon<P> {
             return Err(Error);
         }
 
-        let mut core = AEADCore::<P>::new(&self.key, nonce);
+        let mut core = AsconCore::<P>::new(&self.key, nonce);
         Ok(core.encrypt_inplace(buffer, associated_data))
     }
 
@@ -133,7 +133,7 @@ impl<P: Parameters> AeadInPlace for Ascon<P> {
             return Err(Error);
         }
 
-        let mut core = AEADCore::<P>::new(&self.key, nonce);
+        let mut core = AsconCore::<P>::new(&self.key, nonce);
         core.decrypt_inplace(buffer, associated_data, tag)
     }
 }

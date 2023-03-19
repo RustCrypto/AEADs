@@ -72,9 +72,9 @@ dependencies = [
 
 [[package]]
 name = "ascon"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e702eae3043c445ecce5ad8eef8c247762f57879aa3a4925994869b5f15c5dea"
+checksum = "9fe9a0cff241855e9166670d259192aacf1e9a81b865dc9905afbbab31a9d2c1"
 
 [[package]]
 name = "ascon-aead"

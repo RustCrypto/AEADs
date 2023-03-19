@@ -216,32 +216,33 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         }
     }
 
-    fn process_associated_data(&mut self, mut associated_data: &[u8]) {
+    fn process_associated_data(&mut self, associated_data: &[u8]) {
         if !associated_data.is_empty() {
-            // TODO: rewrite with as_chunks once stabilized
+            // TODO: replace with as_chunks once stabilized
             // https://github.com/rust-lang/rust/issues/74985
 
-            while associated_data.len() >= P::COUNT {
+            let mut blocks = associated_data.chunks_exact(P::COUNT);
+            for block in blocks.by_ref() {
                 // process full block of associated data
-                self.state[0] ^= u64_from_be_bytes(&associated_data[..8]);
+                self.state[0] ^= u64_from_be_bytes(&block[..8]);
                 if P::COUNT == 16 {
-                    self.state[1] ^= u64_from_be_bytes(&associated_data[8..16]);
+                    self.state[1] ^= u64_from_be_bytes(&block[8..16]);
                 }
                 self.permute_state();
-                associated_data = &associated_data[P::COUNT..];
             }
 
             // process partial block if it exists
-            let sidx = if P::COUNT == 16 && associated_data.len() >= 8 {
-                self.state[0] ^= u64_from_be_bytes(&associated_data[..8]);
-                associated_data = &associated_data[8..];
+            let mut last_block = blocks.remainder();
+            let sidx = if P::COUNT == 16 && last_block.len() >= 8 {
+                self.state[0] ^= u64_from_be_bytes(&last_block[..8]);
+                last_block = &last_block[8..];
                 1
             } else {
                 0
             };
-            self.state[sidx] ^= pad(associated_data.len());
-            if !associated_data.is_empty() {
-                self.state[sidx] ^= u64_from_be_bytes_partial(associated_data);
+            self.state[sidx] ^= pad(last_block.len());
+            if !last_block.is_empty() {
+                self.state[sidx] ^= u64_from_be_bytes_partial(last_block);
             }
             self.permute_state();
         }
@@ -250,66 +251,68 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         self.state[4] ^= 1;
     }
 
-    fn process_encrypt_inplace(&mut self, mut message: &mut [u8]) {
-        while message.len() >= P::COUNT {
+    fn process_encrypt_inplace(&mut self, message: &mut [u8]) {
+        let mut blocks = message.chunks_exact_mut(P::COUNT);
+        for block in blocks.by_ref() {
             // process full block of message
-            self.state[0] ^= u64_from_be_bytes(&message[..8]);
-            message[..8].copy_from_slice(&u64::to_be_bytes(self.state[0]));
+            self.state[0] ^= u64_from_be_bytes(&block[..8]);
+            block[..8].copy_from_slice(&u64::to_be_bytes(self.state[0]));
             if P::COUNT == 16 {
-                self.state[1] ^= u64_from_be_bytes(&message[8..16]);
-                message[8..16].copy_from_slice(&u64::to_be_bytes(self.state[1]));
+                self.state[1] ^= u64_from_be_bytes(&block[8..16]);
+                block[8..16].copy_from_slice(&u64::to_be_bytes(self.state[1]));
             }
             self.permute_state();
-            message = &mut message[P::COUNT..];
         }
 
         // process partial block if it exists
-        let sidx = if P::COUNT == 16 && message.len() >= 8 {
-            self.state[0] ^= u64_from_be_bytes(&message[..8]);
-            message[..8].copy_from_slice(&u64::to_be_bytes(self.state[0]));
-            message = &mut message[8..];
+        let mut last_block = blocks.into_remainder();
+        let sidx = if P::COUNT == 16 && last_block.len() >= 8 {
+            self.state[0] ^= u64_from_be_bytes(&last_block[..8]);
+            last_block[..8].copy_from_slice(&u64::to_be_bytes(self.state[0]));
+            last_block = &mut last_block[8..];
             1
         } else {
             0
         };
-        self.state[sidx] ^= pad(message.len());
-        if !message.is_empty() {
-            self.state[sidx] ^= u64_from_be_bytes_partial(message);
-            message.copy_from_slice(&u64::to_be_bytes(self.state[sidx])[0..message.len()]);
+        self.state[sidx] ^= pad(last_block.len());
+        if !last_block.is_empty() {
+            self.state[sidx] ^= u64_from_be_bytes_partial(last_block);
+            last_block.copy_from_slice(&u64::to_be_bytes(self.state[sidx])[0..last_block.len()]);
         }
     }
 
-    fn process_decrypt_inplace(&mut self, mut ciphertext: &mut [u8]) {
-        while ciphertext.len() >= P::COUNT {
+    fn process_decrypt_inplace(&mut self, ciphertext: &mut [u8]) {
+        let mut blocks = ciphertext.chunks_exact_mut(P::COUNT);
+        for block in blocks.by_ref() {
             // process full block of ciphertext
-            let cx = u64_from_be_bytes(&ciphertext[..8]);
-            ciphertext[..8].copy_from_slice(&u64::to_be_bytes(self.state[0] ^ cx));
+            let cx = u64_from_be_bytes(&block[..8]);
+            block[..8].copy_from_slice(&u64::to_be_bytes(self.state[0] ^ cx));
             self.state[0] = cx;
             if P::COUNT == 16 {
-                let cx = u64_from_be_bytes(&ciphertext[8..16]);
-                ciphertext[8..16].copy_from_slice(&u64::to_be_bytes(self.state[1] ^ cx));
+                let cx = u64_from_be_bytes(&block[8..16]);
+                block[8..16].copy_from_slice(&u64::to_be_bytes(self.state[1] ^ cx));
                 self.state[1] = cx;
             }
             self.permute_state();
-            ciphertext = &mut ciphertext[P::COUNT..];
         }
 
         // process partial block if it exists
-        let sidx = if P::COUNT == 16 && ciphertext.len() >= 8 {
-            let cx = u64_from_be_bytes(&ciphertext[..8]);
-            ciphertext[..8].copy_from_slice(&u64::to_be_bytes(self.state[0] ^ cx));
+        let mut last_block = blocks.into_remainder();
+        let sidx = if P::COUNT == 16 && last_block.len() >= 8 {
+            let cx = u64_from_be_bytes(&last_block[..8]);
+            last_block[..8].copy_from_slice(&u64::to_be_bytes(self.state[0] ^ cx));
             self.state[0] = cx;
-            ciphertext = &mut ciphertext[8..];
+            last_block = &mut last_block[8..];
             1
         } else {
             0
         };
-        self.state[sidx] ^= pad(ciphertext.len());
-        if !ciphertext.is_empty() {
-            let cx = u64_from_be_bytes_partial(ciphertext);
+        self.state[sidx] ^= pad(last_block.len());
+        if !last_block.is_empty() {
+            let cx = u64_from_be_bytes_partial(last_block);
             self.state[sidx] ^= cx;
-            ciphertext.copy_from_slice(&u64::to_be_bytes(self.state[sidx])[0..ciphertext.len()]);
-            self.state[sidx] = clear(self.state[sidx], ciphertext.len()) ^ cx;
+            last_block.copy_from_slice(&u64::to_be_bytes(self.state[sidx])[0..last_block.len()]);
+            self.state[sidx] = clear(self.state[sidx], last_block.len()) ^ cx;
         }
     }
 

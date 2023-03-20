@@ -21,6 +21,7 @@ crate.
 | [`aes-gcm-siv`]      | [AES-GCM-SIV]                | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) | 1.51 |
 | [`aes-gcm`]          | [AES-GCM]                    | [![crates.io](https://img.shields.io/crates/v/aes-gcm.svg)](https://crates.io/crates/aes-gcm) | [![Documentation](https://docs.rs/aes-gcm/badge.svg)](https://docs.rs/aes-gcm) | 1.51 |
 | [`aes-siv`]          | [AES-SIV]                    | [![crates.io](https://img.shields.io/crates/v/aes-siv.svg)](https://crates.io/crates/aes-siv) | [![Documentation](https://docs.rs/aes-siv/badge.svg)](https://docs.rs/aes-siv) | 1.51 |
+| [`ascon-aead`]       | [Ascon]                      | [![crates.io](https://img.shields.io/crates/v/ascon-aead.svg)](https://crates.io/crates/ascon-aead) | [![Documentation](https://docs.rs/ascon-aead/badge.svg)](https://docs.rs/ascon-aead) | 1.56 |
 | [`ccm`]              | [CCM]                        | [![crates.io](https://img.shields.io/crates/v/ccm.svg)](https://crates.io/crates/ccm) | [![Documentation](https://docs.rs/ccm/badge.svg)](https://docs.rs/ccm) | 1.41 |
 | [`chacha20poly1305`] | [(X)ChaCha20Poly1305]        | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) | 1.56 |
 | [`deoxys`]           | [Deoxys-I/II]                | [![crates.io](https://img.shields.io/crates/v/deoxys.svg)](https://crates.io/crates/deoxys) | [![Documentation](https://docs.rs/deoxys/badge.svg)](https://docs.rs/deoxys) | 1.51 |
@@ -67,6 +68,7 @@ dual licensed as above, without any additional terms or conditions.
 [`aes-gcm`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm
 [`aes-gcm-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm-siv
 [`aes-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-siv
+[`ascon-aead`]: https://github.com/RustCrypto/AEADs/tree/master/ascon-aead
 [`ccm`]: https://github.com/RustCrypto/AEADs/tree/master/ccm
 [`chacha20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
 [`deoxys`]: https://github.com/RustCrypto/AEADs/tree/master/deoxys
@@ -79,6 +81,7 @@ dual licensed as above, without any additional terms or conditions.
 [AES-GCM]: https://en.wikipedia.org/wiki/Galois/Counter_Mode
 [AES-GCM-SIV]: https://en.wikipedia.org/wiki/AES-GCM-SIV
 [AES-SIV]: https://github.com/miscreant/meta/wiki/AES-SIV
+[Ascon]: https://ascon.iaik.tugraz.at/
 [CCM]: https://en.wikipedia.org/wiki/CCM_mode
 [Deoxys-I/II]: https://sites.google.com/view/deoxyscipher
 [EAX]: https://en.wikipedia.org/wiki/EAX_mode

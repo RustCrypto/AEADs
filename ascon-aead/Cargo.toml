@@ -1,6 +1,6 @@
 [package]
 name = "ascon-aead"
-version = "0.4.2-pre"
+version = "0.4.2"
 description = "Implementation of the authenticated encryption schemes Ascon-128, Ascon-128a, and Ascon-80pq"
 authors = [
     "Sebastian Ramacher <sebastian.ramacher@ait.ac.at>",

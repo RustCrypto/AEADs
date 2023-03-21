@@ -41,7 +41,7 @@ criterion_group!(
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 criterion_group!(
     name = benches;
-    config = Criterion::default().with_measurement(CyclesPerByte);
+    config = Criterion::default().with_measurement(criterion_cycles_per_byte::CyclesPerByte);
     targets = bench
 );
 

@@ -78,7 +78,7 @@ checksum = "9fe9a0cff241855e9166670d259192aacf1e9a81b865dc9905afbbab31a9d2c1"
 
 [[package]]
 name = "ascon-aead"
-version = "0.4.2-pre"
+version = "0.4.2"
 dependencies = [
  "aead",
  "ascon",

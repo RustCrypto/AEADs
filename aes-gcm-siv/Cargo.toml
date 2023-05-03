@@ -32,6 +32,7 @@ aead = { version = "0.5", features = ["dev"], default-features = false }
 default   = ["aes", "alloc", "getrandom"]
 std       = ["aead/std", "alloc"]
 alloc     = ["aead/alloc"]
+arrayvec  = ["aead/arrayvec"]
 getrandom = ["aead/getrandom", "rand_core"]
 heapless  = ["aead/heapless"]
 rand_core = ["aead/rand_core"]

@@ -77,6 +77,10 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]).
 
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 

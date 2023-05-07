@@ -32,11 +32,42 @@
 //! assert_eq!(&plaintext, b"plaintext message");
 //! ```
 //!
+//! With randomly sampled keys and nonces (requires `getrandom` feature):
+//!
+//! ```
+//! # #[cfg(feature = "getrandom")] {
+//! use ascon_aead::Ascon128; // Or `Ascon128a`
+//! use ascon_aead::aead::{Aead, AeadCore, KeyInit, OsRng};
+//!
+//! let key = Ascon128::generate_key(&mut OsRng);
+//! let cipher = Ascon128::new(&key);
+//!
+//! let nonce = Ascon128::generate_nonce(&mut OsRng); // 128 bits; unique per message
+//!
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())
+//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
+//!
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())
+//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
+//!
+//! assert_eq!(&plaintext, b"plaintext message");
+//! # }
+//! ```
+//!
 //! ## In-place Usage (eliminates `alloc` requirement)
 //!
-//! Similar to other crates implementing [`aead`] interfaces, this crate also offers an optional
-//! `alloc` feature which can be disabled in e.g. microcontroller environments that don't have a
-//! heap. See [`aead::AeadInPlace`] for more details.
+//! This crate has an optional `alloc` feature which can be disabled in e.g.
+//! microcontroller environments that don't have a heap.
+//!
+//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! methods accept any type that impls the [`aead::Buffer`] trait which
+//! contains the plaintext for encryption or ciphertext for decryption.
+//!
+//! Note that if you enable the `heapless` feature of this crate,
+//! you will receive an impl of [`aead::Buffer`] for `heapless::Vec`
+//! (re-exported from the [`aead`] crate as [`aead::heapless::Vec`]),
+//! which can then be passed as the `buffer` parameter to the in-place encrypt
+//! and decrypt methods:
 //!
 //! ```
 //! # #[cfg(feature = "heapless")] {
@@ -63,6 +94,9 @@
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
+//!
+//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec`.
 
 pub use aead::{self, Error, Key, Nonce, Tag};
 use aead::{

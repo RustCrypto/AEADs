@@ -7,6 +7,14 @@
 [![Project Chat][chat-image]][chat-link]
 [![Build Status][build-image]][build-link]
 
+## 🚨 DEPRECATED! 🚨
+
+Please switch to the [`crypto_secretbox`] crate.
+
+This crate is deprecated and will not receive further updates.
+
+## About
+
 **XSalsa20Poly1305** (a.k.a. NaCl [`crypto_secretbox`][1]) is an
 [authenticated encryption][2] cipher amenable to fast, constant-time
 implementations in software, based on the [Salsa20][3] stream cipher 
@@ -54,6 +62,8 @@ dual licensed as above, without any additional terms or conditions.
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)
+
+[`crypto_secretbox`]: https://github.com/RustCrypto/nacl-compat/tree/master/crypto_secretbox
 
 [1]: https://nacl.cr.yp.to/secretbox.html
 [2]: https://en.wikipedia.org/wiki/Authenticated_encryption

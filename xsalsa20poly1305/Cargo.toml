@@ -1,6 +1,6 @@
 [package]
 name = "xsalsa20poly1305"
-version = "0.9.0"
+version = "0.9.1"
 description = "DEPRECATED: please use the `crypto_secretbox` crate"
 authors = ["RustCrypto Developers"]
 edition = "2021"

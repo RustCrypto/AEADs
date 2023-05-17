@@ -1,10 +1,7 @@
 [package]
 name = "xsalsa20poly1305"
 version = "0.9.0"
-description = """
-Pure Rust implementation of the XSalsa20Poly1305 (a.k.a. NaCl crypto_secretbox)
-authenticated encryption algorithm
-"""
+description = "DEPRECATED: please use the `crypto_secretbox` crate"
 authors = ["RustCrypto Developers"]
 edition = "2021"
 license = "Apache-2.0 OR MIT"

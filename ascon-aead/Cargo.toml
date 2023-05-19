@@ -17,7 +17,7 @@ rust-version = "1.56"
 [dependencies]
 aead = { version = "0.5", default-features = false }
 subtle = { version = "2", default-features = false }
-zeroize = { version = "1.6", optional = true, default-features = false, features = [
+zeroize_crate = { package = "zeroize", version = "1.6", optional = true, default-features = false, features = [
     "derive",
 ] }
 ascon = "0.4"
@@ -27,7 +27,7 @@ hex-literal = "0.3"
 aead = { version = "0.5", features = ["alloc"] }
 
 [features]
-default = ["alloc", "getrandom", "zeroize"]
+default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
@@ -35,6 +35,7 @@ getrandom = ["aead/getrandom", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
 stream = ["aead/stream"]
+zeroize = ["zeroize_crate", "ascon/zeroize"]
 
 [package.metadata.docs.rs]
 all-features = true

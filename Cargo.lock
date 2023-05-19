@@ -82,6 +82,9 @@ name = "ascon"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f0e716048a18530cce4684daf98a7563a499d710e1ed8ef35567fcb43a7c5f1"
+dependencies = [
+ "zeroize",
+]
 
 [[package]]
 name = "ascon-aead"

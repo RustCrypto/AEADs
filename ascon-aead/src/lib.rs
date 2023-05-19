@@ -98,6 +98,9 @@
 //! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
 //! [`aead::Buffer`] for `arrayvec::ArrayVec`.
 
+#[cfg(feature = "zeroize")]
+extern crate zeroize_crate as zeroize;
+
 pub use aead::{self, Error, Key, Nonce, Tag};
 use aead::{
     consts::{U0, U16, U20},

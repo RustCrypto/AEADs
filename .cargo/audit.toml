@@ -1,3 +1,5 @@
 [advisories]
-ignore = ["RUSTSEC-2019-0029", "RUSTSEC-2020-0145", "RUSTSEC-2020-0146"]
+ignore = [
+    "RUSTSEC-2023-0037", # xsalsa20poly1305 unmaintained
+]
 informational_warnings = ["unmaintained", "unsound"]

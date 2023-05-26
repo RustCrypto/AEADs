@@ -6,7 +6,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
 #![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -166,7 +166,7 @@ type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
 /// ## Type parameters
 /// - `Cipher`: block cipher.
 /// - `M`: size of MAC tag, valid values: up to `U16`.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Eax<Cipher, M = U16>
 where
     Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,

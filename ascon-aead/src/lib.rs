@@ -8,7 +8,7 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs)]
+#![warn(missing_debug_implementations, missing_docs)]
 
 //! ## Usage
 //!
@@ -112,7 +112,7 @@ use asconcore::{AsconCore, Parameters, Parameters128, Parameters128a, Parameters
 ///
 /// This type is generic to support substituting various Ascon parameter sets. It is not intended to
 /// be uses directly. Use the [`Ascon128`], [`Ascon128a`], [`Ascon80pq`] type aliases instead.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct Ascon<P: Parameters> {
     key: P::InternalKey,
 }
@@ -173,6 +173,7 @@ impl<P: Parameters> AeadInPlace for Ascon<P> {
 }
 
 /// Ascon-128
+#[derive(Debug)]
 pub struct Ascon128(Ascon<Parameters128>);
 /// Key for Ascon-128
 pub type Ascon128Key = Key<Ascon128>;
@@ -223,6 +224,7 @@ impl AeadInPlace for Ascon128 {
 }
 
 /// Ascon-128a
+#[derive(Debug)]
 pub struct Ascon128a(Ascon<Parameters128a>);
 
 /// Key for Ascon-128a
@@ -274,6 +276,7 @@ impl AeadInPlace for Ascon128a {
 }
 
 /// Ascon-80pq
+#[derive(Debug)]
 pub struct Ascon80pq(Ascon<Parameters80pq>);
 /// Key for Ascon-80pq
 pub type Ascon80pqKey = Key<Ascon80pq>;

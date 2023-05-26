@@ -5,7 +5,7 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -123,7 +123,7 @@ pub type Aes256GcmSiv = AesGcmSiv<Aes256>;
 type Ctr32LE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32LE>;
 
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC 8452).
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AesGcmSiv<Aes> {
     /// Key generating key used to derive AES-GCM-SIV subkeys.
     key_generating_key: Aes,

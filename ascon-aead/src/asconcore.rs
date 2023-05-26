@@ -56,7 +56,7 @@ pub(crate) trait InternalKey<KS: ArrayLength<u8>>:
     fn get_k2(&self) -> u64;
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize, zeroize::ZeroizeOnDrop))]
 pub(crate) struct InternalKey16(u64, u64);
 
@@ -83,7 +83,7 @@ impl From<&GenericArray<u8, U16>> for InternalKey16 {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize, zeroize::ZeroizeOnDrop))]
 pub(crate) struct InternalKey20(u64, u64, u32);
 
@@ -134,6 +134,7 @@ pub(crate) trait Parameters {
 }
 
 /// Parameters for Ascon-128
+#[derive(Debug)]
 pub(crate) struct Parameters128;
 
 impl Parameters for Parameters128 {
@@ -145,6 +146,7 @@ impl Parameters for Parameters128 {
 }
 
 /// Parameters for Ascon-128a
+#[derive(Debug)]
 pub(crate) struct Parameters128a;
 
 impl Parameters for Parameters128a {
@@ -156,6 +158,7 @@ impl Parameters for Parameters128a {
 }
 
 /// Parameters for Ascon-80pq
+#[derive(Debug)]
 pub(crate) struct Parameters80pq;
 
 impl Parameters for Parameters80pq {

@@ -5,7 +5,7 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 //! ## Supported Algorithms
 //!
@@ -211,6 +211,7 @@ pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
 /// Generic ChaCha+Poly1305 Authenticated Encryption with Additional Data (AEAD) construction.
 ///
 /// See the [toplevel documentation](index.html) for a usage example.
+#[derive(Debug)]
 pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12> {
     /// Secret key.
     key: Key,

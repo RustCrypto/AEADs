@@ -72,10 +72,12 @@ pub use Eax as EaxOnline;
 pub trait CipherOp {}
 
 /// Marker struct for EAX stream used in encryption mode.
+#[derive(Debug)]
 pub struct Encrypt;
 impl CipherOp for Encrypt {}
 
 /// Marker struct for EAX stream used in decryption mode.
+#[derive(Debug)]
 pub struct Decrypt;
 impl CipherOp for Decrypt {}
 
@@ -148,6 +150,7 @@ impl CipherOp for Decrypt {}
 /// [`Eax`]: ../struct.Eax.html
 /// [`Decrypt`]: struct.Decrypt.html
 /// [`finish`]: #method.finish
+#[derive(Debug)]
 pub struct Eax<Cipher, Op, M = U16>
 where
     Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
@@ -263,6 +266,7 @@ where
 /// Main reason behind extracting the logic to a single, separate type is to
 /// facilitate testing of the internal logic.
 #[doc(hidden)]
+#[derive(Debug)]
 struct EaxImpl<Cipher, M>
 where
     Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,

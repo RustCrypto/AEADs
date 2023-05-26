@@ -6,7 +6,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
 #![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -189,7 +189,7 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 /// the default of 128-bits.
 ///
 /// If in doubt, use the built-in [`Aes128Gcm`] and [`Aes256Gcm`] type aliases.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AesGcm<Aes, NonceSize, TagSize = U16>
 where
     TagSize: self::TagSize,

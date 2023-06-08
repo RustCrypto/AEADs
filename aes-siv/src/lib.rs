@@ -220,7 +220,7 @@ where
         // final component -- i.e., the string immediately preceding the
         // plaintext in the vector input to S2V -- is used for the nonce."
         // https://tools.ietf.org/html/rfc5297#section-3
-        Siv::<C, M>::new(&self.key).encrypt_in_place(&[associated_data, nonce.as_slice()], buffer)
+        Siv::<C, M>::new(&self.key).encrypt_in_place([associated_data, nonce.as_slice()], buffer)
     }
 
     fn encrypt_in_place_detached(
@@ -230,7 +230,7 @@ where
         buffer: &mut [u8],
     ) -> Result<GenericArray<u8, Self::TagSize>, Error> {
         Siv::<C, M>::new(&self.key)
-            .encrypt_in_place_detached(&[associated_data, nonce.as_slice()], buffer)
+            .encrypt_in_place_detached([associated_data, nonce.as_slice()], buffer)
     }
 
     fn decrypt_in_place(
@@ -239,7 +239,7 @@ where
         associated_data: &[u8],
         buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
-        Siv::<C, M>::new(&self.key).decrypt_in_place(&[associated_data, nonce.as_slice()], buffer)
+        Siv::<C, M>::new(&self.key).decrypt_in_place([associated_data, nonce.as_slice()], buffer)
     }
 
     fn decrypt_in_place_detached(
@@ -250,7 +250,7 @@ where
         tag: &GenericArray<u8, Self::TagSize>,
     ) -> Result<(), Error> {
         Siv::<C, M>::new(&self.key).decrypt_in_place_detached(
-            &[associated_data, nonce.as_slice()],
+            [associated_data, nonce.as_slice()],
             buffer,
             tag,
         )

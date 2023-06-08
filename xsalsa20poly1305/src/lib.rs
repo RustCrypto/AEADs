@@ -284,8 +284,8 @@ where
     pub(crate) fn new(mut cipher: C) -> Self {
         // Derive Poly1305 key from the first 32-bytes of the Salsa20 keystream
         let mut mac_key = poly1305::Key::default();
-        cipher.apply_keystream(&mut *mac_key);
-        let mac = Poly1305::new(GenericArray::from_slice(&*mac_key));
+        cipher.apply_keystream(&mut mac_key);
+        let mac = Poly1305::new(GenericArray::from_slice(&mac_key));
         mac_key.zeroize();
 
         Self { cipher, mac }

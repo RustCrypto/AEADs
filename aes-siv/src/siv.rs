@@ -38,6 +38,7 @@ pub type KeySize<C> = <<C as KeySizeUser>::KeySize as Add>::Output;
 
 /// Synthetic Initialization Vector (SIV) mode, providing misuse-resistant
 /// authenticated encryption (MRAE).
+#[derive(Debug)]
 pub struct Siv<C, M>
 where
     C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,

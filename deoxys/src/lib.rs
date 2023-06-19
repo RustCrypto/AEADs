@@ -4,7 +4,7 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -223,6 +223,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 /// Generic Deoxys implementation.
 ///
 /// This type is generic to support multiple Deoxys modes(namely Deoxys-I and Deoxys-II) and key size.
+#[derive(Debug)]
 pub struct Deoxys<M, B>
 where
     M: DeoxysMode<B>,

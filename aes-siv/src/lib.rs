@@ -5,7 +5,12 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
+#![warn(
+    missing_debug_implementations,
+    missing_docs,
+    rust_2018_idioms,
+    unused_qualifications
+)]
 
 //! # Usage
 //!
@@ -113,6 +118,7 @@ pub type Tag = GenericArray<u8, U16>;
 /// The `SivAead` type wraps the more powerful `Siv` interface in a more
 /// commonly used Authenticated Encryption with Associated Data (AEAD) API,
 /// which accepts a key, nonce, and associated data when encrypting/decrypting.
+#[derive(Debug)]
 pub struct SivAead<C, M>
 where
     Self: KeySizeUser,

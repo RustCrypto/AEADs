@@ -36,9 +36,11 @@ const RCON: [[u8; 16]; 17] = [
 ];
 
 /// Implementation of the Deoxys-BC256 block cipher
+#[derive(Debug)]
 pub struct DeoxysBc256;
 
 /// Implementation of the Deoxys-BC384 block cipher
+#[derive(Debug)]
 pub struct DeoxysBc384;
 
 pub trait DeoxysBcInternal {

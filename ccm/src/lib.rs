@@ -5,7 +5,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
 #![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -91,7 +91,7 @@ impl<T: private::SealedNonce> NonceSize for T {}
 /// [`U7`][consts::U7], [`U8`][consts::U8], [`U9`][consts::U9],
 /// [`U10`][consts::U10], [`U11`][consts::U11], [`U12`][consts::U12],
 /// [`U13`][consts::U13].
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Ccm<C, M, N>
 where
     C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,

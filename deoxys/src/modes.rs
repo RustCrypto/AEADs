@@ -14,12 +14,14 @@ const TWEAK_M_LAST: u8 = 0x40;
 const TWEAK_CHKSUM: u8 = 0x50;
 
 /// Implementation of the Deoxys-I mode of operation.
+#[derive(Debug)]
 pub struct DeoxysI<B> {
     _ptr: PhantomData<B>,
 }
 
 /// Implementation of the Deoxys-II mode of operation.
 #[allow(clippy::upper_case_acronyms)]
+#[derive(Debug)]
 pub struct DeoxysII<B> {
     _ptr: PhantomData<B>,
 }

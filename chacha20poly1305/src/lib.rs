@@ -117,9 +117,9 @@
 //! It is worth noting that NaCl/libsodium's default "secretbox" algorithm is
 //! XSalsa20Poly1305, not XChaCha20Poly1305, and thus not compatible with
 //! this library. If you are interested in that construction, please see the
-//! `xsalsa20poly1305` crate:
+//! `crypto_secretbox` crate:
 //!
-//! <https://docs.rs/xsalsa20poly1305/>
+//! <https://docs.rs/crypto_secretbox/>
 //!
 //! # Usage
 //!

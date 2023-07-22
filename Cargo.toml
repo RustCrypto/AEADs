@@ -9,5 +9,4 @@ members = [
     "deoxys",
     "eax",
     "mgm",
-    "xsalsa20poly1305"
 ]

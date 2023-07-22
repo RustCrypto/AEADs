@@ -27,7 +27,6 @@ crate.
 | [`deoxys`]           | [Deoxys-I/II]                | [![crates.io](https://img.shields.io/crates/v/deoxys.svg)](https://crates.io/crates/deoxys) | [![Documentation](https://docs.rs/deoxys/badge.svg)](https://docs.rs/deoxys) | 1.51 |
 | [`eax`]              | [EAX]                        | [![crates.io](https://img.shields.io/crates/v/eax.svg)](https://crates.io/crates/eax) | [![Documentation](https://docs.rs/eax/badge.svg)](https://docs.rs/eax) | 1.41 |
 | [`mgm`]              | [MGM]                        | [![crates.io](https://img.shields.io/crates/v/mgm.svg)](https://crates.io/crates/mgm) | [![Documentation](https://docs.rs/mgm/badge.svg)](https://docs.rs/mgm) | 1.41 |
-| [`xsalsa20poly1305`] | [XSalsa20Poly1305]           | [![crates.io](https://img.shields.io/crates/v/xsalsa20poly1305.svg)](https://crates.io/crates/xsalsa20poly1305) | [![Documentation](https://docs.rs/xsalsa20poly1305/badge.svg)](https://docs.rs/xsalsa20poly1305) | 1.56 |
 
 ## MSRV Policy
 
@@ -74,7 +73,6 @@ dual licensed as above, without any additional terms or conditions.
 [`deoxys`]: https://github.com/RustCrypto/AEADs/tree/master/deoxys
 [`eax`]: https://github.com/RustCrypto/AEADs/tree/master/eax
 [`mgm`]: https://github.com/RustCrypto/AEADs/tree/master/mgm
-[`xsalsa20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/xsalsa20poly1305 
 
 [//]: # (algorithms)
 
@@ -87,5 +85,3 @@ dual licensed as above, without any additional terms or conditions.
 [EAX]: https://en.wikipedia.org/wiki/EAX_mode
 [MGM]: https://eprint.iacr.org/2019/123.pdf
 [(X)ChaCha20Poly1305]: https://tools.ietf.org/html/rfc8439
-[Curve25519XSalsa20Poly1305]: https://nacl.cr.yp.to/box.html
-[XSalsa20Poly1305]: https://nacl.cr.yp.to/secretbox.html

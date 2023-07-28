@@ -20,7 +20,7 @@ subtle = { version = "2", default-features = false }
 zeroize = { version = "1.6", optional = true, default-features = false, features = [
     "derive",
 ] }
-ascon = "0.3"
+ascon = "0.4"
 
 [dev-dependencies]
 hex = "0.4"

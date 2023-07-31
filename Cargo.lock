@@ -79,9 +79,9 @@ checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
 
 [[package]]
 name = "ascon"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fe9a0cff241855e9166670d259192aacf1e9a81b865dc9905afbbab31a9d2c1"
+checksum = "5f0e716048a18530cce4684daf98a7563a499d710e1ed8ef35567fcb43a7c5f1"
 
 [[package]]
 name = "ascon-aead"

@@ -375,11 +375,11 @@ dependencies = [
 
 [[package]]
 name = "kuznyechik"
-version = "0.7.2"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a4e0a85306cf7cdcd497111b9ecd8df4da5290bacd3cc2f426ce3fb2c0a327e"
+checksum = "ca7899a524198c60ded686fc826703de2a04470aff9d042e8cc1f845b912c12f"
 dependencies = [
- "cipher 0.3.0",
+ "cipher 0.4.4",
 ]
 
 [[package]]

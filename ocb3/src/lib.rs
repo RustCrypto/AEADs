@@ -57,7 +57,7 @@ impl<T: private::SealedTagSize> TagSize for T {}
 pub trait NonceSize: private::SealedNonceSize {}
 impl<T: private::SealedNonceSize> NonceSize for T {}
 
-// Adapted from https://github.com/sgmenda/AEADs/blob/2209bcaa9edc65e9a60498e7ece5b50e66f32ebf/aes-gcm/src/lib.rs#L143-L157
+// Adapted from https://github.com/rustcrypto/AEADs/blob/2209bcaa9edc65e9a60498e7ece5b50e66f32ebf/aes-gcm/src/lib.rs#L143-L157
 mod private {
     use aead::generic_array::ArrayLength;
     use cipher::{consts, Unsigned};
@@ -318,7 +318,6 @@ where
     /// Encrypts plaintext in groups of WIDTH.
     ///
     /// Adapted from https://www.cs.ucdavis.edu/~rogaway/ocb/news/code/ocb.c
-    #[inline(never)]
     fn wide_encrypt(&self, nonce: &Nonce<NonceSize>, buffer: &mut [u8]) -> (usize, Block, Block) {
         #[cfg(not(target_feature = "avx512vaes"))]
         const WIDTH: usize = 2;
@@ -372,7 +371,6 @@ where
     /// Decrypts plaintext in groups of WIDTH.
     ///
     /// Adapted from https://www.cs.ucdavis.edu/~rogaway/ocb/news/code/ocb.c
-    #[inline(never)]
     fn wide_decrypt(&self, nonce: &Nonce<NonceSize>, buffer: &mut [u8]) -> (usize, Block, Block) {
         #[cfg(not(target_feature = "avx512vaes"))]
         const WIDTH: usize = 2;

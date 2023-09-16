@@ -436,12 +436,12 @@ fn nonce_dependent_variables<
     let mut Nonce = u128::from_be_bytes(Nonce);
     // Nonce = num2str(TAGLEN mod 128,7) || zeros(120-bitlen(N)) || 1 || N
     Nonce |= 1 << 96;
-    if tag_len == 16 {
-        // do nothing because 128 mod 128 = 0
-    } else if tag_len < 16 {
-        Nonce |= (u128::from(tag_len) * 8) << (128 - 7);
-    } else {
-        unreachable!();
+    match tag_len {
+        16 => {}
+        x if x < 16 => {
+            Nonce |= (u128::from(tag_len) * 8) << (128 - 7);
+        }
+        _ => unreachable!(),
     }
 
     // Separate the last 6 bits into `bottom`, and the rest into `top`.

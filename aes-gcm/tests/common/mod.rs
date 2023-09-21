@@ -71,8 +71,27 @@ macro_rules! tests {
 
             let cipher = <$aead>::new(key);
             assert!(cipher.decrypt(nonce, payload).is_err());
+        }
 
-            // TODO(tarcieri): test ciphertext is unmodified in in-place API
+        #[test]
+        fn decrypt_in_place_detached_modified() {
+            let vector = &$vectors.iter().last().unwrap();
+            let key = GenericArray::from_slice(vector.key);
+            let nonce = GenericArray::from_slice(vector.nonce);
+
+            let mut buffer = Vec::from(vector.ciphertext);
+            assert!(!buffer.is_empty());
+
+            // Tweak the first byte
+            let mut tag = GenericArray::clone_from_slice(vector.tag);
+            tag[0] ^= 0xaa;
+
+            let cipher = <$aead>::new(key);
+            assert!(cipher
+                .decrypt_in_place_detached(nonce, &[], &mut buffer, &tag)
+                .is_err());
+
+            assert_eq!(vector.ciphertext, buffer);
         }
     };
 }

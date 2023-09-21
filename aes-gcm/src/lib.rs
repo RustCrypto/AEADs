@@ -300,10 +300,10 @@ where
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
         let expected_tag = self.compute_tag(mask, associated_data, buffer);
-        ctr.apply_keystream_partial(buffer.into());
 
         use subtle::ConstantTimeEq;
         if expected_tag[..TagSize::to_usize()].ct_eq(tag).into() {
+            ctr.apply_keystream_partial(buffer.into());
             Ok(())
         } else {
             Err(Error)

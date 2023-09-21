@@ -29,7 +29,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.10.2"
+version = "0.10.3"
 dependencies = [
  "aead",
  "aes",

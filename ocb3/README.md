@@ -35,7 +35,7 @@ dual licensed as above, without any additional terms or conditions.
 [//]: # (badges)
 
 [crate-image]: https://buildstats.info/crate/ocb3
-[crate-link]: https://crates.io/crates/chacha20poly1305
+[crate-link]: https://crates.io/crates/ocb3
 [docs-image]: https://docs.rs/ocb3/badge.svg
 [docs-link]: https://docs.rs/ocb3/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg

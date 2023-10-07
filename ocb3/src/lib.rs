@@ -7,7 +7,6 @@
 )]
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
-#![allow(non_snake_case)]
 
 use core::marker::PhantomData;
 
@@ -88,10 +87,10 @@ where
     nonce_size: PhantomData<NonceSize>,
     tag_size: PhantomData<TagSize>,
     // precomputed key-dependent variables
-    Lstar: Block,
-    Ldollar: Block,
+    ll_star: Block,
+    ll_dollar: Block,
     // list of pre-computed L values
-    L: [Block; L_TABLE_SIZE],
+    ll: [Block; L_TABLE_SIZE],
 }
 
 /// Output of the HASH function defined in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
@@ -135,15 +134,15 @@ where
     NonceSize: self::NonceSize,
 {
     fn from(cipher: Aes) -> Self {
-        let (Lstar, Ldollar, L) = key_dependent_variables(&cipher);
+        let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
 
         Self {
             cipher,
             nonce_size: PhantomData,
             tag_size: PhantomData,
-            Lstar,
-            Ldollar,
-            L,
+            ll_star,
+            ll_dollar,
+            ll,
         }
     }
 }
@@ -154,18 +153,18 @@ fn key_dependent_variables<Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt>(
     cipher: &Aes,
 ) -> (Block, Block, [Block; L_TABLE_SIZE]) {
     let mut zeros = [0u8; 16];
-    let Lstar = Block::from_mut_slice(&mut zeros);
-    cipher.encrypt_block(Lstar);
-    let Ldollar = double(Lstar);
+    let ll_star = Block::from_mut_slice(&mut zeros);
+    cipher.encrypt_block(ll_star);
+    let ll_dollar = double(ll_star);
 
-    let mut L = [Block::default(); L_TABLE_SIZE];
-    let mut Li = Ldollar;
+    let mut ll = [Block::default(); L_TABLE_SIZE];
+    let mut ll_i = ll_dollar;
     #[allow(clippy::needless_range_loop)]
     for i in 0..L_TABLE_SIZE {
-        Li = double(&Li);
-        L[i] = Li
+        ll_i = double(&ll_i);
+        ll[i] = ll_i
     }
-    (*Lstar, Ldollar, L)
+    (*ll_star, ll_dollar, ll)
 }
 
 impl<Aes, NonceSize, TagSize> AeadInPlace for AesOcb3<Aes, NonceSize, TagSize>
@@ -185,22 +184,22 @@ where
         }
 
         // First, try to process many blocks at once.
-        let (processed_bytes, mut Offset_i, mut Checksum_i) = self.wide_encrypt(nonce, buffer);
+        let (processed_bytes, mut offset_i, mut checksum_i) = self.wide_encrypt(nonce, buffer);
 
         let mut i = (processed_bytes / 16) + 1;
 
         // Then, process the remaining blocks.
-        for P_i in buffer[processed_bytes..].chunks_exact_mut(16) {
-            let P_i = Block::from_mut_slice(P_i);
-            // Offset_i = Offset_{i-1} xor L_{ntz(i)}
-            inplace_xor(&mut Offset_i, &self.L[ntz(i)]);
-            // Checksum_i = Checksum_{i-1} xor P_i
-            inplace_xor(&mut Checksum_i, P_i);
-            // C_i = Offset_i xor ENCIPHER(K, P_i xor Offset_i)
-            let C_i = P_i;
-            inplace_xor(C_i, &Offset_i);
-            self.cipher.encrypt_block(C_i);
-            inplace_xor(C_i, &Offset_i);
+        for p_i in buffer[processed_bytes..].chunks_exact_mut(16) {
+            let p_i = Block::from_mut_slice(p_i);
+            // offset_i = offset_{i-1} xor L_{ntz(i)}
+            inplace_xor(&mut offset_i, &self.ll[ntz(i)]);
+            // checksum_i = checksum_{i-1} xor p_i
+            inplace_xor(&mut checksum_i, p_i);
+            // c_i = offset_i xor ENCIPHER(K, p_i xor offset_i)
+            let c_i = p_i;
+            inplace_xor(c_i, &offset_i);
+            self.cipher.encrypt_block(c_i);
+            inplace_xor(c_i, &offset_i);
 
             i += 1;
         }
@@ -210,26 +209,26 @@ where
             let processed_bytes = (i - 1) * 16;
             let remaining_bytes = buffer.len() - processed_bytes;
 
-            // Offset_* = Offset_m xor L_*
-            inplace_xor(&mut Offset_i, &self.Lstar);
-            // Pad = ENCIPHER(K, Offset_*)
-            let mut Pad = Block::default();
-            inplace_xor(&mut Pad, &Offset_i);
-            self.cipher.encrypt_block(&mut Pad);
-            // Checksum_* = Checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
-            let Checksum_rhs = &mut [0u8; 16];
-            Checksum_rhs[..remaining_bytes].copy_from_slice(&buffer[processed_bytes..]);
-            Checksum_rhs[remaining_bytes] = 0b1000_0000;
-            inplace_xor(&mut Checksum_i, Block::from_slice(Checksum_rhs));
+            // offset_* = offset_m xor L_*
+            inplace_xor(&mut offset_i, &self.ll_star);
+            // Pad = ENCIPHER(K, offset_*)
+            let mut pad = Block::default();
+            inplace_xor(&mut pad, &offset_i);
+            self.cipher.encrypt_block(&mut pad);
+            // checksum_* = checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
+            let checksum_rhs = &mut [0u8; 16];
+            checksum_rhs[..remaining_bytes].copy_from_slice(&buffer[processed_bytes..]);
+            checksum_rhs[remaining_bytes] = 0b1000_0000;
+            inplace_xor(&mut checksum_i, Block::from_slice(checksum_rhs));
             // C_* = P_* xor Pad[1..bitlen(P_*)]
-            let P_star = &mut buffer[processed_bytes..];
-            let Pad = &mut Pad[..P_star.len()];
-            for (aa, bb) in P_star.iter_mut().zip(Pad) {
+            let p_star = &mut buffer[processed_bytes..];
+            let pad = &mut pad[..p_star.len()];
+            for (aa, bb) in p_star.iter_mut().zip(pad) {
                 *aa ^= *bb;
             }
         }
 
-        let tag = self.compute_tag(associated_data, &mut Checksum_i, &Offset_i);
+        let tag = self.compute_tag(associated_data, &mut checksum_i, &offset_i);
 
         Ok(tag)
     }
@@ -268,22 +267,22 @@ where
         }
 
         // First, try to process many blocks at once.
-        let (processed_bytes, mut Offset_i, mut Checksum_i) = self.wide_decrypt(nonce, buffer);
+        let (processed_bytes, mut offset_i, mut checksum_i) = self.wide_decrypt(nonce, buffer);
 
         let mut i = (processed_bytes / 16) + 1;
 
         // Then, process the remaining blocks.
-        for C_i in buffer[processed_bytes..].chunks_exact_mut(16) {
-            let C_i = Block::from_mut_slice(C_i);
-            // Offset_i = Offset_{i-1} xor L_{ntz(i)}
-            inplace_xor(&mut Offset_i, &self.L[ntz(i)]);
-            // P_i = Offset_i xor DECIPHER(K, C_i xor Offset_i)
-            let P_i = C_i;
-            inplace_xor(P_i, &Offset_i);
-            self.cipher.decrypt_block(P_i);
-            inplace_xor(P_i, &Offset_i);
-            // Checksum_i = Checksum_{i-1} xor P_i
-            inplace_xor(&mut Checksum_i, P_i);
+        for c_i in buffer[processed_bytes..].chunks_exact_mut(16) {
+            let c_i = Block::from_mut_slice(c_i);
+            // offset_i = offset_{i-1} xor L_{ntz(i)}
+            inplace_xor(&mut offset_i, &self.ll[ntz(i)]);
+            // p_i = offset_i xor DECIPHER(K, c_i xor offset_i)
+            let p_i = c_i;
+            inplace_xor(p_i, &offset_i);
+            self.cipher.decrypt_block(p_i);
+            inplace_xor(p_i, &offset_i);
+            // checksum_i = checksum_{i-1} xor p_i
+            inplace_xor(&mut checksum_i, p_i);
 
             i += 1;
         }
@@ -293,26 +292,26 @@ where
             let processed_bytes = (i - 1) * 16;
             let remaining_bytes = buffer.len() - processed_bytes;
 
-            // Offset_* = Offset_m xor L_*
-            inplace_xor(&mut Offset_i, &self.Lstar);
-            // Pad = ENCIPHER(K, Offset_*)
-            let mut Pad = Block::default();
-            inplace_xor(&mut Pad, &Offset_i);
-            self.cipher.encrypt_block(&mut Pad);
+            // offset_* = offset_m xor L_*
+            inplace_xor(&mut offset_i, &self.ll_star);
+            // Pad = ENCIPHER(K, offset_*)
+            let mut pad = Block::default();
+            inplace_xor(&mut pad, &offset_i);
+            self.cipher.encrypt_block(&mut pad);
             // P_* = C_* xor Pad[1..bitlen(C_*)]
-            let C_star = &mut buffer[processed_bytes..];
-            let Pad = &mut Pad[..C_star.len()];
-            for (aa, bb) in C_star.iter_mut().zip(Pad) {
+            let c_star = &mut buffer[processed_bytes..];
+            let pad = &mut pad[..c_star.len()];
+            for (aa, bb) in c_star.iter_mut().zip(pad) {
                 *aa ^= *bb;
             }
-            // Checksum_* = Checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
-            let Checksum_rhs = &mut [0u8; 16];
-            Checksum_rhs[..remaining_bytes].copy_from_slice(&buffer[processed_bytes..]);
-            Checksum_rhs[remaining_bytes] = 0b1000_0000;
-            inplace_xor(&mut Checksum_i, Block::from_slice(Checksum_rhs));
+            // checksum_* = checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
+            let checksum_rhs = &mut [0u8; 16];
+            checksum_rhs[..remaining_bytes].copy_from_slice(&buffer[processed_bytes..]);
+            checksum_rhs[remaining_bytes] = 0b1000_0000;
+            inplace_xor(&mut checksum_i, Block::from_slice(checksum_rhs));
         }
 
-        self.compute_tag(associated_data, &mut Checksum_i, &Offset_i)
+        self.compute_tag(associated_data, &mut checksum_i, &offset_i)
     }
 
     /// Encrypts plaintext in groups of WIDTH.
@@ -331,32 +330,32 @@ where
 
         let mut i = 1;
 
-        let mut Offset_i = [Block::default(); WIDTH];
-        Offset_i[Offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
-        let mut Checksum_i = Block::default();
+        let mut offset_i = [Block::default(); WIDTH];
+        offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
+        let mut checksum_i = Block::default();
         #[allow(unsafe_code)]
         unsafe {
             for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
-                let P_i = split_into_blocks(wide_blocks);
+                let p_i = split_into_blocks(wide_blocks);
 
-                // Checksum_i = Checksum_{i-1} xor P_i
-                for P_ij in &P_i {
-                    inplace_xor(&mut Checksum_i, P_ij);
+                // checksum_i = checksum_{i-1} xor p_i
+                for p_ij in &p_i {
+                    inplace_xor(&mut checksum_i, p_ij);
                 }
 
-                // Offset_i = Offset_{i-1} xor L_{ntz(i)}
-                Offset_i[0] = Offset_i[Offset_i.len() - 1];
-                inplace_xor(&mut Offset_i[0], &self.L[ntz(i)]);
-                for j in 1..P_i.len() {
-                    Offset_i[j] = Offset_i[j - 1];
-                    inplace_xor(&mut Offset_i[j], &self.L[ntz(i + j)]);
+                // offset_i = offset_{i-1} xor L_{ntz(i)}
+                offset_i[0] = offset_i[offset_i.len() - 1];
+                inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
+                for j in 1..p_i.len() {
+                    offset_i[j] = offset_i[j - 1];
+                    inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
                 }
 
-                // C_i = Offset_i xor ENCIPHER(K, P_i xor Offset_i)
-                for j in 0..P_i.len() {
-                    inplace_xor(P_i[j], &Offset_i[j]);
-                    self.cipher.encrypt_block(P_i[j]);
-                    inplace_xor(P_i[j], &Offset_i[j])
+                // c_i = offset_i xor ENCIPHER(K, p_i xor offset_i)
+                for j in 0..p_i.len() {
+                    inplace_xor(p_i[j], &offset_i[j]);
+                    self.cipher.encrypt_block(p_i[j]);
+                    inplace_xor(p_i[j], &offset_i[j])
                 }
 
                 i += WIDTH;
@@ -365,7 +364,7 @@ where
 
         let processed_bytes = (buffer.len() / (WIDTH * 16)) * (WIDTH * 16);
 
-        (processed_bytes, Offset_i[Offset_i.len() - 1], Checksum_i)
+        (processed_bytes, offset_i[offset_i.len() - 1], checksum_i)
     }
 
     /// Decrypts plaintext in groups of WIDTH.
@@ -384,29 +383,29 @@ where
 
         let mut i = 1;
 
-        let mut Offset_i = [Block::default(); WIDTH];
-        Offset_i[Offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
-        let mut Checksum_i = Block::default();
+        let mut offset_i = [Block::default(); WIDTH];
+        offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
+        let mut checksum_i = Block::default();
         #[allow(unsafe_code)]
         unsafe {
             for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
-                let C_i = split_into_blocks(wide_blocks);
+                let c_i = split_into_blocks(wide_blocks);
 
-                // Offset_i = Offset_{i-1} xor L_{ntz(i)}
-                Offset_i[0] = Offset_i[Offset_i.len() - 1];
-                inplace_xor(&mut Offset_i[0], &self.L[ntz(i)]);
-                for j in 1..C_i.len() {
-                    Offset_i[j] = Offset_i[j - 1];
-                    inplace_xor(&mut Offset_i[j], &self.L[ntz(i + j)]);
+                // offset_i = offset_{i-1} xor L_{ntz(i)}
+                offset_i[0] = offset_i[offset_i.len() - 1];
+                inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
+                for j in 1..c_i.len() {
+                    offset_i[j] = offset_i[j - 1];
+                    inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
                 }
 
-                // P_i = Offset_i xor DECIPHER(K, C_i xor Offset_i)
-                // Checksum_i = Checksum_{i-1} xor P_i
-                for j in 0..C_i.len() {
-                    inplace_xor(C_i[j], &Offset_i[j]);
-                    self.cipher.decrypt_block(C_i[j]);
-                    inplace_xor(C_i[j], &Offset_i[j]);
-                    inplace_xor(&mut Checksum_i, C_i[j]);
+                // p_i = offset_i xor DECIPHER(K, c_i xor offset_i)
+                // checksum_i = checksum_{i-1} xor p_i
+                for j in 0..c_i.len() {
+                    inplace_xor(c_i[j], &offset_i[j]);
+                    self.cipher.decrypt_block(c_i[j]);
+                    inplace_xor(c_i[j], &offset_i[j]);
+                    inplace_xor(&mut checksum_i, c_i[j]);
                 }
 
                 i += WIDTH;
@@ -415,7 +414,7 @@ where
 
         let processed_bytes = (buffer.len() / (WIDTH * 16)) * (WIDTH * 16);
 
-        (processed_bytes, Offset_i[Offset_i.len() - 1], Checksum_i)
+        (processed_bytes, offset_i[offset_i.len() - 1], checksum_i)
     }
 }
 
@@ -428,39 +427,39 @@ fn nonce_dependent_variables<
     NonceSize: self::NonceSize,
 >(
     cipher: &Aes,
-    N: &Nonce<NonceSize>,
+    nn: &Nonce<NonceSize>,
     tag_len: u32,
 ) -> (usize, [u8; 24]) {
-    let mut Nonce = [0u8; 16];
-    Nonce[4..16].copy_from_slice(N.as_slice());
-    let mut Nonce = u128::from_be_bytes(Nonce);
+    let mut nonce = [0u8; 16];
+    nonce[4..16].copy_from_slice(nn.as_slice());
+    let mut nonce = u128::from_be_bytes(nonce);
     // Nonce = num2str(TAGLEN mod 128,7) || zeros(120-bitlen(N)) || 1 || N
-    Nonce |= 1 << 96;
+    nonce |= 1 << 96;
     match tag_len {
         16 => {}
         x if x < 16 => {
-            Nonce |= (u128::from(tag_len) * 8) << (128 - 7);
+            nonce |= (u128::from(tag_len) * 8) << (128 - 7);
         }
         _ => unreachable!(),
     }
 
     // Separate the last 6 bits into `bottom`, and the rest into `top`.
-    let bottom = usize::try_from(Nonce & 0b111111).unwrap();
-    let top = Nonce & !0b111111;
+    let bottom = usize::try_from(nonce & 0b111111).unwrap();
+    let top = nonce & !0b111111;
 
-    let mut Ktop = Block::from(top.to_be_bytes());
-    cipher.encrypt_block(&mut Ktop);
-    let Ktop = Ktop.as_mut_slice();
+    let mut ktop = Block::from(top.to_be_bytes());
+    cipher.encrypt_block(&mut ktop);
+    let ktop = ktop.as_mut_slice();
 
-    // Stretch = Ktop || (Ktop[1..64] xor Ktop[9..72])
-    let mut Stretch = [0u8; 24];
-    Stretch[..16].copy_from_slice(Ktop);
+    // stretch = Ktop || (Ktop[1..64] xor Ktop[9..72])
+    let mut stretch = [0u8; 24];
+    stretch[..16].copy_from_slice(ktop);
     for i in 0..8 {
-        Ktop[i] ^= Ktop[i + 1];
+        ktop[i] ^= ktop[i + 1];
     }
-    Stretch[16..].copy_from_slice(&Ktop[..8]);
+    stretch[16..].copy_from_slice(&ktop[..8]);
 
-    (bottom, Stretch)
+    (bottom, stretch)
 }
 
 /// Computes the initial offset as defined
@@ -472,17 +471,17 @@ fn initial_offset<
     NonceSize: self::NonceSize,
 >(
     cipher: &Aes,
-    N: &Nonce<NonceSize>,
+    nn: &Nonce<NonceSize>,
     tag_size: u32,
 ) -> Block {
-    let (bottom, Stretch) = nonce_dependent_variables(cipher, N, tag_size);
-    let Stretch_low = u128::from_be_bytes((&Stretch[..16]).try_into().unwrap());
-    let Stretch_hi = u64::from_be_bytes((&Stretch[16..24]).try_into().unwrap());
-    let Stretch_hi = u128::from(Stretch_hi);
+    let (bottom, stretch) = nonce_dependent_variables(cipher, nn, tag_size);
+    let stretch_low = u128::from_be_bytes((&stretch[..16]).try_into().unwrap());
+    let stretch_hi = u64::from_be_bytes((&stretch[16..24]).try_into().unwrap());
+    let stretch_hi = u128::from(stretch_hi);
 
-    // Offset_0 = Stretch[1+bottom..128+bottom]
-    let Offset = (Stretch_low << bottom) | (Stretch_hi >> (64 - bottom));
-    Offset.to_be_bytes().into()
+    // offset_0 = stretch[1+bottom..128+bottom]
+    let offset = (stretch_low << bottom) | (stretch_hi >> (64 - bottom));
+    offset.to_be_bytes().into()
 }
 
 impl<Aes, NonceSize, TagSize> AesOcb3<Aes, NonceSize, TagSize>
@@ -493,18 +492,18 @@ where
 {
     /// Computes HASH function defined in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
     fn hash(&self, associated_data: &[u8]) -> Sum {
-        let mut Offset_i = Block::default();
-        let mut Sum_i = Block::default();
+        let mut offset_i = Block::default();
+        let mut sum_i = Block::default();
 
         let mut i = 1;
-        for A_i in associated_data.chunks_exact(16) {
-            // Offset_i = Offset_{i-1} xor L_{ntz(i)}
-            inplace_xor(&mut Offset_i, &self.L[ntz(i)]);
-            // Sum_i = Sum_{i-1} xor ENCIPHER(K, A_i xor Offset_i)
-            let mut A_i = *Block::from_slice(A_i);
-            inplace_xor(&mut A_i, &Offset_i);
-            self.cipher.encrypt_block(&mut A_i);
-            inplace_xor(&mut Sum_i, &A_i);
+        for a_i in associated_data.chunks_exact(16) {
+            // offset_i = offset_{i-1} xor L_{ntz(i)}
+            inplace_xor(&mut offset_i, &self.ll[ntz(i)]);
+            // Sum_i = Sum_{i-1} xor ENCIPHER(K, A_i xor offset_i)
+            let mut a_i = *Block::from_slice(a_i);
+            inplace_xor(&mut a_i, &offset_i);
+            self.cipher.encrypt_block(&mut a_i);
+            inplace_xor(&mut sum_i, &a_i);
 
             i += 1;
         }
@@ -514,32 +513,32 @@ where
             let processed_bytes = (i - 1) * 16;
             let remaining_bytes = associated_data.len() - processed_bytes;
 
-            // Offset_* = Offset_m xor L_*
-            inplace_xor(&mut Offset_i, &self.Lstar);
-            // CipherInput = (A_* || 1 || zeros(127-bitlen(A_*))) xor Offset_*
-            let CipherInput = &mut [0u8; 16];
-            CipherInput[..remaining_bytes].copy_from_slice(&associated_data[processed_bytes..]);
-            CipherInput[remaining_bytes] = 0b1000_0000;
-            let CipherInput = Block::from_mut_slice(CipherInput);
-            inplace_xor(CipherInput, &Offset_i);
+            // offset_* = offset_m xor L_*
+            inplace_xor(&mut offset_i, &self.ll_star);
+            // CipherInput = (A_* || 1 || zeros(127-bitlen(A_*))) xor offset_*
+            let cipher_input = &mut [0u8; 16];
+            cipher_input[..remaining_bytes].copy_from_slice(&associated_data[processed_bytes..]);
+            cipher_input[remaining_bytes] = 0b1000_0000;
+            let cipher_input = Block::from_mut_slice(cipher_input);
+            inplace_xor(cipher_input, &offset_i);
             // Sum = Sum_m xor ENCIPHER(K, CipherInput)
-            self.cipher.encrypt_block(CipherInput);
-            inplace_xor(&mut Sum_i, CipherInput);
+            self.cipher.encrypt_block(cipher_input);
+            inplace_xor(&mut sum_i, cipher_input);
         }
 
-        Sum_i
+        sum_i
     }
 
     fn compute_tag(
         &self,
         associated_data: &[u8],
-        Checksum_m: &mut Block,
-        Offset_m: &Block,
+        checksum_m: &mut Block,
+        offset_m: &Block,
     ) -> Tag<TagSize> {
-        // Tag = ENCIPHER(K, Checksum_m xor Offset_m xor L_$) xor HASH(K,A)
-        let full_tag = Checksum_m;
-        inplace_xor(full_tag, Offset_m);
-        inplace_xor(full_tag, &self.Ldollar);
+        // Tag = ENCIPHER(K, checksum_m xor offset_m xor L_$) xor HASH(K,A)
+        let full_tag = checksum_m;
+        inplace_xor(full_tag, offset_m);
+        inplace_xor(full_tag, &self.ll_dollar);
         self.cipher.encrypt_block(full_tag);
         inplace_xor(full_tag, &self.hash(associated_data));
 
@@ -566,18 +565,18 @@ mod tests {
     fn rfc7253_key_dependent_constants() {
         // Test vector from page 17 of https://www.rfc-editor.org/rfc/rfc7253.html
         let key = hex!("000102030405060708090A0B0C0D0E0F");
-        let expected_Lstar = Block::from(hex!("C6A13B37878F5B826F4F8162A1C8D879"));
-        let expected_Ldollar = Block::from(hex!("8D42766F0F1EB704DE9F02C54391B075"));
-        let expected_L0 = Block::from(hex!("1A84ECDE1E3D6E09BD3E058A8723606D"));
-        let expected_L1 = Block::from(hex!("3509D9BC3C7ADC137A7C0B150E46C0DA"));
+        let expected_ll_star = Block::from(hex!("C6A13B37878F5B826F4F8162A1C8D879"));
+        let expected_ll_dollar = Block::from(hex!("8D42766F0F1EB704DE9F02C54391B075"));
+        let expected_ll0 = Block::from(hex!("1A84ECDE1E3D6E09BD3E058A8723606D"));
+        let expected_ll1 = Block::from(hex!("3509D9BC3C7ADC137A7C0B150E46C0DA"));
 
         let cipher = Aes128::new(GenericArray::from_slice(&key));
-        let (Lstar, Ldollar, L) = key_dependent_variables(&cipher);
+        let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
 
-        assert_eq!(Lstar, expected_Lstar);
-        assert_eq!(Ldollar, expected_Ldollar);
-        assert_eq!(L[0], expected_L0);
-        assert_eq!(L[1], expected_L1);
+        assert_eq!(ll_star, expected_ll_star);
+        assert_eq!(ll_dollar, expected_ll_dollar);
+        assert_eq!(ll[0], expected_ll0);
+        assert_eq!(ll[1], expected_ll1);
     }
 
     #[test]
@@ -586,17 +585,17 @@ mod tests {
         let key = hex!("000102030405060708090A0B0C0D0E0F");
         let nonce = hex!("BBAA9988776655443322110F");
         let expected_bottom = usize::try_from(15).unwrap();
-        let expected_Stretch = hex!("9862B0FDEE4E2DD56DBA6433F0125AA2FAD24D13A063F8B8");
-        let expected_Offset_0 = Block::from(hex!("587EF72716EAB6DD3219F8092D517D69"));
+        let expected_stretch = hex!("9862B0FDEE4E2DD56DBA6433F0125AA2FAD24D13A063F8B8");
+        let expected_offset_0 = Block::from(hex!("587EF72716EAB6DD3219F8092D517D69"));
 
         const TAGLEN: u32 = 16;
 
         let cipher = Aes128::new(GenericArray::from_slice(&key));
-        let (bottom, Stretch) = nonce_dependent_variables(&cipher, &Nonce::from(nonce), TAGLEN);
-        let Offset_0 = initial_offset(&cipher, &Nonce::from(nonce), TAGLEN);
+        let (bottom, stretch) = nonce_dependent_variables(&cipher, &Nonce::from(nonce), TAGLEN);
+        let offset_0 = initial_offset(&cipher, &Nonce::from(nonce), TAGLEN);
 
         assert_eq!(bottom, expected_bottom);
-        assert_eq!(Stretch, expected_Stretch);
-        assert_eq!(Offset_0, expected_Offset_0);
+        assert_eq!(stretch, expected_stretch);
+        assert_eq!(offset_0, expected_offset_0);
     }
 }

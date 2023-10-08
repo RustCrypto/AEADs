@@ -314,52 +314,42 @@ where
         self.compute_tag(associated_data, &mut checksum_i, &offset_i)
     }
 
-    /// Encrypts plaintext in groups of WIDTH.
+    /// Encrypts plaintext in groups of two.
     ///
     /// Adapted from https://www.cs.ucdavis.edu/~rogaway/ocb/news/code/ocb.c
     fn wide_encrypt(&self, nonce: &Nonce<NonceSize>, buffer: &mut [u8]) -> (usize, Block, Block) {
-        #[cfg(not(target_feature = "avx512vaes"))]
         const WIDTH: usize = 2;
-        #[cfg(not(target_feature = "avx512vaes"))]
         let split_into_blocks = crate::util::split_into_two_blocks;
-
-        #[cfg(target_feature = "avx512vaes")]
-        const WIDTH: usize = 4;
-        #[cfg(target_feature = "avx512vaes")]
-        let split_into_blocks = crate::util::split_into_four_blocks;
 
         let mut i = 1;
 
         let mut offset_i = [Block::default(); WIDTH];
         offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
         let mut checksum_i = Block::default();
-        #[allow(unsafe_code)]
-        unsafe {
-            for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
-                let p_i = split_into_blocks(wide_blocks);
+        for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
+            let p_i = split_into_blocks(wide_blocks);
 
-                // checksum_i = checksum_{i-1} xor p_i
-                for p_ij in &p_i {
-                    inplace_xor(&mut checksum_i, p_ij);
-                }
-
-                // offset_i = offset_{i-1} xor L_{ntz(i)}
-                offset_i[0] = offset_i[offset_i.len() - 1];
-                inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
-                for j in 1..p_i.len() {
-                    offset_i[j] = offset_i[j - 1];
-                    inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
-                }
-
-                // c_i = offset_i xor ENCIPHER(K, p_i xor offset_i)
-                for j in 0..p_i.len() {
-                    inplace_xor(p_i[j], &offset_i[j]);
-                    self.cipher.encrypt_block(p_i[j]);
-                    inplace_xor(p_i[j], &offset_i[j])
-                }
-
-                i += WIDTH;
+            // checksum_i = checksum_{i-1} xor p_i
+            for p_ij in &p_i {
+                inplace_xor(&mut checksum_i, p_ij);
             }
+
+            // offset_i = offset_{i-1} xor L_{ntz(i)}
+            offset_i[0] = offset_i[offset_i.len() - 1];
+            inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
+            for j in 1..p_i.len() {
+                offset_i[j] = offset_i[j - 1];
+                inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
+            }
+
+            // c_i = offset_i xor ENCIPHER(K, p_i xor offset_i)
+            for j in 0..p_i.len() {
+                inplace_xor(p_i[j], &offset_i[j]);
+                self.cipher.encrypt_block(p_i[j]);
+                inplace_xor(p_i[j], &offset_i[j])
+            }
+
+            i += WIDTH;
         }
 
         let processed_bytes = (buffer.len() / (WIDTH * 16)) * (WIDTH * 16);
@@ -367,49 +357,39 @@ where
         (processed_bytes, offset_i[offset_i.len() - 1], checksum_i)
     }
 
-    /// Decrypts plaintext in groups of WIDTH.
+    /// Decrypts plaintext in groups of two.
     ///
     /// Adapted from https://www.cs.ucdavis.edu/~rogaway/ocb/news/code/ocb.c
     fn wide_decrypt(&self, nonce: &Nonce<NonceSize>, buffer: &mut [u8]) -> (usize, Block, Block) {
-        #[cfg(not(target_feature = "avx512vaes"))]
         const WIDTH: usize = 2;
-        #[cfg(not(target_feature = "avx512vaes"))]
         let split_into_blocks = crate::util::split_into_two_blocks;
-
-        #[cfg(target_feature = "avx512vaes")]
-        const WIDTH: usize = 4;
-        #[cfg(target_feature = "avx512vaes")]
-        let split_into_blocks = crate::util::split_into_four_blocks;
 
         let mut i = 1;
 
         let mut offset_i = [Block::default(); WIDTH];
         offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
         let mut checksum_i = Block::default();
-        #[allow(unsafe_code)]
-        unsafe {
-            for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
-                let c_i = split_into_blocks(wide_blocks);
+        for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
+            let c_i = split_into_blocks(wide_blocks);
 
-                // offset_i = offset_{i-1} xor L_{ntz(i)}
-                offset_i[0] = offset_i[offset_i.len() - 1];
-                inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
-                for j in 1..c_i.len() {
-                    offset_i[j] = offset_i[j - 1];
-                    inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
-                }
-
-                // p_i = offset_i xor DECIPHER(K, c_i xor offset_i)
-                // checksum_i = checksum_{i-1} xor p_i
-                for j in 0..c_i.len() {
-                    inplace_xor(c_i[j], &offset_i[j]);
-                    self.cipher.decrypt_block(c_i[j]);
-                    inplace_xor(c_i[j], &offset_i[j]);
-                    inplace_xor(&mut checksum_i, c_i[j]);
-                }
-
-                i += WIDTH;
+            // offset_i = offset_{i-1} xor L_{ntz(i)}
+            offset_i[0] = offset_i[offset_i.len() - 1];
+            inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
+            for j in 1..c_i.len() {
+                offset_i[j] = offset_i[j - 1];
+                inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
             }
+
+            // p_i = offset_i xor DECIPHER(K, c_i xor offset_i)
+            // checksum_i = checksum_{i-1} xor p_i
+            for j in 0..c_i.len() {
+                inplace_xor(c_i[j], &offset_i[j]);
+                self.cipher.decrypt_block(c_i[j]);
+                inplace_xor(c_i[j], &offset_i[j]);
+                inplace_xor(&mut checksum_i, c_i[j]);
+            }
+
+            i += WIDTH;
         }
 
         let processed_bytes = (buffer.len() / (WIDTH * 16)) * (WIDTH * 16);

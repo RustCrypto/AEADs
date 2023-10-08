@@ -1,7 +1,3 @@
-#![allow(dead_code)]
-
-use core::slice::from_raw_parts_mut;
-
 use aead::generic_array::{ArrayLength, GenericArray};
 use aes::Block;
 
@@ -41,36 +37,8 @@ pub(crate) fn ntz(n: usize) -> usize {
 
 const BLOCK_SIZE: usize = 16;
 
-/// Adapted from https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut_unchecked
-///
-/// SAFETY: Assumes that `two_blocks` is exactly two blocks.
 #[inline]
-#[allow(unsafe_code)]
-pub(crate) unsafe fn split_into_two_blocks(two_blocks: &mut [u8]) -> [&mut Block; 2] {
-    let ptr = two_blocks.as_mut_ptr();
-
-    unsafe {
-        [
-            from_raw_parts_mut(ptr, BLOCK_SIZE).into(),
-            from_raw_parts_mut(ptr.add(BLOCK_SIZE), BLOCK_SIZE).into(),
-        ]
-    }
-}
-
-/// Adapted from https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut_unchecked
-///
-/// SAFETY: Assumes that `four_blocks` is exactly four blocks.
-#[inline]
-#[allow(unsafe_code)]
-pub(crate) unsafe fn split_into_four_blocks(four_blocks: &mut [u8]) -> [&mut Block; 4] {
-    let ptr = four_blocks.as_mut_ptr();
-
-    unsafe {
-        [
-            from_raw_parts_mut(ptr, BLOCK_SIZE).into(),
-            from_raw_parts_mut(ptr.add(BLOCK_SIZE), BLOCK_SIZE).into(),
-            from_raw_parts_mut(ptr.add(2 * BLOCK_SIZE), BLOCK_SIZE).into(),
-            from_raw_parts_mut(ptr.add(3 * BLOCK_SIZE), BLOCK_SIZE).into(),
-        ]
-    }
+pub(crate) fn split_into_two_blocks(two_blocks: &mut [u8]) -> [&mut Block; 2] {
+    let (b0, b1) = two_blocks.split_at_mut(BLOCK_SIZE);
+    [b0.into(), b1.into()]
 }

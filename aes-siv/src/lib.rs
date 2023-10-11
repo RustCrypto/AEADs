@@ -201,6 +201,8 @@ where
 {
     // "If the nonce is random, it SHOULD be at least 128 bits in length"
     // https://tools.ietf.org/html/rfc5297#section-3
+    // "N_MIN  is 1 octet."
+    // https://tools.ietf.org/html/rfc5297#section-6
     type NonceSize = NonceSize;
     type TagSize = U16;
     type CiphertextOverhead = U0;

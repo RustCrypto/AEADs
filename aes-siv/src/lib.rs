@@ -91,12 +91,12 @@ pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use crate::siv::Siv;
 use aead::{
-    consts::{U0, U16, U32, U64},
+    consts::{U0, U1, U16, U32, U64},
     generic_array::GenericArray,
     Buffer,
 };
 use aes::{Aes128, Aes256};
-use cipher::{ArrayLength, BlockCipher, BlockEncryptMut};
+use cipher::{typenum::IsGreaterOrEqual, ArrayLength, BlockCipher, BlockEncryptMut};
 use cmac::Cmac;
 use core::{marker::PhantomData, ops::Add};
 use digest::{FixedOutputReset, Mac};
@@ -119,7 +119,7 @@ where
     C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
 {
     key: GenericArray<u8, <Self as KeySizeUser>::KeySize>,
     mac: PhantomData<M>, // TODO(tarcieri): include `M` in `KeySize` calculation
@@ -152,7 +152,7 @@ pub type Aes256PmacSivAead = PmacSivAead<Aes256>;
 impl<M, NonceSize> KeySizeUser for SivAead<Aes128, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
 {
     type KeySize = U32;
 }
@@ -160,7 +160,7 @@ where
 impl<M, NonceSize> KeySizeUser for SivAead<Aes256, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
 {
     type KeySize = U64;
 }
@@ -168,7 +168,7 @@ where
 impl<M, NonceSize> KeyInit for SivAead<Aes128, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
 {
     fn new(key: &GenericArray<u8, Self::KeySize>) -> Self {
         Self {
@@ -181,7 +181,7 @@ where
 impl<M, NonceSize> KeyInit for SivAead<Aes256, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
 {
     fn new(key: &GenericArray<u8, Self::KeySize>) -> Self {
         Self {
@@ -197,7 +197,7 @@ where
     C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
 {
     // "If the nonce is random, it SHOULD be at least 128 bits in length"
     // https://tools.ietf.org/html/rfc5297#section-3
@@ -213,7 +213,7 @@ where
     C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
 {
     fn encrypt_in_place(
         &self,

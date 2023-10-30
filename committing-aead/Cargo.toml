@@ -1,0 +1,31 @@
+[package]
+name = "committing-aead"
+version = "0.1.0"
+description = """
+Marker traits to indicate that an AEAD is committing, as well as pure Rust
+implementations of the "padding fix" key-commitment scheme, the CTX scheme
+(encryption only), and a modified version of CTX (named CTXish-HMAC) to
+enable implementation of both encryption and decryption using the existing
+AEAD trait interfaces.
+"""
+authors = ["RustCrypto Developers"]
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/committing-aead"
+repository = "https://github.com/RustCrypto/AEADs/tree/master/committing-aead"
+keywords = ["aead", "encryption", "committing-aead", "ctx"]
+categories = ["cryptography", "no-std"]
+
+[dependencies]
+aead = { version = "0.5", default-features = false }
+generic-array = { version = "0.14", default-features = false }
+
+subtle = { version = "2.5", default-features = false }
+digest = { version = "0.10.7", features = ["mac"] }
+hmac = { version = "0.12.1" }
+
+[features]
+default = ["std"]
+alloc = ["aead/alloc"]
+std = ["alloc", "aead/std"]

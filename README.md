@@ -9,6 +9,8 @@ algorithms written in pure Rust.
 AEADs are high-level symmetric encryption primitives which defend against a
 wide range of potential attacks (i.e. [IND-CCA3]).
 
+For situations where committing AEADs are needed, see the `committing-aead` crate.
+
 ## Usage
 
 Crates functionality is expressed in terms of traits defined in the [`aead`]

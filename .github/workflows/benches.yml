@@ -3,6 +3,7 @@ name: benches
 on:
   pull_request:
     paths:
+      - ".github/workflows/benches.yml"
       - "benches/**"
       - "Cargo.*"
   push:

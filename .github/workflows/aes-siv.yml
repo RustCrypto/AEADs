@@ -3,6 +3,7 @@ name: aes-siv
 on:
   pull_request:
     paths:
+      - ".github/workflows/aes-siv.yml"
       - "aes-siv/**"
       - "Cargo.*"
   push:

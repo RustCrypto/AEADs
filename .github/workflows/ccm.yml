@@ -3,6 +3,7 @@ name: ccm
 on:
   pull_request:
     paths:
+      - ".github/workflows/ccm.yml"
       - "ccm/**"
       - "Cargo.*"
   push:

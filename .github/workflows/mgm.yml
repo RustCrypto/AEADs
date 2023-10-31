@@ -3,6 +3,7 @@ name: mgm
 on:
   pull_request:
     paths:
+      - ".github/workflows/mgm.yml"
       - "mgm/**"
       - "Cargo.*"
   push:

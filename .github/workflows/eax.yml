@@ -3,6 +3,7 @@ name: eax
 on:
   pull_request:
     paths:
+      - ".github/workflows/eax.yml"
       - "eax/**"
       - "Cargo.*"
   push:

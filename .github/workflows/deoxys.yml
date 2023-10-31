@@ -3,6 +3,7 @@ name: deoxys
 on:
   pull_request:
     paths:
+      - ".github/workflows/deoxys.yml"
       - "deoxys/**"
       - "Cargo.*"
   push:

@@ -1,4 +1,7 @@
-// Uses the official test vectors.
+//! Uses the official test vectors.
+
+#![cfg(feature = "alloc")]
+
 use deoxys::aead::generic_array::GenericArray;
 use deoxys::aead::{Aead, KeyInit, Payload};
 use deoxys::DeoxysI128;

@@ -1,5 +1,7 @@
 //! AES-SIV tests for the raw SIV interface
 
+#![cfg(feature = "alloc")]
+
 use aes_siv::aead::generic_array::GenericArray;
 
 /// Test vectors

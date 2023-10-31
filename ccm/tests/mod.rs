@@ -1,3 +1,5 @@
+#![cfg(feature = "alloc")]
+
 use aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
 use aes::{Aes128, Aes192, Aes256};
 use ccm::{

@@ -7,13 +7,13 @@ when they are necessary.
 
 ## About
 
-The following constructions are supported:
+The following constructions are included:
 
-| Committing AEAD Construction | Encryption? | Decryption? | Commitment Security |
-|------------------------------|-------------|-------------|---------------------|
-| ["Padding Fix"]              | Yes         | Yes         | Key only            |
-| [CTX]                        | Yes         | No          | All inputs          |
-| CTXish-HMAC (see code docs)  | Yes         | Yes         | All inputs          |
+| Committing AEAD Construction | Encryption? | Decryption? | Commitment Security | Overhead |
+|------------------------------|-------------|-------------|---------------------|---------|
+| ["Padding Fix"]              | Yes         | Yes         | Key only            | `ctxt+=3*key_size` |
+| [CTX]                        | Yes         | No          | All inputs          | `tag+=hash_len-orig_tag_len` |
+| CTXish-HMAC (see code docs)  | Yes         | Yes         | All inputs          | `tag+=hash_len` |
 
 CTX decryption is not implemented because verifying the tag at decryption time
 requires accessing the expected original tag of the wrapped AEAD, which is

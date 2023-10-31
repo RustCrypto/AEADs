@@ -210,6 +210,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "aes-gcm",
+ "chacha20poly1305",
  "digest",
  "generic-array",
  "hex-literal 0.3.4",

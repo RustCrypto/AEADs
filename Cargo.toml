@@ -10,3 +10,4 @@ members = [
     "eax",
     "mgm",
 ]
+resolver = "2"

@@ -1,5 +1,7 @@
 //! AES-256-auth tag tests
 
+#![cfg(all(feature = "aes", feature = "alloc"))]
+
 #[macro_use]
 mod common;
 

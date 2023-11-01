@@ -49,6 +49,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
+      - run: cargo test --release --no-default-features
       - run: cargo test --release
       - run: cargo test --release --features stream,std
       - run: cargo test --release --all-features

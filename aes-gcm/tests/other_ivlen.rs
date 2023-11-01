@@ -3,6 +3,8 @@
 //! Vectors taken from NIST CAVS vectors' `gcmEncryptExtIV128.rsp` file:
 //! <https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/CAVP-TESTING-BLOCK-CIPHER-MODES>
 
+#![cfg(all(feature = "aes", feature = "alloc"))]
+
 use aead::{
     generic_array::{typenum, GenericArray},
     Aead, KeyInit,

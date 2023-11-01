@@ -3,6 +3,8 @@
 //! The tests use `Aes256GcmSiv` and are crafted to test correct wrapping of
 //! the block counter.
 
+#![cfg(all(feature = "aes", feature = "alloc"))]
+
 #[macro_use]
 mod common;
 

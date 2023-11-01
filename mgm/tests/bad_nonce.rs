@@ -1,4 +1,7 @@
 //! Tests for nonce validity checks
+
+#![cfg(feature = "alloc")]
+
 use aead::{generic_array::GenericArray, Aead, KeyInit};
 use mgm::Mgm;
 

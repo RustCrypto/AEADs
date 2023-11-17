@@ -22,7 +22,7 @@ aead = { version = "0.5", default-features = false }
 chacha20 = { version = "0.9", features = ["zeroize"] }
 cipher = "0.4"
 poly1305 = "0.8"
-zeroize = { version = "1.6", default-features = false }
+zeroize = { version = "1.7", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.5", features = ["dev"], default-features = false }

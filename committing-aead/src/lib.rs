@@ -63,6 +63,7 @@ mod padded_aead {
     use super::KeyCommittingAead;
     use aead::{AeadCore, AeadInPlace, KeyInit, KeySizeUser};
     use core::ops::{Add, Mul};
+    use generic_array::typenum::operator_aliases::{Prod, Sum};
     use generic_array::typenum::{Unsigned, U3};
     use generic_array::ArrayLength;
     use subtle::{Choice, ConstantTimeEq};
@@ -107,17 +108,15 @@ mod padded_aead {
     }
     impl<Aead: AeadCore + KeySizeUser> AeadCore for PaddedAead<Aead>
     where
-        Aead::CiphertextOverhead: Add<<Aead::KeySize as Mul<U3>>::Output>,
+        Aead::CiphertextOverhead: Add<Prod<Aead::KeySize, U3>>,
         Aead::KeySize: Mul<U3>,
-        <Aead::CiphertextOverhead as Add<<Aead::KeySize as Mul<U3>>::Output>>::Output:
-            ArrayLength<u8>,
+        Sum<Aead::CiphertextOverhead, Prod<Aead::KeySize, U3>>: ArrayLength<u8>,
     {
         type NonceSize = Aead::NonceSize;
 
         type TagSize = Aead::TagSize;
 
-        type CiphertextOverhead =
-            <Aead::CiphertextOverhead as Add<<Aead::KeySize as Mul<U3>>::Output>>::Output;
+        type CiphertextOverhead = Sum<Aead::CiphertextOverhead, Prod<Aead::KeySize, U3>>;
     }
 
     impl<Aead: AeadCore + AeadInPlace + KeySizeUser> aead::Aead for PaddedAead<Aead>
@@ -288,6 +287,7 @@ mod ctx {
     use core::ops::Add;
     use digest::core_api::BlockSizeUser;
     use digest::{Digest, FixedOutput, Mac};
+    use generic_array::typenum::operator_aliases::Sum;
     use generic_array::typenum::Unsigned;
     use generic_array::ArrayLength;
     use hmac::SimpleHmac;
@@ -463,11 +463,11 @@ mod ctx {
         for CtxishHmacAead<Aead, CrHash>
     where
         Aead::TagSize: Add<CrHash::OutputSize>,
-        <Aead::TagSize as Add<CrHash::OutputSize>>::Output: ArrayLength<u8>,
+        Sum<Aead::TagSize, CrHash::OutputSize>: ArrayLength<u8>,
     {
         type NonceSize = Aead::NonceSize;
 
-        type TagSize = <Aead::TagSize as Add<CrHash::OutputSize>>::Output;
+        type TagSize = Sum<Aead::TagSize, CrHash::OutputSize>;
 
         type CiphertextOverhead = Aead::CiphertextOverhead;
     }

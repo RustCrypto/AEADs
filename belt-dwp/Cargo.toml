@@ -1,0 +1,27 @@
+[package]
+name = "belt-dwp"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hex = "0.4.3"
+belt-block = { version = "0.1.2" }
+belt-ctr = "0.1.0"
+aead = { version = "0.5.2", default-features = false }
+hybrid-array = "0.2.0-rc.5"
+hex-literal = "0.4.1"
+
+polyval = { path = "../../universal-hashes/polyval" }
+ghash = { path = "../../universal-hashes/ghash" }
+
+[dev-dependencies]
+
+[features]
+default = ["aead/heapless"]
+heapless  = ["aead/heapless"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

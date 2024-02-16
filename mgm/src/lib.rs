@@ -48,11 +48,24 @@ use sealed::Sealed;
 cpufeatures::new!(mul_intrinsics, "sse2", "ssse3", "pclmulqdq");
 
 /// MGM nonces
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// MGM tags
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
+/// MGM blocks
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 type Block<C> = GenericArray<u8, <C as BlockCipher>::BlockSize>;
 // cipher, nonce, aad, buffer
 type EncArgs<'a, C> = (&'a C, &'a Block<C>, &'a [u8], &'a mut [u8]);

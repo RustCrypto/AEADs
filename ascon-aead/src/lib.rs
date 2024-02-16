@@ -178,10 +178,22 @@ impl<P: Parameters> AeadInPlace for Ascon<P> {
 /// Ascon-128
 pub struct Ascon128(Ascon<Parameters128>);
 /// Key for Ascon-128
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Ascon128Key = Key<Ascon128>;
 /// Nonce for Ascon-128
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Ascon128Nonce = Nonce<Ascon128>;
 /// Tag for Ascon-128
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Ascon128Tag = Tag<Ascon128>;
 
 impl KeySizeUser for Ascon128 {

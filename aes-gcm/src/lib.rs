@@ -163,7 +163,7 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 /// use aes_gcm::{aead::Aead, KeyInit, Key};
 ///
 /// let bad_key_for_bad_nonces = b"01234567890123456789012345678901";
-/// // Key is also a GenericArray and has the same implementations.
+/// // Key is also a GenericArray and thus has the same implementations.
 /// let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(bad_key_for_bad_nonces));
 /// cipher.encrypt(&another_empty_nonce, b"Goodbye World; I've been pwned!".as_ref()).unwrap();
 /// ```

@@ -161,7 +161,9 @@ use chacha20::{ChaCha12, ChaCha8, XChaCha12, XChaCha8};
 
 /// Key type (256-bits/32-bytes).
 ///
-/// Implemented as an alias for [`GenericArray`].
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 ///
 /// All [`ChaChaPoly1305`] variants (including `XChaCha20Poly1305`) use this
 /// key type.
@@ -169,17 +171,23 @@ pub type Key = GenericArray<u8, U32>;
 
 /// Nonce type (96-bits/12-bytes).
 ///
-/// Implemented as an alias for [`GenericArray`].
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Nonce = GenericArray<u8, U12>;
 
 /// XNonce type (192-bits/24-bytes).
 ///
-/// Implemented as an alias for [`GenericArray`].
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type XNonce = GenericArray<u8, U24>;
 
 /// Poly1305 tag.
 ///
-/// Implemented as an alias for [`GenericArray`].
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Tag = GenericArray<u8, U16>;
 
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).

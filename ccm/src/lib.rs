@@ -59,59 +59,16 @@ mod private;
 
 /// CCM nonces
 ///
-/// Note: This crate uses
-/// [`generic_array::GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html)
-/// to represent this type internally. See the linked documentation to see available
-/// associated functions and trait implementations.
-///
-/// Note before the examples, you probably want to use [`AeadCore::generate_nonce`] and don't
-/// need to generate nonces yourself.
-///
-/// ```rust
-/// use ccm::{consts::U13, Nonce};
-///
-/// // Generate a 0-initialized GenericArray to be used as a 13-byte Nonce.
-/// // CCM nonce sizes may be from 7 to 13 with 13 being the strongest.
-/// let empty_13_byte_nonce = Nonce::<U13>::default();
-///
-/// // Remember that this crate re-exports aead which re-exports generic_array at the
-/// // correct version for this crate:
-/// use ccm::aead::generic_array::GenericArray;
-///
-/// // GenericArray's support casting to and from correctly sized arrays and slices and
-/// // deref to slices similar to regular Rust arrays.
-/// let mut another_empty_nonce =
-///     GenericArray::<u8, U13>::from([0u8; 13]);
-/// for (i, byte) in another_empty_nonce.iter_mut().enumerate() {
-///     *byte = i as u8;
-/// }
-///
-/// // If we have a pre-defined Ccm type we want to use, we can use its implementation
-/// // of AeadCore to extract the nonce size it uses.
-/// use ccm::{aead::AeadCore, consts::U10, Ccm};
-/// // As it stands, this crate is currently BYOA (Bring Your Own AES).
-/// use aes::Aes256;
-///
-/// type Aes256Ccm = Ccm<Aes256, U10, U13>;
-/// type NonceSize = <Aes256Ccm as AeadCore>::NonceSize;
-///
-/// // They work!
-///
-/// use ccm::{aead::Aead, KeyInit, Key};
-///
-/// let bad_key_for_bad_nonces = b"01234567890123456789012345678901";
-/// // Key is also a GenericArray and thus has the same implementations.
-/// let cipher = Ccm::<Aes256, U10, U13>::new(Key::<Aes256>::from_slice(bad_key_for_bad_nonces));
-/// cipher.encrypt(&another_empty_nonce, b"Goodbye World; I've been pwned!".as_ref()).unwrap();
-/// ```
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// CCM tags
 ///
-/// Note: This crate uses
-/// [`generic_array::GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html)
-/// to represent this type internally. See the linked documentation to see available
-/// associated functions and trait implementations.
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 /// Trait implemented for valid tag sizes, i.e.

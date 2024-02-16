@@ -148,9 +148,17 @@ pub const P_MAX: u64 = 1 << 36;
 pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// EAX nonces
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// EAX tags
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 pub mod online;

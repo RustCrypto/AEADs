@@ -133,9 +133,17 @@ pub type DeoxysII128 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc256>, deoxys_bc
 pub type DeoxysII256 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc384>, deoxys_bc::DeoxysBc384>;
 
 /// Deoxys nonces
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// Deoxys tags
+///
+/// Implemented as an alias for
+/// [`GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html).
+/// Note that this crate re-exports aead which re-exports GenericArray.
 pub type Tag = GenericArray<u8, U16>;
 
 /// Deoxys encryption modes.

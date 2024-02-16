@@ -170,6 +170,11 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// AES-GCM tags.
+///
+/// Note: This crate uses
+/// [`generic_array::GenericArray`](https://docs.rs/generic-array/0.14.5/generic_array/struct.GenericArray.html)
+/// to represent this type internally. See the linked documentation to see available
+/// associated functions and trait implementations.
 pub type Tag<TagSize = U16> = GenericArray<u8, TagSize>;
 
 /// Trait implemented for valid tag sizes, i.e.

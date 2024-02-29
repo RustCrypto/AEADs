@@ -1,6 +1,6 @@
 use aead::{
+    array::{Array, ArraySize},
     consts::{U15, U16, U17, U32, U48},
-    generic_array::{ArrayLength, GenericArray},
 };
 
 use crate::DeoxysBcType;
@@ -42,14 +42,14 @@ pub struct DeoxysBc256;
 pub struct DeoxysBc384;
 
 pub trait DeoxysBcInternal {
-    type SubkeysSize: ArrayLength<[u8; 16]>;
-    type TweakKeySize: ArrayLength<u8>;
+    type SubkeysSize: ArraySize;
+    type TweakKeySize: ArraySize;
 
     fn key_schedule(
         tweak: &[u8; 16],
-        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
-    ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
-        let mut subtweakeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
+        subkeys: &Array<[u8; 16], Self::SubkeysSize>,
+    ) -> Array<[u8; 16], Self::SubkeysSize> {
+        let mut subtweakeys: Array<[u8; 16], Self::SubkeysSize> = Default::default();
         let mut tweak = *tweak;
 
         // First key
@@ -78,10 +78,8 @@ impl DeoxysBcInternal for DeoxysBc256 {
 impl DeoxysBcType for DeoxysBc256 {
     type KeySize = U16;
 
-    fn precompute_subkeys(
-        key: &GenericArray<u8, Self::KeySize>,
-    ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
-        let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
+    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<[u8; 16], Self::SubkeysSize> {
+        let mut subkeys: Array<[u8; 16], Self::SubkeysSize> = Default::default();
 
         let mut tk2 = [0u8; 16];
 
@@ -118,10 +116,8 @@ impl DeoxysBcInternal for DeoxysBc384 {
 impl DeoxysBcType for DeoxysBc384 {
     type KeySize = U32;
 
-    fn precompute_subkeys(
-        key: &GenericArray<u8, Self::KeySize>,
-    ) -> GenericArray<[u8; 16], Self::SubkeysSize> {
-        let mut subkeys: GenericArray<[u8; 16], Self::SubkeysSize> = Default::default();
+    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<[u8; 16], Self::SubkeysSize> {
+        let mut subkeys: Array<[u8; 16], Self::SubkeysSize> = Default::default();
 
         let mut tk3 = [0u8; 16];
         let mut tk2 = [0u8; 16];

@@ -16,7 +16,7 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
 //! use ccm::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng, generic_array::GenericArray},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng, array::Array},
 //!     consts::{U10, U13},
 //!     Ccm,
 //! };
@@ -24,9 +24,9 @@
 //! // AES-256-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
 //! pub type Aes256Ccm = Ccm<Aes256, U10, U13>;
 //!
-//! let key = Aes256Ccm::generate_key(&mut OsRng);
+//! let key = Aes256Ccm::generate_key()?;
 //! let cipher = Aes256Ccm::new(&key);
-//! let nonce = Aes256Ccm::generate_nonce(&mut OsRng); // 13-bytes; unique per message
+//! let nonce = Aes256Ccm::generate_nonce()?; // 13-bytes; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -45,11 +45,12 @@
 pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use aead::{
+    array::{typenum::Unsigned, Array, ArraySize},
     consts::{U0, U16},
-    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
 };
 use cipher::{
-    Block, BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
+    Block, BlockCipher, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipher,
+    StreamCipherSeek,
 };
 use core::marker::PhantomData;
 use ctr::{Ctr32BE, Ctr64BE, CtrCore};
@@ -58,10 +59,10 @@ use subtle::ConstantTimeEq;
 mod private;
 
 /// CCM nonces
-pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// CCM tags
-pub type Tag<TagSize> = GenericArray<u8, TagSize>;
+pub type Tag<TagSize> = Array<u8, TagSize>;
 
 /// Trait implemented for valid tag sizes, i.e.
 /// [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
@@ -94,9 +95,9 @@ impl<T: private::SealedNonce> NonceSize for T {}
 #[derive(Clone)]
 pub struct Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    M: ArrayLength<u8> + TagSize,
-    N: ArrayLength<u8> + NonceSize,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
 {
     cipher: C,
     _pd: PhantomData<(M, N)>,
@@ -104,9 +105,9 @@ where
 
 impl<C, M, N> Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    M: ArrayLength<u8> + TagSize,
-    N: ArrayLength<u8> + NonceSize,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
 {
     fn extend_nonce(nonce: &Nonce<N>) -> Block<C> {
         let mut ext_nonce = Block::<C>::default();
@@ -170,9 +171,9 @@ where
 
 impl<C, M, N> From<C> for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    M: ArrayLength<u8> + TagSize,
-    N: ArrayLength<u8> + NonceSize,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
 {
     fn from(cipher: C) -> Self {
         Self {
@@ -184,18 +185,18 @@ where
 
 impl<C, M, N> KeySizeUser for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
-    M: ArrayLength<u8> + TagSize,
-    N: ArrayLength<u8> + NonceSize,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
 {
     type KeySize = C::KeySize;
 }
 
 impl<C, M, N> KeyInit for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
-    M: ArrayLength<u8> + TagSize,
-    N: ArrayLength<u8> + NonceSize,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
 {
     fn new(key: &Key<Self>) -> Self {
         Self::from(C::new(key))
@@ -204,9 +205,9 @@ where
 
 impl<C, M, N> AeadCore for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    M: ArrayLength<u8> + TagSize,
-    N: ArrayLength<u8> + NonceSize,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
 {
     type NonceSize = N;
     type TagSize = M;
@@ -215,9 +216,9 @@ where
 
 impl<C, M, N> AeadInPlace for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    M: ArrayLength<u8> + TagSize,
-    N: ArrayLength<u8> + NonceSize,
+    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -284,14 +285,14 @@ where
     }
 }
 
-struct CbcMac<'a, C: BlockCipher + BlockEncrypt> {
+struct CbcMac<'a, C: BlockCipher + BlockCipherEncrypt> {
     cipher: &'a C,
     state: Block<C>,
 }
 
 impl<'a, C> CbcMac<'a, C>
 where
-    C: BlockCipher + BlockEncrypt,
+    C: BlockCipher + BlockCipherEncrypt,
 {
     fn from_cipher(cipher: &'a C) -> Self {
         Self {
@@ -326,10 +327,10 @@ where
     }
 }
 
-fn fill_aad_header(adata_len: usize) -> (usize, GenericArray<u8, U16>) {
+fn fill_aad_header(adata_len: usize) -> (usize, Array<u8, U16>) {
     debug_assert_ne!(adata_len, 0);
 
-    let mut b = GenericArray::<u8, U16>::default();
+    let mut b = Array::<u8, U16>::default();
     let n = if adata_len < 0xFF00 {
         b[..2].copy_from_slice(&(adata_len as u16).to_be_bytes());
         2

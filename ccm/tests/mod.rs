@@ -1,6 +1,6 @@
 #![cfg(feature = "alloc")]
 
-use aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
+use aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
 use aes::{Aes128, Aes192, Aes256};
 use ccm::{
     consts::{U10, U11, U12, U13, U14, U16, U4, U6, U7, U8, U9},
@@ -14,8 +14,8 @@ fn test_data_len_check() {
     let nonce = hex!("2F1DBD38CE3EDA7C23F04DD650");
 
     type Cipher = Ccm<aes::Aes128, U10, U13>;
-    let key = GenericArray::from_slice(&key);
-    let nonce = GenericArray::from_slice(&nonce);
+    let key = Array::from_slice(&key);
+    let nonce = Array::from_slice(&nonce);
     let c = Cipher::new(key);
 
     let mut buf1 = [1; core::u16::MAX as usize];
@@ -36,15 +36,15 @@ fn sp800_38c_examples() {
             $key:expr, $m:ty, $n:ty,
             nonce: $nonce:expr, adata: $adata:expr, pt: $pt:expr, ct: $ct:expr,
         ) => {
-            let key = GenericArray::from_slice(&$key);
+            let key = Array::from_slice(&$key);
             let c = Ccm::<aes::Aes128, $m, $n>::new(key);
-            let nonce = GenericArray::from_slice(&$nonce);
+            let nonce = Array::from_slice(&$nonce);
             let res = c.encrypt(nonce, Payload { aad: &$adata, msg: &$pt })
                 .unwrap();
-            assert_eq!(res, $ct.as_ref());
+            assert_eq!(res, &$ct);
             let res = c.decrypt(nonce, Payload { aad: &$adata, msg: &$ct })
                 .unwrap();
-            assert_eq!(res, $pt.as_ref());
+            assert_eq!(res, &$pt);
         };
     }
 

@@ -31,9 +31,9 @@
 //!     ChaCha20Poly1305, Nonce
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+//! let key = ChaCha20Poly1305::generate_key()?;
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 96-bits; unique per message
+//! let nonce = ChaCha20Poly1305::generate_nonce()?; // 96-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -70,9 +70,9 @@
 //!     ChaCha20Poly1305, Nonce,
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+//! let key = ChaCha20Poly1305::generate_key()?;
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 96-bits; unique per message
+//! let nonce = ChaCha20Poly1305::generate_nonce()?; // 96-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
@@ -131,9 +131,9 @@
 //!     XChaCha20Poly1305, XNonce
 //! };
 //!
-//! let key = XChaCha20Poly1305::generate_key(&mut OsRng);
+//! let key = XChaCha20Poly1305::generate_key()?;
 //! let cipher = XChaCha20Poly1305::new(&key);
-//! let nonce = XChaCha20Poly1305::generate_nonce(&mut OsRng); // 192-bits; unique per message
+//! let nonce = XChaCha20Poly1305::generate_nonce()?; // 192-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -148,8 +148,8 @@ pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser}
 use self::cipher::Cipher;
 use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
 use aead::{
+    array::{Array, ArraySize},
     consts::{U0, U12, U16, U24, U32},
-    generic_array::{ArrayLength, GenericArray},
 };
 use core::marker::PhantomData;
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -161,26 +161,26 @@ use chacha20::{ChaCha12, ChaCha8, XChaCha12, XChaCha8};
 
 /// Key type (256-bits/32-bytes).
 ///
-/// Implemented as an alias for [`GenericArray`].
+/// Implemented as an alias for [`Array`].
 ///
 /// All [`ChaChaPoly1305`] variants (including `XChaCha20Poly1305`) use this
 /// key type.
-pub type Key = GenericArray<u8, U32>;
+pub type Key = Array<u8, U32>;
 
 /// Nonce type (96-bits/12-bytes).
 ///
-/// Implemented as an alias for [`GenericArray`].
-pub type Nonce = GenericArray<u8, U12>;
+/// Implemented as an alias for [`Array`].
+pub type Nonce = Array<u8, U12>;
 
 /// XNonce type (192-bits/24-bytes).
 ///
-/// Implemented as an alias for [`GenericArray`].
-pub type XNonce = GenericArray<u8, U24>;
+/// Implemented as an alias for [`Array`].
+pub type XNonce = Array<u8, U24>;
 
 /// Poly1305 tag.
 ///
-/// Implemented as an alias for [`GenericArray`].
-pub type Tag = GenericArray<u8, U16>;
+/// Implemented as an alias for [`Array`].
+pub type Tag = Array<u8, U16>;
 
 /// ChaCha20Poly1305 Authenticated Encryption with Additional Data (AEAD).
 pub type ChaCha20Poly1305 = ChaChaPoly1305<ChaCha20, U12>;
@@ -211,7 +211,7 @@ pub type XChaCha12Poly1305 = ChaChaPoly1305<XChaCha12, U24>;
 /// Generic ChaCha+Poly1305 Authenticated Encryption with Additional Data (AEAD) construction.
 ///
 /// See the [toplevel documentation](index.html) for a usage example.
-pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12> {
+pub struct ChaChaPoly1305<C, N: ArraySize = U12> {
     /// Secret key.
     key: Key,
 
@@ -224,14 +224,14 @@ pub struct ChaChaPoly1305<C, N: ArrayLength<u8> = U12> {
 
 impl<C, N> KeySizeUser for ChaChaPoly1305<C, N>
 where
-    N: ArrayLength<u8>,
+    N: ArraySize,
 {
     type KeySize = U32;
 }
 
 impl<C, N> KeyInit for ChaChaPoly1305<C, N>
 where
-    N: ArrayLength<u8>,
+    N: ArraySize,
 {
     #[inline]
     fn new(key: &Key) -> Self {
@@ -245,7 +245,7 @@ where
 
 impl<C, N> AeadCore for ChaChaPoly1305<C, N>
 where
-    N: ArrayLength<u8>,
+    N: ArraySize,
 {
     type NonceSize = N;
     type TagSize = U16;
@@ -255,7 +255,7 @@ where
 impl<C, N> AeadInPlace for ChaChaPoly1305<C, N>
 where
     C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
-    N: ArrayLength<u8>,
+    N: ArraySize,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -283,7 +283,7 @@ where
 
 impl<C, N> Clone for ChaChaPoly1305<C, N>
 where
-    N: ArrayLength<u8>,
+    N: ArraySize,
 {
     fn clone(&self) -> Self {
         Self {
@@ -296,11 +296,11 @@ where
 
 impl<C, N> Drop for ChaChaPoly1305<C, N>
 where
-    N: ArrayLength<u8>,
+    N: ArraySize,
 {
     fn drop(&mut self) {
         self.key.as_mut_slice().zeroize();
     }
 }
 
-impl<C, N: ArrayLength<u8>> ZeroizeOnDrop for ChaChaPoly1305<C, N> {}
+impl<C, N: ArraySize> ZeroizeOnDrop for ChaChaPoly1305<C, N> {}

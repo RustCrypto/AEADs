@@ -1,7 +1,7 @@
 use super::{DeoxysBcType, DeoxysMode};
 use aead::{
+    array::Array,
     consts::{U15, U16, U8},
-    generic_array::GenericArray,
 };
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
@@ -31,7 +31,7 @@ where
     fn compute_ad_tag(
         associated_data: &[u8],
         tweak: &mut [u8; 16],
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
         tag: &mut [u8; 16],
     ) {
         if !associated_data.is_empty() {
@@ -81,10 +81,10 @@ where
     type NonceSize = U8;
 
     fn encrypt_in_place(
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> [u8; 16] {
         let mut tag = [0u8; 16];
         let mut checksum = [0u8; 16];
@@ -179,11 +179,11 @@ where
     }
 
     fn decrypt_in_place(
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &GenericArray<u8, U16>,
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        tag: &Array<u8, U16>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
         let mut computed_tag = [0u8; 16];
         let mut checksum = [0u8; 16];
@@ -288,7 +288,7 @@ where
     fn authenticate_message(
         buffer: &[u8],
         tweak: &mut [u8; 16],
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
         tag: &mut [u8; 16],
     ) {
         if !buffer.is_empty() {
@@ -329,9 +329,9 @@ where
     fn encrypt_decrypt_message(
         buffer: &mut [u8],
         tweak: &mut [u8; 16],
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
-        tag: &GenericArray<u8, U16>,
-        nonce: &GenericArray<u8, U15>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
+        tag: &Array<u8, U16>,
+        nonce: &Array<u8, U15>,
     ) {
         if !buffer.is_empty() {
             tweak.copy_from_slice(tag);
@@ -370,10 +370,10 @@ where
     type NonceSize = U15;
 
     fn encrypt_in_place(
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> [u8; 16] {
         let mut tag = [0u8; 16];
         let mut tweak = [0u8; 16];
@@ -400,11 +400,11 @@ where
     }
 
     fn decrypt_in_place(
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &GenericArray<u8, U16>,
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        tag: &Array<u8, U16>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
         let mut computed_tag = [0u8; 16];
         let mut tweak = [0u8; 16];

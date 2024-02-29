@@ -17,15 +17,15 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes::Aes256;
 //! use eax::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng, generic_array::GenericArray},
+//!     aead::{Aead, AeadCore, KeyInit, OsRng, array::Array},
 //!     Eax, Nonce
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
 //!
-//! let key = Aes256Eax::generate_key(&mut OsRng);
+//! let key = Aes256Eax::generate_key()?;
 //! let cipher = Aes256Eax::new(&key);
-//! let nonce = Aes256Eax::generate_nonce(&mut OsRng); // 128-bits; unique per message
+//! let nonce = Aes256Eax::generate_nonce()?; // 128-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -54,17 +54,17 @@
 //! use aes::Aes256;
 //! use eax::Eax;
 //! use eax::aead::{
-//!     generic_array::GenericArray,
+//!     array::Array,
 //!     heapless::Vec,
 //!     AeadCore, AeadInPlace, KeyInit, OsRng
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
 //!
-//! let key = Aes256Eax::generate_key(&mut OsRng);
+//! let key = Aes256Eax::generate_key().expect("generate key");
 //! let cipher = Aes256Eax::new(&key);
 //!
-//! let nonce = Aes256Eax::generate_nonce(&mut OsRng); // 128-bits; unique per message
+//! let nonce = Aes256Eax::generate_nonce().expect("generate nonce"); // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
@@ -95,14 +95,14 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
+//! use eax::aead::{AeadInPlace, KeyInit, array::Array};
 //! use eax::aead::heapless::Vec;
 //! use eax::aead::consts::{U8, U128};
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
+//! let key = Array::from_slice(b"an example very very secret key.");
 //! let cipher = Eax::<Aes256, U8>::new(key);
 //!
-//! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
+//! let nonce = Array::from_slice(b"my unique nonces"); // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new();
 //! buffer.extend_from_slice(b"plaintext message");
@@ -126,9 +126,10 @@ pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 pub use cipher;
 
 use cipher::{
+    array::Array,
     consts::{U0, U16},
-    generic_array::{functional::FunctionalSequence, GenericArray},
-    BlockCipher, BlockEncrypt, InnerIvInit, StreamCipherCore,
+    crypto_common::OutputSizeUser,
+    BlockCipher, BlockCipherEncrypt, InnerIvInit, StreamCipherCore, Unsigned,
 };
 use cmac::{digest::Output, Cmac, Mac};
 use core::marker::PhantomData;
@@ -148,10 +149,13 @@ pub const P_MAX: u64 = 1 << 36;
 pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// EAX nonces
-pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// EAX tags
-pub type Tag<TagSize> = GenericArray<u8, TagSize>;
+pub type Tag<TagSize> = Array<u8, TagSize>;
+
+// TODO: Drop that once https://github.com/RustCrypto/traits/pull/1533 releases.
+type OutputSize<T> = <T as OutputSizeUser>::OutputSize;
 
 pub mod online;
 
@@ -169,7 +173,7 @@ type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
 #[derive(Clone)]
 pub struct Eax<Cipher, M = U16>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Encryption key
@@ -179,7 +183,7 @@ where
 
 impl<Cipher, M> KeySizeUser for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     type KeySize = Cipher::KeySize;
@@ -187,7 +191,7 @@ where
 
 impl<Cipher, M> KeyInit for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     fn new(key: &Key<Cipher>) -> Self {
@@ -200,7 +204,7 @@ where
 
 impl<Cipher, M> AeadCore for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     type NonceSize = Cipher::BlockSize;
@@ -210,7 +214,7 @@ where
 
 impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     fn encrypt_in_place_detached(
@@ -243,7 +247,15 @@ where
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
-        let full_tag = n.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
+        let full_tag: Array<_, OutputSize<Cmac<Cipher>>> = n
+            .into_iter()
+            .zip(h)
+            .map(|(a, b)| a ^ b)
+            .zip(c)
+            .map(|(a, b)| a ^ b)
+            .take(OutputSize::<Cmac<Cipher>>::to_usize())
+            .collect();
+
         let tag = Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()]);
         Ok(tag)
     }
@@ -270,7 +282,14 @@ where
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
-        let expected_tag = n.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
+        let expected_tag: Array<_, OutputSize<Cmac<Cipher>>> = n
+            .into_iter()
+            .zip(h)
+            .map(|(a, b)| a ^ b)
+            .zip(c)
+            .map(|(a, b)| a ^ b)
+            .take(OutputSize::<Cmac<Cipher>>::to_usize())
+            .collect();
 
         let expected_tag = &expected_tag[..tag.len()];
 
@@ -290,19 +309,15 @@ where
 
 impl<Cipher, M> Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// CMAC/OMAC1
     ///
     /// To avoid constructing new buffers on the heap, an iv encoded into 16
     /// bytes is prepended inside this function.
-    fn cmac_with_iv(
-        key: &GenericArray<u8, Cipher::KeySize>,
-        iv: u8,
-        data: &[u8],
-    ) -> Output<Cmac<Cipher>> {
-        let mut mac = <Cmac<Cipher> as Mac>::new(key);
+    fn cmac_with_iv(key: &Array<u8, Cipher::KeySize>, iv: u8, data: &[u8]) -> Output<Cmac<Cipher>> {
+        let mut mac = <Cmac<Cipher> as KeyInit>::new(key);
         mac.update(&[0; 15]);
         mac.update(&[iv]);
         mac.update(data);

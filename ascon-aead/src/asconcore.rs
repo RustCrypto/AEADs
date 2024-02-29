@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use aead::{
+    array::{typenum::Unsigned, Array, ArraySize},
     consts::{U16, U20},
-    generic_array::{typenum::Unsigned, ArrayLength, GenericArray},
     Error,
 };
 use ascon::{pad, State};
@@ -45,8 +45,8 @@ fn u32_from_be_bytes(input: &[u8]) -> u32 {
 /// Helper trait for handling differences in key usage of Ascon-128* and Ascon-80*
 ///
 /// For internal use-only.
-pub(crate) trait InternalKey<KS: ArrayLength<u8>>:
-    Sized + Clone + for<'a> From<&'a GenericArray<u8, KS>>
+pub(crate) trait InternalKey<KS: ArraySize>:
+    Sized + Clone + for<'a> From<&'a Array<u8, KS>>
 {
     /// Return K0.
     fn get_k0(&self) -> u64;
@@ -77,8 +77,8 @@ impl InternalKey<U16> for InternalKey16 {
     }
 }
 
-impl From<&GenericArray<u8, U16>> for InternalKey16 {
-    fn from(key: &GenericArray<u8, U16>) -> Self {
+impl From<&Array<u8, U16>> for InternalKey16 {
+    fn from(key: &Array<u8, U16>) -> Self {
         Self(u64_from_be_bytes(&key[..8]), u64_from_be_bytes(&key[8..]))
     }
 }
@@ -104,8 +104,8 @@ impl InternalKey<U20> for InternalKey20 {
     }
 }
 
-impl From<&GenericArray<u8, U20>> for InternalKey20 {
-    fn from(key: &GenericArray<u8, U20>) -> Self {
+impl From<&Array<u8, U20>> for InternalKey20 {
+    fn from(key: &Array<u8, U20>) -> Self {
         Self(
             u64_from_be_bytes(&key[4..12]),
             u64_from_be_bytes(&key[12..]),
@@ -119,7 +119,7 @@ pub(crate) trait Parameters {
     /// Size of the secret key
     ///
     /// For internal use-only.
-    type KeySize: ArrayLength<u8>;
+    type KeySize: ArraySize;
     /// Internal storage for secret keys
     ///
     /// For internal use-only.
@@ -173,7 +173,7 @@ pub(crate) struct AsconCore<'a, P: Parameters> {
 }
 
 impl<'a, P: Parameters> AsconCore<'a, P> {
-    pub(crate) fn new(internal_key: &'a P::InternalKey, nonce: &GenericArray<u8, U16>) -> Self {
+    pub(crate) fn new(internal_key: &'a P::InternalKey, nonce: &Array<u8, U16>) -> Self {
         let mut state = State::new(
             if P::KeySize::USIZE == 20 {
                 P::IV ^ internal_key.get_k0()
@@ -341,17 +341,17 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         &mut self,
         message: &mut [u8],
         associated_data: &[u8],
-    ) -> GenericArray<u8, U16> {
+    ) -> Array<u8, U16> {
         self.process_associated_data(associated_data);
         self.process_encrypt_inplace(message);
-        GenericArray::from(self.process_final())
+        Array::from(self.process_final())
     }
 
     pub(crate) fn decrypt_inplace(
         &mut self,
         ciphertext: &mut [u8],
         associated_data: &[u8],
-        expected_tag: &GenericArray<u8, U16>,
+        expected_tag: &Array<u8, U16>,
     ) -> Result<(), Error> {
         self.process_associated_data(associated_data);
         self.process_decrypt_inplace(ciphertext);

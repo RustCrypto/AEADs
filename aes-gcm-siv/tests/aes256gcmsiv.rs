@@ -6,7 +6,7 @@
 mod common;
 
 use self::common::TestVector;
-use aes_gcm_siv::aead::{generic_array::GenericArray, Aead, KeyInit, Payload};
+use aes_gcm_siv::aead::{array::Array, Aead, KeyInit, Payload};
 use aes_gcm_siv::Aes256GcmSiv;
 
 /// Test vectors from RFC8452 Appendix C.2. AEAD_AES_256_auth tag_SIV

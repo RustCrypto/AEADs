@@ -19,9 +19,9 @@
 //!     Aes256SivAead, Nonce // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key(&mut OsRng);
+//! let key = Aes256SivAead::generate_key()?;
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Aes256SivAead::generate_nonce(&mut OsRng); // 128-bits; unique per message
+//! let nonce = Aes256SivAead::generate_nonce()?; // 128-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -58,9 +58,9 @@
 //!     Aes256SivAead, Nonce, // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key(&mut OsRng);
+//! let key = Aes256SivAead::generate_key()?;
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Aes256SivAead::generate_nonce(&mut OsRng); // 128-bits; unique per message
+//! let nonce = Aes256SivAead::generate_nonce()?; // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
@@ -91,12 +91,12 @@ pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use crate::siv::Siv;
 use aead::{
+    array::Array,
     consts::{U0, U1, U16, U32, U64},
-    generic_array::GenericArray,
     Buffer,
 };
 use aes::{Aes128, Aes256};
-use cipher::{typenum::IsGreaterOrEqual, ArrayLength, BlockCipher, BlockEncryptMut};
+use cipher::{typenum::IsGreaterOrEqual, ArraySize, BlockCipher, BlockCipherEncrypt};
 use cmac::Cmac;
 use core::{marker::PhantomData, ops::Add};
 use digest::{FixedOutputReset, Mac};
@@ -105,10 +105,10 @@ use digest::{FixedOutputReset, Mac};
 use pmac::Pmac;
 
 /// AES-SIV nonces
-pub type Nonce<NonceSize = U16> = GenericArray<u8, NonceSize>;
+pub type Nonce<NonceSize = U16> = Array<u8, NonceSize>;
 
 /// AES-SIV tags (i.e. the Synthetic Initialization Vector value)
-pub type Tag = GenericArray<u8, U16>;
+pub type Tag = Array<u8, U16>;
 
 /// The `SivAead` type wraps the more powerful `Siv` interface in a more
 /// commonly used Authenticated Encryption with Associated Data (AEAD) API,
@@ -116,12 +116,12 @@ pub type Tag = GenericArray<u8, U16>;
 pub struct SivAead<C, M, NonceSize = U16>
 where
     Self: KeySizeUser,
-    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
-    key: GenericArray<u8, <Self as KeySizeUser>::KeySize>,
+    key: Array<u8, <Self as KeySizeUser>::KeySize>,
     mac: PhantomData<M>, // TODO(tarcieri): include `M` in `KeySize` calculation
 }
 
@@ -152,7 +152,7 @@ pub type Aes256PmacSivAead = PmacSivAead<Aes256>;
 impl<M, NonceSize> KeySizeUser for SivAead<Aes128, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
     type KeySize = U32;
 }
@@ -160,7 +160,7 @@ where
 impl<M, NonceSize> KeySizeUser for SivAead<Aes256, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
     type KeySize = U64;
 }
@@ -168,9 +168,9 @@ where
 impl<M, NonceSize> KeyInit for SivAead<Aes128, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
-    fn new(key: &GenericArray<u8, Self::KeySize>) -> Self {
+    fn new(key: &Array<u8, Self::KeySize>) -> Self {
         Self {
             key: *key,
             mac: PhantomData,
@@ -181,9 +181,9 @@ where
 impl<M, NonceSize> KeyInit for SivAead<Aes256, M, NonceSize>
 where
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
-    fn new(key: &GenericArray<u8, Self::KeySize>) -> Self {
+    fn new(key: &Array<u8, Self::KeySize>) -> Self {
         Self {
             key: *key,
             mac: PhantomData,
@@ -194,10 +194,10 @@ where
 impl<C, M, NonceSize> AeadCore for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
-    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
     // "If the nonce is random, it SHOULD be at least 128 bits in length"
     // https://tools.ietf.org/html/rfc5297#section-3
@@ -212,14 +212,14 @@ impl<C, M, NonceSize> AeadInPlace for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
     Siv<C, M>: KeyInit + KeySizeUser<KeySize = <Self as KeySizeUser>::KeySize>,
-    C: BlockCipher<BlockSize = U16> + BlockEncryptMut + KeyInit + KeySizeUser,
+    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U1>,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
     fn encrypt_in_place(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
@@ -233,17 +233,17 @@ where
 
     fn encrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-    ) -> Result<GenericArray<u8, Self::TagSize>, Error> {
+    ) -> Result<Array<u8, Self::TagSize>, Error> {
         Siv::<C, M>::new(&self.key)
             .encrypt_in_place_detached([associated_data, nonce.as_slice()], buffer)
     }
 
     fn decrypt_in_place(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut dyn Buffer,
     ) -> Result<(), Error> {
@@ -252,10 +252,10 @@ where
 
     fn decrypt_in_place_detached(
         &self,
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &GenericArray<u8, Self::TagSize>,
+        tag: &Array<u8, Self::TagSize>,
     ) -> Result<(), Error> {
         Siv::<C, M>::new(&self.key).decrypt_in_place_detached(
             [associated_data, nonce.as_slice()],

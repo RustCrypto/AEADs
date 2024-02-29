@@ -17,9 +17,9 @@
 //!     Nonce // Or `Aes128Gcm`
 //! };
 //!
-//! let key = DeoxysII256::generate_key(&mut OsRng);
+//! let key = DeoxysII256::generate_key()?;
 //! let cipher = DeoxysII256::new(&key);
-//! let nonce = DeoxysII256::generate_nonce(&mut OsRng); // 120-bits; unique per message
+//! let nonce = DeoxysII256::generate_nonce()?; // 120-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -33,10 +33,10 @@
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
 //! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload, OsRng};
 //!
-//! let key = DeoxysII256::generate_key(&mut OsRng);
+//! let key = DeoxysII256::generate_key().expect("generate key");
 //! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = DeoxysII256::generate_nonce(&mut OsRng); // 120-bits; unique per message
+//! let nonce = DeoxysII256::generate_nonce().expect("generate nonce"); // 120-bits; unique per message
 //!
 //! let payload = Payload {
 //!    msg: &b"this will be encrypted".as_ref(),
@@ -78,10 +78,10 @@
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
 //! use deoxys::aead::{AeadCore, AeadInPlace, KeyInit, OsRng, heapless::Vec};
 //!
-//! let key = DeoxysII256::generate_key(&mut OsRng);
+//! let key = DeoxysII256::generate_key().expect("generate key");
 //! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = DeoxysII256::generate_nonce(&mut OsRng); // 120-bits; unique per message
+//! let nonce = DeoxysII256::generate_nonce().expect("generate nonce"); // 120-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Buffer needs 16-bytes overhead for tag
 //! buffer.extend_from_slice(b"plaintext message");
@@ -111,8 +111,8 @@ mod modes;
 pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use aead::{
+    array::{Array, ArraySize},
     consts::{U0, U16},
-    generic_array::{ArrayLength, GenericArray},
 };
 use core::marker::PhantomData;
 
@@ -133,10 +133,10 @@ pub type DeoxysII128 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc256>, deoxys_bc
 pub type DeoxysII256 = Deoxys<modes::DeoxysII<deoxys_bc::DeoxysBc384>, deoxys_bc::DeoxysBc384>;
 
 /// Deoxys nonces
-pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// Deoxys tags
-pub type Tag = GenericArray<u8, U16>;
+pub type Tag = Array<u8, U16>;
 
 /// Deoxys encryption modes.
 /// This type contains the public API for a Deoxys mode, like Deoxys-I and Deoxys-II.
@@ -145,25 +145,25 @@ where
     B: DeoxysBcType,
 {
     /// The size of the required nonce
-    type NonceSize: ArrayLength<u8>;
+    type NonceSize: ArraySize;
 
     /// Encrypts the data in place with the specified parameters
     /// Returns the tag
     fn encrypt_in_place(
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> [u8; 16];
 
     /// Decrypts the data in place with the specified parameters
     /// Returns an error if the tag verification fails
     fn decrypt_in_place(
-        nonce: &GenericArray<u8, Self::NonceSize>,
+        nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
-        subkeys: &GenericArray<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error>;
 }
 
@@ -171,18 +171,16 @@ where
 /// This type contains the public API for Deoxys-BC implementations, which varies depending on the size of the key.
 pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     /// The size of the required tweakey.
-    type KeySize: ArrayLength<u8>;
+    type KeySize: ArraySize;
 
     /// Precompute the subkeys
-    fn precompute_subkeys(
-        key: &GenericArray<u8, Self::KeySize>,
-    ) -> GenericArray<[u8; 16], Self::SubkeysSize>;
+    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<[u8; 16], Self::SubkeysSize>;
 
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
         block: &mut [u8; 16],
         tweak: &[u8; 16],
-        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
+        subkeys: &Array<[u8; 16], Self::SubkeysSize>,
     ) {
         let keys = Self::key_schedule(tweak, subkeys);
 
@@ -199,7 +197,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     fn decrypt_in_place(
         block: &mut [u8; 16],
         tweak: &[u8; 16],
-        subkeys: &GenericArray<[u8; 16], Self::SubkeysSize>,
+        subkeys: &Array<[u8; 16], Self::SubkeysSize>,
     ) {
         let mut keys = Self::key_schedule(tweak, subkeys);
 
@@ -228,7 +226,7 @@ where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
-    subkeys: GenericArray<[u8; 16], B::SubkeysSize>,
+    subkeys: Array<[u8; 16], B::SubkeysSize>,
     mode: PhantomData<M>,
 }
 

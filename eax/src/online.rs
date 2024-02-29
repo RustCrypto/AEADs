@@ -13,11 +13,11 @@
 //!
 //! ## Example
 //! ```
-//! use eax::{Error, online::{Eax, Decrypt, Encrypt}, cipher::generic_array::GenericArray};
+//! use eax::{Error, online::{Eax, Decrypt, Encrypt}, cipher::array::Array};
 //! use aes::Aes256;
 //!
-//! let key = GenericArray::from_slice(b"an example very very secret key.");
-//! let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
+//! let key = Array::from_slice(b"an example very very secret key.");
+//! let nonce = Array::from_slice(b"my unique nonces"); // 128-bits; unique per message
 //! let assoc = b"my associated data";
 //! let plaintext = b"plaintext message";
 //! let mut buffer: [u8; 17] = *plaintext;
@@ -60,8 +60,7 @@
 use crate::{Cmac, Error, Nonce, Tag, TagSize};
 use aead::consts::U16;
 use cipher::{
-    generic_array::functional::FunctionalSequence, BlockCipher, BlockEncrypt, Key, KeyInit,
-    KeyIvInit, StreamCipher,
+    array::Array, BlockCipher, BlockCipherEncrypt, Key, KeyInit, KeyIvInit, StreamCipher, Unsigned,
 };
 use cmac::Mac;
 use core::marker::PhantomData;
@@ -100,12 +99,12 @@ impl CipherOp for Decrypt {}
 ///
 /// ## Example
 /// ```
-/// use eax::{Error, online::{Eax, Decrypt, Encrypt}, cipher::generic_array::GenericArray};
+/// use eax::{Error, online::{Eax, Decrypt, Encrypt}, cipher::array::Array};
 /// use aes::Aes256;
 ///
-/// let key = GenericArray::from_slice(b"an example very very secret key.");
+/// let key = Array::from_slice(b"an example very very secret key.");
 ///
-/// let nonce = GenericArray::from_slice(b"my unique nonces"); // 128-bits; unique per message
+/// let nonce = Array::from_slice(b"my unique nonces"); // 128-bits; unique per message
 ///
 /// let assoc = b"my associated data";
 /// let plaintext = b"plaintext message";
@@ -150,7 +149,7 @@ impl CipherOp for Decrypt {}
 /// [`finish`]: #method.finish
 pub struct Eax<Cipher, Op, M = U16>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     Op: CipherOp,
     M: TagSize,
 {
@@ -161,7 +160,7 @@ where
 
 impl<Cipher, Op, M> Eax<Cipher, Op, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     Op: CipherOp,
     M: TagSize,
 {
@@ -196,7 +195,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, Encrypt, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Applies encryption to the plaintext.
@@ -217,7 +216,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, Decrypt, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Applies decryption to the ciphertext **without** verifying the
@@ -265,7 +264,7 @@ where
 #[doc(hidden)]
 struct EaxImpl<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
 
     M: TagSize,
 {
@@ -281,14 +280,14 @@ where
 
 impl<Cipher, M> EaxImpl<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
     fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
         let prepend_cmac = |key, init_val, data| {
-            let mut cmac = <Cmac<Cipher> as Mac>::new(key);
+            let mut cmac = <Cmac<Cipher> as KeyInit>::new(key);
             cmac.update(&[0; 15]);
             cmac.update(&[init_val]);
             cmac.update(data);
@@ -349,7 +348,16 @@ where
         let h = self.data.finalize().into_bytes();
         let c = self.message.finalize().into_bytes();
 
-        let full_tag = self.nonce.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
+        let full_tag: Array<_, Cipher::BlockSize> = self
+            .nonce
+            .into_iter()
+            .zip(h)
+            .map(|(a, b)| a ^ b)
+            .zip(c)
+            .map(|(a, b)| a ^ b)
+            .take(Cipher::BlockSize::to_usize())
+            .collect();
+
         Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()])
     }
 
@@ -359,7 +367,16 @@ where
         let h = self.data.clone().finalize().into_bytes();
         let c = self.message.clone().finalize().into_bytes();
 
-        let full_tag = self.nonce.zip(h, |a, b| a ^ b).zip(c, |a, b| a ^ b);
+        let full_tag: Array<_, Cipher::BlockSize> = self
+            .nonce
+            .into_iter()
+            .zip(h)
+            .map(|(a, b)| a ^ b)
+            .zip(c)
+            .map(|(a, b)| a ^ b)
+            .take(Cipher::BlockSize::to_usize())
+            .collect();
+
         Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()])
     }
 
@@ -386,11 +403,11 @@ where
 #[cfg(test)]
 mod test_impl {
     use super::*;
-    use aead::{consts::U0, generic_array::GenericArray, AeadCore, AeadMutInPlace, KeySizeUser};
+    use aead::{array::Array, consts::U0, AeadCore, AeadMutInPlace, KeySizeUser};
 
     impl<Cipher, M> KeySizeUser for EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+        Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
         M: TagSize,
     {
         type KeySize = Cipher::KeySize;
@@ -398,7 +415,7 @@ mod test_impl {
 
     impl<Cipher, M> KeyInit for EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+        Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
         M: TagSize,
     {
         fn new(key: &Key<Cipher>) -> Self {
@@ -407,7 +424,7 @@ mod test_impl {
             // This is currently done so because that trait only implements
             // offline operations and thus need to re-initialize the `EaxImpl`
             // instance.
-            let nonce = GenericArray::default();
+            let nonce = Array::default();
 
             Self::with_key_and_nonce(key, &nonce)
         }
@@ -415,7 +432,7 @@ mod test_impl {
 
     impl<Cipher, M> AeadCore for super::EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+        Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
         M: TagSize,
     {
         type NonceSize = Cipher::BlockSize;
@@ -425,7 +442,7 @@ mod test_impl {
 
     impl<Cipher, M> AeadMutInPlace for super::EaxImpl<Cipher, M>
     where
-        Cipher: BlockCipher<BlockSize = U16> + BlockEncrypt + Clone + KeyInit,
+        Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
         M: TagSize,
     {
         fn encrypt_in_place_detached(

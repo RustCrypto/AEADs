@@ -16,8 +16,8 @@ macro_rules! tests {
         #[test]
         fn encrypt() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
                 let payload = Payload {
                     msg: vector.plaintext,
                     aad: vector.aad,
@@ -32,8 +32,8 @@ macro_rules! tests {
         #[test]
         fn decrypt() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
                 let ciphertext = Vec::from(vector.ciphertext);
 
                 let payload = Payload {
@@ -51,8 +51,8 @@ macro_rules! tests {
         #[test]
         fn decrypt_modified() {
             let vector = &$vectors[0];
-            let key = GenericArray::from_slice(vector.key);
-            let nonce = GenericArray::from_slice(vector.nonce);
+            let key = Array::from_slice(vector.key);
+            let nonce = Array::from_slice(vector.nonce);
 
             let mut ciphertext = Vec::from(vector.ciphertext);
 

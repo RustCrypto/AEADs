@@ -21,8 +21,8 @@ macro_rules! impl_tests {
     ($cipher:ty, $key:expr, $nonce:expr, $aad:expr, $plaintext:expr, $ciphertext:expr, $tag:expr) => {
         #[test]
         fn encrypt() {
-            let key = GenericArray::from_slice($key);
-            let nonce = GenericArray::from_slice($nonce);
+            let key = Array::from_slice($key);
+            let nonce = Array::from_slice($nonce);
             let payload = Payload {
                 msg: $plaintext,
                 aad: $aad,
@@ -37,8 +37,8 @@ macro_rules! impl_tests {
 
         #[test]
         fn decrypt() {
-            let key = GenericArray::from_slice($key);
-            let nonce = GenericArray::from_slice($nonce);
+            let key = Array::from_slice($key);
+            let nonce = Array::from_slice($nonce);
 
             let mut ciphertext = Vec::from($ciphertext);
             ciphertext.extend_from_slice($tag);
@@ -54,8 +54,8 @@ macro_rules! impl_tests {
 
         #[test]
         fn decrypt_modified() {
-            let key = GenericArray::from_slice($key);
-            let nonce = GenericArray::from_slice($nonce);
+            let key = Array::from_slice($key);
+            let nonce = Array::from_slice($nonce);
 
             let mut ciphertext = Vec::from($ciphertext);
             ciphertext.extend_from_slice($tag);
@@ -96,7 +96,7 @@ const PLAINTEXT: &[u8] = b"Ladies and Gentlemen of the class of '99: \
 /// <https://tools.ietf.org/html/rfc8439#section-2.8.2>
 mod chacha20 {
     use super::{AAD, KEY, PLAINTEXT};
-    use chacha20poly1305::aead::generic_array::GenericArray;
+    use chacha20poly1305::aead::array::Array;
     use chacha20poly1305::aead::{Aead, KeyInit, Payload};
     use chacha20poly1305::ChaCha20Poly1305;
 
@@ -132,7 +132,7 @@ mod chacha20 {
 
     #[test]
     fn clone_impl() {
-        let _ = ChaCha20Poly1305::new(GenericArray::from_slice(KEY)).clone();
+        let _ = ChaCha20Poly1305::new(Array::from_slice(KEY)).clone();
     }
 }
 
@@ -141,7 +141,7 @@ mod chacha20 {
 /// From <https://tools.ietf.org/html/draft-arciszewski-xchacha-03#appendix-A.1>
 mod xchacha20 {
     use super::{AAD, KEY, PLAINTEXT};
-    use chacha20poly1305::aead::generic_array::GenericArray;
+    use chacha20poly1305::aead::array::Array;
     use chacha20poly1305::aead::{Aead, KeyInit, Payload};
     use chacha20poly1305::XChaCha20Poly1305;
 

@@ -9,5 +9,6 @@ members = [
     "deoxys",
     "eax",
     "mgm",
+    "committing-aead",
 ]
 resolver = "2"

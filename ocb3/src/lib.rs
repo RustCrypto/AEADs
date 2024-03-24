@@ -19,6 +19,11 @@ use cipher::{
 };
 use subtle::ConstantTimeEq;
 
+/// Constants used, reexported for convenience.
+pub mod consts {
+    pub use cipher::consts::{U0, U12, U16};
+}
+
 mod util;
 
 use crate::util::{double, inplace_xor, ntz, Block};

@@ -11,6 +11,28 @@ Pure Rust implementation of **OCB3** ([RFC 7253][rfc7253])[Authenticated Encrypt
 
 [Documentation][docs-link]
 
+## Example
+
+```rust
+use aes::Aes128;
+use ocb3::{
+    aead::{Aead, AeadCore, KeyInit, OsRng, generic_array::GenericArray},
+    consts::U12,
+    AesOcb3,
+};
+
+type Aes128Ocb3 = AesOcb3<Aes128, U12>;
+
+let key = Aes128::generate_key(&mut OsRng);
+let cipher = Aes128Ocb3::new(&key);
+let nonce = Aes128Ocb3::generate_nonce(&mut OsRng);
+let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref()).unwrap();
+let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref()).unwrap();
+
+assert_eq!(&plaintext, b"plaintext message");
+```
+
+
 ## Security Notes
 
 No security audits of this crate have ever been performed, and it has not been thoroughly assessed to ensure its operation is constant-time on common CPU architectures.

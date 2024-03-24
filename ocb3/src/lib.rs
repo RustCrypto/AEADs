@@ -13,15 +13,15 @@ use core::marker::PhantomData;
 pub use aead::{
     self, generic_array::GenericArray, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser,
 };
-use aes::{self, Aes128, Aes256, Block};
 use cipher::{
     consts::{U0, U12, U16},
     BlockDecrypt, BlockEncrypt, BlockSizeUser,
 };
+use subtle::ConstantTimeEq;
 
 mod util;
-use crate::util::{double, inplace_xor, ntz};
-use subtle::ConstantTimeEq;
+
+use crate::util::{double, inplace_xor, ntz, Block};
 
 /// Number of L values to be precomputed. Precomputing m values, allows
 /// processing inputs of length up to 2^m blocks (2^m * 16 bytes) without
@@ -42,12 +42,6 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// OCB3 tag
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
-
-/// AES-OCB3 with a 128-bit key, 96-bit nonce, and 128-bit tag.
-pub type Aes128Ocb3 = AesOcb3<Aes128, U12>;
-
-/// AES-OCB3 with a 256-bit key, 96-bit nonce, and 128-bit tag.
-pub type Aes256Ocb3 = AesOcb3<Aes256, U12>;
 
 /// Trait implemented for valid tag sizes
 pub trait TagSize: private::SealedTagSize {}
@@ -73,6 +67,7 @@ mod private {
     // Nonces are <= 120 bits
     impl SealedNonceSize for consts::U12 {}
 }
+
 /// AES-OCB3: generic over an AES implementation, nonce size, and tag size.
 ///
 /// WARNING: Unless absolutely necessary, prefer the aliases Aes128Ocb3 and
@@ -550,7 +545,7 @@ mod tests {
         let expected_ll0 = Block::from(hex!("1A84ECDE1E3D6E09BD3E058A8723606D"));
         let expected_ll1 = Block::from(hex!("3509D9BC3C7ADC137A7C0B150E46C0DA"));
 
-        let cipher = Aes128::new(GenericArray::from_slice(&key));
+        let cipher = aes::Aes128::new(GenericArray::from_slice(&key));
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
 
         assert_eq!(ll_star, expected_ll_star);
@@ -570,7 +565,7 @@ mod tests {
 
         const TAGLEN: u32 = 16;
 
-        let cipher = Aes128::new(GenericArray::from_slice(&key));
+        let cipher = aes::Aes128::new(GenericArray::from_slice(&key));
         let (bottom, stretch) = nonce_dependent_variables(&cipher, &Nonce::from(nonce), TAGLEN);
         let offset_0 = initial_offset(&cipher, &Nonce::from(nonce), TAGLEN);
 

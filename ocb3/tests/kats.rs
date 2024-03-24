@@ -6,7 +6,7 @@ use aead::{
 };
 use aes::{Aes128, Aes192, Aes256, Block};
 use hex_literal::hex;
-use ocb3::{Aes128Ocb3, Aes256Ocb3, AesOcb3, GenericArray};
+use ocb3::{AesOcb3, GenericArray};
 
 /// Test vectors from https://www.rfc-editor.org/rfc/rfc7253.html#appendix-A
 #[test]
@@ -234,6 +234,8 @@ type Aes256Ocb3Tag96 = AesOcb3<Aes256, U12, U12>;
 type Aes128Ocb3Tag64 = AesOcb3<Aes128, U12, U8>;
 type Aes192Ocb3Tag64 = AesOcb3<Aes192, U12, U8>;
 type Aes256Ocb3Tag64 = AesOcb3<Aes256, U12, U8>;
+type Aes128Ocb3 = AesOcb3<aes::Aes128, U12>;
+type Aes256Ocb3 = AesOcb3<aes::Aes256, U12>;
 
 /// Test vectors from Page 18 of https://www.rfc-editor.org/rfc/rfc7253.html#appendix-A
 #[test]

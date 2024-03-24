@@ -1,5 +1,7 @@
-use aead::generic_array::{ArrayLength, GenericArray};
-use aes::Block;
+use aead::generic_array::{typenum::U16, ArrayLength, GenericArray};
+
+const BLOCK_SIZE: usize = 16;
+pub(crate) type Block = GenericArray<u8, U16>;
 
 #[inline]
 pub(crate) fn inplace_xor<T, U>(a: &mut GenericArray<T, U>, b: &GenericArray<T, U>)
@@ -34,8 +36,6 @@ pub(crate) fn double(block: &Block) -> Block {
 pub(crate) fn ntz(n: usize) -> usize {
     n.trailing_zeros().try_into().unwrap()
 }
-
-const BLOCK_SIZE: usize = 16;
 
 #[inline]
 pub(crate) fn split_into_two_blocks(two_blocks: &mut [u8]) -> [&mut Block; 2] {

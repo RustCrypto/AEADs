@@ -36,6 +36,7 @@ heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
 stream = ["aead/stream"]
 zeroize = ["zeroize_crate", "ascon/zeroize"]
+no_unroll = ["ascon/no_unroll"]
 
 [package.metadata.docs.rs]
 all-features = true

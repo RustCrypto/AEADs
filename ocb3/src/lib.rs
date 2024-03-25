@@ -33,7 +33,14 @@ use crate::util::{double, inplace_xor, ntz, Block};
 /// needing to calculate L values at runtime.
 ///
 /// By setting this to 32, we can process inputs of length up to 1 terabyte.
+#[cfg(target_pointer_width = "64")]
 const L_TABLE_SIZE: usize = 32;
+
+/// Number of L values to be precomputed. Precomputing m values, allows
+/// processing inputs of length up to 2^m blocks (2^m * 16 bytes) without
+/// needing to calculate L values at runtime.
+#[cfg(target_pointer_width = "32")]
+const L_TABLE_SIZE: usize = 16;
 
 /// Max associated data.
 pub const A_MAX: usize = 1 << (L_TABLE_SIZE + 4);

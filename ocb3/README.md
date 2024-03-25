@@ -18,10 +18,10 @@ use aes::Aes128;
 use ocb3::{
     aead::{Aead, AeadCore, KeyInit, OsRng, generic_array::GenericArray},
     consts::U12,
-    AesOcb3,
+    Ocb3,
 };
 
-type Aes128Ocb3 = AesOcb3<Aes128, U12>;
+type Aes128Ocb3 = Ocb3<Aes128, U12>;
 
 let key = Aes128::generate_key(&mut OsRng);
 let cipher = Aes128Ocb3::new(&key);

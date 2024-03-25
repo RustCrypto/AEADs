@@ -80,17 +80,14 @@ mod private {
     impl SealedNonceSize for consts::U12 {}
 }
 
-/// AES-OCB3: generic over an AES implementation, nonce size, and tag size.
-///
-/// WARNING: Unless absolutely necessary, prefer the aliases Aes128Ocb3 and
-/// Aes256Ocb3.
+/// OCB3: generic over a block cipher implementation, nonce size, and tag size.
 #[derive(Clone)]
-pub struct AesOcb3<Aes, NonceSize = U12, TagSize = U16>
+pub struct Ocb3<Cipher, NonceSize = U12, TagSize = U16>
 where
     NonceSize: self::NonceSize,
     TagSize: self::TagSize,
 {
-    cipher: Aes,
+    cipher: Cipher,
     nonce_size: PhantomData<NonceSize>,
     tag_size: PhantomData<TagSize>,
     // precomputed key-dependent variables
@@ -104,27 +101,27 @@ where
 type SumSize = U16;
 type Sum = GenericArray<u8, SumSize>;
 
-impl<Aes, NonceSize, TagSize> KeySizeUser for AesOcb3<Aes, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> KeySizeUser for Ocb3<Cipher, NonceSize, TagSize>
 where
-    Aes: KeySizeUser,
+    Cipher: KeySizeUser,
     TagSize: self::TagSize,
     NonceSize: self::NonceSize,
 {
-    type KeySize = Aes::KeySize;
+    type KeySize = Cipher::KeySize;
 }
 
-impl<Aes, NonceSize, TagSize> KeyInit for AesOcb3<Aes, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> KeyInit for Ocb3<Cipher, NonceSize, TagSize>
 where
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit + BlockDecrypt,
     TagSize: self::TagSize,
     NonceSize: self::NonceSize,
 {
     fn new(key: &aead::Key<Self>) -> Self {
-        Aes::new(key).into()
+        Cipher::new(key).into()
     }
 }
 
-impl<Aes, NonceSize, TagSize> AeadCore for AesOcb3<Aes, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> AeadCore for Ocb3<Cipher, NonceSize, TagSize>
 where
     NonceSize: self::NonceSize,
     TagSize: self::TagSize,
@@ -134,13 +131,13 @@ where
     type CiphertextOverhead = U0;
 }
 
-impl<Aes, NonceSize, TagSize> From<Aes> for AesOcb3<Aes, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
 where
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
     TagSize: self::TagSize,
     NonceSize: self::NonceSize,
 {
-    fn from(cipher: Aes) -> Self {
+    fn from(cipher: Cipher) -> Self {
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
 
         Self {
@@ -156,8 +153,8 @@ where
 
 /// Computes key-dependent variables defined in
 /// https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
-fn key_dependent_variables<Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt>(
-    cipher: &Aes,
+fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt>(
+    cipher: &Cipher,
 ) -> (Block, Block, [Block; L_TABLE_SIZE]) {
     let mut zeros = [0u8; 16];
     let ll_star = Block::from_mut_slice(&mut zeros);
@@ -174,9 +171,9 @@ fn key_dependent_variables<Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt>(
     (*ll_star, ll_dollar, ll)
 }
 
-impl<Aes, NonceSize, TagSize> AeadInPlace for AesOcb3<Aes, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> AeadInPlace for Ocb3<Cipher, NonceSize, TagSize>
 where
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
     TagSize: self::TagSize,
     NonceSize: self::NonceSize,
 {
@@ -256,9 +253,9 @@ where
     }
 }
 
-impl<Aes, NonceSize, TagSize> AesOcb3<Aes, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
     TagSize: self::TagSize,
     NonceSize: self::NonceSize,
 {
@@ -410,10 +407,10 @@ where
 ///
 /// Assumes a 96-bit nonce and 128-bit tag.
 fn nonce_dependent_variables<
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: self::NonceSize,
 >(
-    cipher: &Aes,
+    cipher: &Cipher,
     nn: &Nonce<NonceSize>,
     tag_len: u32,
 ) -> (usize, [u8; 24]) {
@@ -454,10 +451,10 @@ fn nonce_dependent_variables<
 ///
 /// Assumes a 96-bit nonce and 128-bit tag.
 fn initial_offset<
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: self::NonceSize,
 >(
-    cipher: &Aes,
+    cipher: &Cipher,
     nn: &Nonce<NonceSize>,
     tag_size: u32,
 ) -> Block {
@@ -471,9 +468,9 @@ fn initial_offset<
     offset.to_be_bytes().into()
 }
 
-impl<Aes, NonceSize, TagSize> AesOcb3<Aes, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     TagSize: self::TagSize,
     NonceSize: self::NonceSize,
 {

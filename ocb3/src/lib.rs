@@ -379,8 +379,6 @@ where
 
 /// Computes nonce-dependent variables as defined
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
-///
-/// Assumes a 96-bit nonce and 128-bit tag.
 fn nonce_dependent_variables<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
@@ -389,21 +387,18 @@ fn nonce_dependent_variables<
     nn: &Nonce<NonceSize>,
     tag_len: u32,
 ) -> (usize, [u8; 24]) {
-    let mut nonce = [0u8; 16];
-    nonce[4..16].copy_from_slice(nn.as_slice());
-    let mut nonce = u128::from_be_bytes(nonce);
     // Nonce = num2str(TAGLEN mod 128,7) || zeros(120-bitlen(N)) || 1 || N
-    nonce |= 1 << 96;
-    match tag_len {
-        16 => {}
-        x if x < 16 => {
-            nonce |= (u128::from(tag_len) * 8) << (128 - 7);
-        }
-        _ => unreachable!(),
-    }
+    let mut nonce = [0u8; 16];
+    nonce[0] = (((tag_len * 8) % 128) << 1) as u8;
+
+    let start = 16 - NonceSize::to_usize();
+    nonce[start..16].copy_from_slice(nn.as_slice());
+    nonce[16 - NonceSize::to_usize() - 1] |= 1;
 
     // Separate the last 6 bits into `bottom`, and the rest into `top`.
-    let bottom = usize::try_from(nonce & 0b111111).unwrap();
+    let bottom = nonce[15] & 0b111111;
+
+    let nonce = u128::from_be_bytes(nonce);
     let top = nonce & !0b111111;
 
     let mut ktop = Block::from(top.to_be_bytes());
@@ -418,13 +413,11 @@ fn nonce_dependent_variables<
     }
     stretch[16..].copy_from_slice(&ktop[..8]);
 
-    (bottom, stretch)
+    (bottom as usize, stretch)
 }
 
 /// Computes the initial offset as defined
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
-///
-/// Assumes a 96-bit nonce and 128-bit tag.
 fn initial_offset<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
     NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
@@ -553,8 +546,8 @@ mod tests {
         let (bottom, stretch) = nonce_dependent_variables(&cipher, &Nonce::from(nonce), TAGLEN);
         let offset_0 = initial_offset(&cipher, &Nonce::from(nonce), TAGLEN);
 
-        assert_eq!(bottom, expected_bottom);
-        assert_eq!(stretch, expected_stretch);
-        assert_eq!(offset_0, expected_offset_0);
+        assert_eq!(bottom, expected_bottom, "bottom");
+        assert_eq!(stretch, expected_stretch, "stretch");
+        assert_eq!(offset_0, expected_offset_0, "offset");
     }
 }

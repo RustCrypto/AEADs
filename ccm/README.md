@@ -11,6 +11,9 @@ Pure Rust implementation of the Counter with CBC-MAC ([CCM]) mode ([RFC 3610]): 
 Authenticated Encryption with Associated Data ([AEAD]) algorithm generic over
 block ciphers with block size equal to 128 bits.
 
+For example, it can be combined with AES into the various parametrizations of
+AES-CCM.
+
 [Documentation][docs-link]
 
 ## Security Notes

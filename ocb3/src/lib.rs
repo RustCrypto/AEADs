@@ -8,25 +8,25 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs, rust_2018_idioms)]
 
-use core::marker::PhantomData;
-
-pub use aead::{
-    self, generic_array::GenericArray, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser,
-};
-use cipher::{
-    consts::{U0, U12, U16},
-    BlockDecrypt, BlockEncrypt, BlockSizeUser,
-};
-use subtle::ConstantTimeEq;
-
 /// Constants used, reexported for convenience.
 pub mod consts {
-    pub use cipher::consts::{U0, U12, U16};
+    pub use cipher::consts::{U0, U12, U15, U16};
 }
 
 mod util;
 
+pub use aead::{
+    self, generic_array::GenericArray, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser,
+};
+
 use crate::util::{double, inplace_xor, ntz, Block};
+use aead::generic_array::{typenum::IsLessOrEqual, ArrayLength};
+use cipher::{
+    consts::{U0, U12, U15, U16},
+    BlockDecrypt, BlockEncrypt, BlockSizeUser,
+};
+use core::marker::PhantomData;
+use subtle::ConstantTimeEq;
 
 /// Number of L values to be precomputed. Precomputing m values, allows
 /// processing inputs of length up to 2^m blocks (2^m * 16 bytes) without
@@ -55,37 +55,12 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 /// OCB3 tag
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
-/// Trait implemented for valid tag sizes
-pub trait TagSize: private::SealedTagSize {}
-impl<T: private::SealedTagSize> TagSize for T {}
-/// Trait implemented for valid nonce sizes
-pub trait NonceSize: private::SealedNonceSize {}
-impl<T: private::SealedNonceSize> NonceSize for T {}
-
-// Adapted from https://github.com/rustcrypto/AEADs/blob/2209bcaa9edc65e9a60498e7ece5b50e66f32ebf/aes-gcm/src/lib.rs#L143-L157
-mod private {
-    use aead::generic_array::ArrayLength;
-    use cipher::{consts, Unsigned};
-
-    // Sealed traits stop other crates from implementing any traits that use it.
-    pub trait SealedTagSize: ArrayLength<u8> + Unsigned {}
-    pub trait SealedNonceSize: ArrayLength<u8> + Unsigned {}
-
-    // Tags are <= 128 bits
-    impl SealedTagSize for consts::U8 {}
-    impl SealedTagSize for consts::U12 {}
-    impl SealedTagSize for consts::U16 {}
-
-    // Nonces are <= 120 bits
-    impl SealedNonceSize for consts::U12 {}
-}
-
 /// OCB3: generic over a block cipher implementation, nonce size, and tag size.
 #[derive(Clone)]
 pub struct Ocb3<Cipher, NonceSize = U12, TagSize = U16>
 where
-    NonceSize: self::NonceSize,
-    TagSize: self::TagSize,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
 {
     cipher: Cipher,
     nonce_size: PhantomData<NonceSize>,
@@ -104,8 +79,8 @@ type Sum = GenericArray<u8, SumSize>;
 impl<Cipher, NonceSize, TagSize> KeySizeUser for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: KeySizeUser,
-    TagSize: self::TagSize,
-    NonceSize: self::NonceSize,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 {
     type KeySize = Cipher::KeySize;
 }
@@ -113,8 +88,8 @@ where
 impl<Cipher, NonceSize, TagSize> KeyInit for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit + BlockDecrypt,
-    TagSize: self::TagSize,
-    NonceSize: self::NonceSize,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 {
     fn new(key: &aead::Key<Self>) -> Self {
         Cipher::new(key).into()
@@ -123,8 +98,8 @@ where
 
 impl<Cipher, NonceSize, TagSize> AeadCore for Ocb3<Cipher, NonceSize, TagSize>
 where
-    NonceSize: self::NonceSize,
-    TagSize: self::TagSize,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
@@ -134,8 +109,8 @@ where
 impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    TagSize: self::TagSize,
-    NonceSize: self::NonceSize,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 {
     fn from(cipher: Cipher) -> Self {
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
@@ -174,8 +149,8 @@ fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt
 impl<Cipher, NonceSize, TagSize> AeadInPlace for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    TagSize: self::TagSize,
-    NonceSize: self::NonceSize,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -256,8 +231,8 @@ where
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    TagSize: self::TagSize,
-    NonceSize: self::NonceSize,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 {
     /// Decrypts in place and returns expected tag.
     pub(crate) fn decrypt_in_place_return_tag(
@@ -408,7 +383,7 @@ where
 /// Assumes a 96-bit nonce and 128-bit tag.
 fn nonce_dependent_variables<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: self::NonceSize,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 >(
     cipher: &Cipher,
     nn: &Nonce<NonceSize>,
@@ -452,7 +427,7 @@ fn nonce_dependent_variables<
 /// Assumes a 96-bit nonce and 128-bit tag.
 fn initial_offset<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: self::NonceSize,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 >(
     cipher: &Cipher,
     nn: &Nonce<NonceSize>,
@@ -471,8 +446,8 @@ fn initial_offset<
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    TagSize: self::TagSize,
-    NonceSize: self::NonceSize,
+    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
 {
     /// Computes HASH function defined in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
     fn hash(&self, associated_data: &[u8]) -> Sum {

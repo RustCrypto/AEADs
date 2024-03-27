@@ -33,6 +33,32 @@ let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref()).unwrap();
 assert_eq!(&plaintext, b"plaintext message");
 ```
 
+Note that nonce size should be in the range of `6..=15` bytes and tag size in the range of
+`0..=16` bytes. Compilation will fail otherwise:
+
+```rust,compile_fail
+# use aes::Aes128;
+# use ocb3::{aead::{consts::U5, KeyInit}, Ocb3};
+# let key = [0; 16].into();
+// Invalid nonce size equal to 5 bytes
+let cipher = ocb3::Ocb3::<Aes128, U5>::new(&key);
+```
+
+```rust,compile_fail
+# use aes::Aes128;
+# use ocb3::aead::{consts::U16, KeyInit};
+# let key = [0; 16].into();
+// Invalid nonce size equal to 16 bytes
+let cipher = ocb3::Ocb3::<Aes128, U16>::new(&key);
+```
+
+```rust,compile_fail
+# use aes::Aes128;
+# use ocb3::aead::{consts::{U12, U20}, KeyInit};
+# let key = [0; 16].into();
+// Invalid tag size equal to 20 bytes
+let cipher = ocb3::Ocb3::<Aes128, U12, U20>::new(&key);
+```
 
 ## Security Notes
 

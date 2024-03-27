@@ -33,7 +33,6 @@ let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref()).unwrap();
 assert_eq!(&plaintext, b"plaintext message");
 ```
 
-
 ## Security Notes
 
 No security audits of this crate have ever been performed, and it has not been thoroughly assessed to ensure its operation is constant-time on common CPU architectures.

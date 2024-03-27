@@ -13,7 +13,7 @@ documentation = "https://docs.rs/ocb3"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "encryption", "ocb"]
 categories = ["cryptography", "no-std"]
-rust-version = "1.60"
+rust-version = "1.72"
 
 [dependencies]
 aead = { version = "=0.6.0-pre.0", default-features = false }

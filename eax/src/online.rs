@@ -386,9 +386,7 @@ where
 #[cfg(test)]
 mod test_impl {
     use super::*;
-    use aead::{
-        consts::U0, generic_array::GenericArray, AeadCore, AeadMutInPlace, KeyInit, KeySizeUser,
-    };
+    use aead::{consts::U0, generic_array::GenericArray, AeadCore, AeadMutInPlace, KeySizeUser};
 
     impl<Cipher, M> KeySizeUser for EaxImpl<Cipher, M>
     where

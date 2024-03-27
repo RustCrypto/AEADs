@@ -37,27 +37,25 @@ Note that nonce size should be in the range of `6..=15` bytes and tag size in th
 `0..=16` bytes. Compilation will fail otherwise:
 
 ```rust,compile_fail
-# use aes::Aes128;
-# use ocb3::{aead::{consts::U5, KeyInit}, Ocb3};
-# let key = [0; 16].into();
+use aes::Aes128;
+use ocb3::{aead::{consts::U5, KeyInit}, Ocb3};
 // Invalid nonce size equal to 5 bytes
-let cipher = ocb3::Ocb3::<Aes128, U5>::new(&key);
+let cipher = ocb3::Ocb3::<Aes128, U5>::new(&[42; 16].into());
 ```
 
 ```rust,compile_fail
-# use aes::Aes128;
-# use ocb3::aead::{consts::U16, KeyInit};
-# let key = [0; 16].into();
+use aes::Aes128;
+use ocb3::aead::{consts::U16, KeyInit};
+let key = [0; 16].into();
 // Invalid nonce size equal to 16 bytes
-let cipher = ocb3::Ocb3::<Aes128, U16>::new(&key);
+let cipher = ocb3::Ocb3::<Aes128, U16>::new(&[42; 16].into());
 ```
 
 ```rust,compile_fail
-# use aes::Aes128;
-# use ocb3::aead::{consts::{U12, U20}, KeyInit};
-# let key = [0; 16].into();
+use aes::Aes128;
+use ocb3::aead::{consts::{U12, U20}, KeyInit};
 // Invalid tag size equal to 20 bytes
-let cipher = ocb3::Ocb3::<Aes128, U12, U20>::new(&key);
+let cipher = ocb3::Ocb3::<Aes128, U12, U20>::new(&[42; 16].into());
 ```
 
 ## Security Notes

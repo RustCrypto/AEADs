@@ -6,7 +6,7 @@ use aead::{
 };
 use aes::{Aes128, Aes192, Aes256};
 use hex_literal::hex;
-use ocb3::{GenericArray, Ocb3};
+use ocb3::{Array, Ocb3};
 
 // Test vectors from https://www.rfc-editor.org/rfc/rfc7253.html#appendix-A
 aead::new_test!(rfc7253_ocb_aes, "rfc7253_ocb_aes", Aes128Ocb3);
@@ -24,7 +24,7 @@ macro_rules! rfc7253_wider_variety {
         let mut key_bytes = vec![0u8; $keylen];
         key_bytes[$keylen - 1] = 8 * $taglen; // taglen in bytes
 
-        let key = GenericArray::from_slice(key_bytes.as_slice());
+        let key = Array::from_slice(key_bytes.as_slice());
         let ocb = $ocb::new(key);
 
         let mut ciphertext = Vec::new();
@@ -38,7 +38,7 @@ macro_rules! rfc7253_wider_variety {
             let N = num2str96(3 * i + 1);
             let mut buffer = S.clone();
             let tag = ocb
-                .encrypt_in_place_detached(N.as_slice().into(), &S, &mut buffer)
+                .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &S, &mut buffer)
                 .unwrap();
             ciphertext.append(&mut buffer);
             ciphertext.append(&mut tag.as_slice().to_vec());
@@ -48,7 +48,7 @@ macro_rules! rfc7253_wider_variety {
             let N = num2str96(3 * i + 2);
             let mut buffer = S.clone();
             let tag = ocb
-                .encrypt_in_place_detached(N.as_slice().into(), &[], &mut buffer)
+                .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &[], &mut buffer)
                 .unwrap();
             ciphertext.append(&mut buffer);
             ciphertext.append(&mut tag.as_slice().to_vec());
@@ -57,7 +57,7 @@ macro_rules! rfc7253_wider_variety {
             // C = C || OCB-ENCRYPT(K,N,S,<empty string>)
             let N = num2str96(3 * i + 3);
             let tag = ocb
-                .encrypt_in_place_detached(N.as_slice().into(), &S, &mut [])
+                .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &S, &mut [])
                 .unwrap();
             ciphertext.append(&mut tag.as_slice().to_vec());
         }
@@ -75,7 +75,7 @@ macro_rules! rfc7253_wider_variety {
         // Output : OCB-ENCRYPT(K,N,C,<empty string>)
         let N = num2str96(385);
         let tag = ocb
-            .encrypt_in_place_detached(N.as_slice().into(), &ciphertext, &mut [])
+            .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &ciphertext, &mut [])
             .unwrap();
 
         assert_eq!(tag.as_slice(), hex!($expected))

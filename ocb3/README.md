@@ -64,8 +64,8 @@ dual licensed as above, without any additional terms or conditions.
 [rustc-image]: https://img.shields.io/badge/rustc-1.60+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/ocb3/badge.svg?branch=master&event=push
-[build-link]: https://github.com/RustCrypto/AEADs/actions
+[build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/ocb3.yml/badge.svg
+[build-link]: https://github.com/RustCrypto/AEADs/actions/workflows/ocb3.yml
 
 [//]: # (general links)
 

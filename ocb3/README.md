@@ -7,7 +7,8 @@
 [![Project Chat][chat-image]][chat-link]
 [![Build Status][build-image]][build-link]
 
-Pure Rust implementation of **OCB3** ([RFC 7253][rfc7253])[Authenticated Encryption with Associated Data (AEAD)][aead] cipher.
+Pure Rust implementation of the Offset Codebook Mode v3 (OCB3)
+[Authenticated Encryption with Associated Data (AEAD)][aead] cipher as described in [RFC7253].
 
 [Documentation][docs-link]
 

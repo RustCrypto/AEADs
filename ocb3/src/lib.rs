@@ -10,7 +10,7 @@
 
 /// Constants used, reexported for convenience.
 pub mod consts {
-    pub use cipher::consts::{U0, U12, U15, U16};
+    pub use cipher::consts::{U0, U12, U15, U16, U6};
 }
 
 mod util;
@@ -20,9 +20,12 @@ pub use aead::{
 };
 
 use crate::util::{double, inplace_xor, ntz, Block};
-use aead::generic_array::{typenum::IsLessOrEqual, ArrayLength};
+use aead::generic_array::{
+    typenum::{IsGreater, IsGreaterOrEqual, IsLessOrEqual},
+    ArrayLength,
+};
 use cipher::{
-    consts::{U0, U12, U15, U16},
+    consts::{U0, U12, U15, U16, U6},
     BlockDecrypt, BlockEncrypt, BlockSizeUser,
 };
 use core::marker::PhantomData;
@@ -56,11 +59,16 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 
 /// OCB3: generic over a block cipher implementation, nonce size, and tag size.
+///
+/// - `NonceSize`: max of 15-bytes, default and recommended size of 12-bytes (96-bits).
+///   We further restrict the minimum nonce size to 6-bytes to prevent an attack described in
+///   the following paper: <https://eprint.iacr.org/2023/326.pdf>.
+/// - `TagSize`: max of 16-bytes, default and recommended size of 16-bytes.
 #[derive(Clone)]
 pub struct Ocb3<Cipher, NonceSize = U12, TagSize = U16>
 where
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
 {
     cipher: Cipher,
     nonce_size: PhantomData<NonceSize>,
@@ -79,8 +87,8 @@ type Sum = GenericArray<u8, SumSize>;
 impl<Cipher, NonceSize, TagSize> KeySizeUser for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: KeySizeUser,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 {
     type KeySize = Cipher::KeySize;
 }
@@ -88,8 +96,8 @@ where
 impl<Cipher, NonceSize, TagSize> KeyInit for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit + BlockDecrypt,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 {
     fn new(key: &aead::Key<Self>) -> Self {
         Cipher::new(key).into()
@@ -98,8 +106,8 @@ where
 
 impl<Cipher, NonceSize, TagSize> AeadCore for Ocb3<Cipher, NonceSize, TagSize>
 where
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
@@ -109,8 +117,8 @@ where
 impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 {
     fn from(cipher: Cipher) -> Self {
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
@@ -149,8 +157,8 @@ fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt
 impl<Cipher, NonceSize, TagSize> AeadInPlace for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -231,8 +239,8 @@ where
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 {
     /// Decrypts in place and returns expected tag.
     pub(crate) fn decrypt_in_place_return_tag(
@@ -381,7 +389,7 @@ where
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
 fn nonce_dependent_variables<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 >(
     cipher: &Cipher,
     nn: &Nonce<NonceSize>,
@@ -420,7 +428,7 @@ fn nonce_dependent_variables<
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
 fn initial_offset<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 >(
     cipher: &Cipher,
     nn: &Nonce<NonceSize>,
@@ -439,8 +447,8 @@ fn initial_offset<
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    TagSize: ArrayLength<u8> + IsLessOrEqual<U16>,
-    NonceSize: ArrayLength<u8> + IsLessOrEqual<U15>,
+    TagSize: ArrayLength<u8> + IsGreater<U0> + IsLessOrEqual<U16>,
+    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
 {
     /// Computes HASH function defined in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
     fn hash(&self, associated_data: &[u8]) -> Sum {

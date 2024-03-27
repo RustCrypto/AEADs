@@ -60,6 +60,7 @@ mod sealed {
         ArrayLength,
     };
 
+    /// Sealed trait for nonce sizes in the range of `6..=15` bytes.
     pub trait NonceSizes: ArrayLength<u8> {}
 
     impl<T> NonceSizes for T
@@ -70,6 +71,7 @@ mod sealed {
     {
     }
 
+    /// Sealed trait for tag sizes in the range of `1..=16` bytes.
     pub trait TagSizes: ArrayLength<u8> {}
 
     impl<T> TagSizes for T

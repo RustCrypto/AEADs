@@ -20,12 +20,8 @@ pub use aead::{
 };
 
 use crate::util::{double, inplace_xor, ntz, Block};
-use aead::generic_array::{
-    typenum::{GrEq, IsGreaterOrEqual, IsLessOrEqual, LeEq, NonZero},
-    ArrayLength,
-};
 use cipher::{
-    consts::{U0, U12, U15, U16, U6},
+    consts::{U0, U12, U16},
     BlockDecrypt, BlockEncrypt, BlockSizeUser,
 };
 use core::marker::PhantomData;
@@ -57,6 +53,32 @@ pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
 
 /// OCB3 tag
 pub type Tag<TagSize> = GenericArray<u8, TagSize>;
+
+mod sealed {
+    use aead::generic_array::{
+        typenum::{GrEq, IsGreaterOrEqual, IsLessOrEqual, LeEq, NonZero, U15, U16, U6},
+        ArrayLength,
+    };
+
+    pub trait NonceSizes: ArrayLength<u8> {}
+
+    impl<T> NonceSizes for T
+    where
+        T: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
+        GrEq<T, U6>: NonZero,
+        LeEq<T, U15>: NonZero,
+    {
+    }
+
+    pub trait TagSizes: ArrayLength<u8> {}
+
+    impl<T> TagSizes for T
+    where
+        T: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
+        LeEq<T, U16>: NonZero,
+    {
+    }
+}
 
 /// OCB3: generic over a block cipher implementation, nonce size, and tag size.
 ///
@@ -101,11 +123,8 @@ pub type Tag<TagSize> = GenericArray<u8, TagSize>;
 #[derive(Clone)]
 pub struct Ocb3<Cipher, NonceSize = U12, TagSize = U16>
 where
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     cipher: Cipher,
     nonce_size: PhantomData<NonceSize>,
@@ -124,11 +143,8 @@ type Sum = GenericArray<u8, SumSize>;
 impl<Cipher, NonceSize, TagSize> KeySizeUser for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: KeySizeUser,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     type KeySize = Cipher::KeySize;
 }
@@ -136,11 +152,8 @@ where
 impl<Cipher, NonceSize, TagSize> KeyInit for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit + BlockDecrypt,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     fn new(key: &aead::Key<Self>) -> Self {
         Cipher::new(key).into()
@@ -149,11 +162,8 @@ where
 
 impl<Cipher, NonceSize, TagSize> AeadCore for Ocb3<Cipher, NonceSize, TagSize>
 where
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
@@ -163,11 +173,8 @@ where
 impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     fn from(cipher: Cipher) -> Self {
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
@@ -206,11 +213,8 @@ fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt
 impl<Cipher, NonceSize, TagSize> AeadInPlace for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -291,11 +295,8 @@ where
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     /// Decrypts in place and returns expected tag.
     pub(crate) fn decrypt_in_place_return_tag(
@@ -444,7 +445,7 @@ where
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
 fn nonce_dependent_variables<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
+    NonceSize: sealed::NonceSizes,
 >(
     cipher: &Cipher,
     nn: &Nonce<NonceSize>,
@@ -483,7 +484,7 @@ fn nonce_dependent_variables<
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
 fn initial_offset<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
+    NonceSize: sealed::NonceSizes,
 >(
     cipher: &Cipher,
     nn: &Nonce<NonceSize>,
@@ -502,11 +503,8 @@ fn initial_offset<
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
-    TagSize: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
-    GrEq<NonceSize, U6>: NonZero,
-    LeEq<NonceSize, U15>: NonZero,
-    LeEq<TagSize, U16>: NonZero,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
 {
     /// Computes HASH function defined in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
     fn hash(&self, associated_data: &[u8]) -> Sum {

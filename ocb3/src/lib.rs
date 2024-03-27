@@ -16,13 +16,15 @@ pub mod consts {
 mod util;
 
 pub use aead::{
-    self, generic_array::GenericArray, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser,
+    self,
+    array::{Array, AssocArraySize},
+    AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser,
 };
 
 use crate::util::{double, inplace_xor, ntz, Block};
 use cipher::{
     consts::{U0, U12, U16},
-    BlockDecrypt, BlockEncrypt, BlockSizeUser,
+    BlockCipherDecrypt, BlockCipherEncrypt, BlockSizeUser, Unsigned,
 };
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
@@ -49,34 +51,34 @@ pub const P_MAX: usize = 1 << (L_TABLE_SIZE + 4);
 pub const C_MAX: usize = 1 << (L_TABLE_SIZE + 4);
 
 /// OCB3 nonce
-pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// OCB3 tag
-pub type Tag<TagSize> = GenericArray<u8, TagSize>;
+pub type Tag<TagSize> = Array<u8, TagSize>;
 
 mod sealed {
-    use aead::generic_array::{
+    use aead::array::{
         typenum::{GrEq, IsGreaterOrEqual, IsLessOrEqual, LeEq, NonZero, U15, U16, U6},
-        ArrayLength,
+        ArraySize,
     };
 
     /// Sealed trait for nonce sizes in the range of `6..=15` bytes.
-    pub trait NonceSizes: ArrayLength<u8> {}
+    pub trait NonceSizes: ArraySize {}
 
     impl<T> NonceSizes for T
     where
-        T: ArrayLength<u8> + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
+        T: ArraySize + IsGreaterOrEqual<U6> + IsLessOrEqual<U15>,
         GrEq<T, U6>: NonZero,
         LeEq<T, U15>: NonZero,
     {
     }
 
     /// Sealed trait for tag sizes in the range of `1..=16` bytes.
-    pub trait TagSizes: ArrayLength<u8> {}
+    pub trait TagSizes: ArraySize {}
 
     impl<T> TagSizes for T
     where
-        T: ArrayLength<u8> + NonZero + IsLessOrEqual<U16>,
+        T: ArraySize + NonZero + IsLessOrEqual<U16>,
         LeEq<T, U16>: NonZero,
     {
     }
@@ -140,7 +142,7 @@ where
 
 /// Output of the HASH function defined in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
 type SumSize = U16;
-type Sum = GenericArray<u8, SumSize>;
+type Sum = Array<u8, SumSize>;
 
 impl<Cipher, NonceSize, TagSize> KeySizeUser for Ocb3<Cipher, NonceSize, TagSize>
 where
@@ -153,7 +155,7 @@ where
 
 impl<Cipher, NonceSize, TagSize> KeyInit for Ocb3<Cipher, NonceSize, TagSize>
 where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
@@ -174,7 +176,7 @@ where
 
 impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
 where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
@@ -194,7 +196,7 @@ where
 
 /// Computes key-dependent variables defined in
 /// https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
-fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt>(
+fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt>(
     cipher: &Cipher,
 ) -> (Block, Block, [Block; L_TABLE_SIZE]) {
     let mut zeros = [0u8; 16];
@@ -214,7 +216,7 @@ fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt
 
 impl<Cipher, NonceSize, TagSize> AeadInPlace for Ocb3<Cipher, NonceSize, TagSize>
 where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
@@ -296,7 +298,7 @@ where
 
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt + BlockDecrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
@@ -371,7 +373,7 @@ where
         let mut offset_i = [Block::default(); WIDTH];
         offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
         let mut checksum_i = Block::default();
-        for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
+        for wide_blocks in buffer.chunks_exact_mut(<Block as AssocArraySize>::Size::USIZE * WIDTH) {
             let p_i = split_into_blocks(wide_blocks);
 
             // checksum_i = checksum_{i-1} xor p_i
@@ -446,7 +448,7 @@ where
 /// Computes nonce-dependent variables as defined
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
 fn nonce_dependent_variables<
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: sealed::NonceSizes,
 >(
     cipher: &Cipher,
@@ -485,7 +487,7 @@ fn nonce_dependent_variables<
 /// Computes the initial offset as defined
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
 fn initial_offset<
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: sealed::NonceSizes,
 >(
     cipher: &Cipher,
@@ -504,7 +506,7 @@ fn initial_offset<
 
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
@@ -588,7 +590,7 @@ mod tests {
         let expected_ll0 = Block::from(hex!("1A84ECDE1E3D6E09BD3E058A8723606D"));
         let expected_ll1 = Block::from(hex!("3509D9BC3C7ADC137A7C0B150E46C0DA"));
 
-        let cipher = aes::Aes128::new(GenericArray::from_slice(&key));
+        let cipher = aes::Aes128::new(Array::from_slice(&key));
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
 
         assert_eq!(ll_star, expected_ll_star);
@@ -608,9 +610,10 @@ mod tests {
 
         const TAGLEN: u32 = 16;
 
-        let cipher = aes::Aes128::new(GenericArray::from_slice(&key));
-        let (bottom, stretch) = nonce_dependent_variables(&cipher, &Nonce::from(nonce), TAGLEN);
-        let offset_0 = initial_offset(&cipher, &Nonce::from(nonce), TAGLEN);
+        let cipher = aes::Aes128::new(Array::from_slice(&key));
+        let (bottom, stretch) =
+            nonce_dependent_variables::<aes::Aes128, U12>(&cipher, &Nonce::from(nonce), TAGLEN);
+        let offset_0 = initial_offset::<aes::Aes128, U12>(&cipher, &Nonce::from(nonce), TAGLEN);
 
         assert_eq!(bottom, expected_bottom, "bottom");
         assert_eq!(stretch, expected_stretch, "stretch");

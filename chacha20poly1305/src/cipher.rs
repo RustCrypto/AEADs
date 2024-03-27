@@ -1,7 +1,7 @@
 //! Core AEAD cipher implementation for (X)ChaCha20Poly1305.
 
 use ::cipher::{StreamCipher, StreamCipherSeek};
-use aead::generic_array::GenericArray;
+use aead::array::Array;
 use aead::Error;
 use poly1305::{
     universal_hash::{KeyInit, UniversalHash},
@@ -37,7 +37,7 @@ where
         let mut mac_key = poly1305::Key::default();
         cipher.apply_keystream(&mut mac_key);
 
-        let mac = Poly1305::new(GenericArray::from_slice(&mac_key));
+        let mac = Poly1305::new(Array::from_slice(&mac_key));
         mac_key.zeroize();
 
         // Set ChaCha20 counter to 1
@@ -99,7 +99,7 @@ where
         let associated_data_len: u64 = associated_data.len().try_into().map_err(|_| Error)?;
         let buffer_len: u64 = buffer.len().try_into().map_err(|_| Error)?;
 
-        let mut block = GenericArray::default();
+        let mut block = Array::default();
         block[..8].copy_from_slice(&associated_data_len.to_le_bytes());
         block[8..].copy_from_slice(&buffer_len.to_le_bytes());
         self.mac.update(&[block]);

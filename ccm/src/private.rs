@@ -1,4 +1,4 @@
-use aead::{consts, generic_array::typenum::Unsigned};
+use aead::{array::typenum::Unsigned, consts};
 
 // Sealed traits stop other crates from implementing any traits that use it.
 pub trait SealedTag: Unsigned {

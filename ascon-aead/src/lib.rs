@@ -39,10 +39,10 @@
 //! use ascon_aead::Ascon128; // Or `Ascon128a`
 //! use ascon_aead::aead::{Aead, AeadCore, KeyInit, OsRng};
 //!
-//! let key = Ascon128::generate_key(&mut OsRng);
+//! let key = Ascon128::generate_key().expect("generate key");
 //! let cipher = Ascon128::new(&key);
 //!
-//! let nonce = Ascon128::generate_nonce(&mut OsRng); // 128 bits; unique per message
+//! let nonce = Ascon128::generate_nonce().expect("generate nonce"); // 128 bits; unique per message
 //!
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())
 //!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!

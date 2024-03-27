@@ -17,8 +17,8 @@ macro_rules! tests {
         #[test]
         fn encrypt() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
                 let payload = Payload {
                     msg: vector.plaintext,
                     aad: vector.aad,
@@ -35,8 +35,8 @@ macro_rules! tests {
         #[test]
         fn decrypt() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
                 let mut ciphertext = Vec::from(vector.ciphertext);
                 ciphertext.extend_from_slice(vector.tag);
 
@@ -55,8 +55,8 @@ macro_rules! tests {
         #[test]
         fn decrypt_modified() {
             let vector = &$vectors[0];
-            let key = GenericArray::from_slice(vector.key);
-            let nonce = GenericArray::from_slice(vector.nonce);
+            let key = Array::from_slice(vector.key);
+            let nonce = Array::from_slice(vector.nonce);
 
             let mut ciphertext = Vec::from(vector.ciphertext);
             ciphertext.extend_from_slice(vector.tag);
@@ -76,14 +76,14 @@ macro_rules! tests {
         #[test]
         fn decrypt_in_place_detached_modified() {
             let vector = &$vectors.iter().last().unwrap();
-            let key = GenericArray::from_slice(vector.key);
-            let nonce = GenericArray::from_slice(vector.nonce);
+            let key = Array::from_slice(vector.key);
+            let nonce = Array::from_slice(vector.nonce);
 
             let mut buffer = Vec::from(vector.ciphertext);
             assert!(!buffer.is_empty());
 
             // Tweak the first byte
-            let mut tag = GenericArray::clone_from_slice(vector.tag);
+            let mut tag = Array::clone_from_slice(vector.tag);
             tag[0] ^= 0xaa;
 
             let cipher = <$aead>::new(key);

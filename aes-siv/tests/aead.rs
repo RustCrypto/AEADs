@@ -18,8 +18,8 @@ macro_rules! tests {
         #[test]
         fn encrypt() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
                 let payload = Payload {
                     msg: vector.plaintext,
                     aad: vector.aad,
@@ -34,8 +34,8 @@ macro_rules! tests {
         #[test]
         fn encrypt_in_place_detached() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
                 let mut buffer = vector.plaintext.to_vec();
 
                 let cipher = <$aead>::new(key);
@@ -51,8 +51,8 @@ macro_rules! tests {
         #[test]
         fn decrypt() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
 
                 let payload = Payload {
                     msg: vector.ciphertext,
@@ -69,9 +69,9 @@ macro_rules! tests {
         #[test]
         fn decrypt_in_place_detached() {
             for vector in $vectors {
-                let key = GenericArray::from_slice(vector.key);
-                let nonce = GenericArray::from_slice(vector.nonce);
-                let tag = GenericArray::clone_from_slice(&vector.ciphertext[..16]);
+                let key = Array::from_slice(vector.key);
+                let nonce = Array::from_slice(vector.nonce);
+                let tag = Array::clone_from_slice(&vector.ciphertext[..16]);
                 let mut buffer = vector.ciphertext[16..].to_vec();
 
                 <$aead>::new(key)
@@ -85,8 +85,8 @@ macro_rules! tests {
         #[test]
         fn decrypt_modified() {
             let vector = &$vectors[0];
-            let key = GenericArray::from_slice(vector.key);
-            let nonce = GenericArray::from_slice(vector.nonce);
+            let key = Array::from_slice(vector.key);
+            let nonce = Array::from_slice(vector.nonce);
             let mut ciphertext = Vec::from(vector.ciphertext);
 
             // Tweak the first byte
@@ -107,7 +107,7 @@ macro_rules! tests {
 
 mod aes128cmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
+    use aes_siv::aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
     use aes_siv::Aes128SivAead;
 
     /// AES-128-CMAC-SIV test vectors
@@ -127,7 +127,7 @@ mod aes128cmacsivaead {
 #[cfg(feature = "pmac")]
 mod aes128pmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
+    use aes_siv::aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
     use aes_siv::Aes128PmacSivAead;
 
     /// AES-128-PMAC-SIV test vectors

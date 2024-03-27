@@ -2,7 +2,7 @@
 
 #![cfg(feature = "alloc")]
 
-use deoxys::aead::generic_array::GenericArray;
+use deoxys::aead::array::Array;
 use deoxys::aead::{Aead, KeyInit, Payload};
 use deoxys::DeoxysI256;
 
@@ -20,10 +20,10 @@ fn test_deoxys_i_256_1() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext: Vec<u8> = Vec::new();
 
@@ -57,10 +57,10 @@ fn test_deoxys_i_256_2() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext: Vec<u8> = Vec::new();
 
@@ -94,10 +94,10 @@ fn test_deoxys_i_256_3() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext: Vec<u8> = Vec::new();
 
@@ -131,10 +131,10 @@ fn test_deoxys_i_256_4() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext = hex!("2c36c041fa3b1436c5153214131d493be9d014689a6a1e93e4a50989f0342941");
 
@@ -168,10 +168,10 @@ fn test_deoxys_i_256_5() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext = hex!("fd1ea6745fb5b435751d92be58f5973b84c7589501fcfaff6ce07e2a0e9a72c23e");
 
@@ -205,10 +205,10 @@ fn test_deoxys_i_256_6() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext: [u8; 32] =
         hex!("2c36c041fa3b1436c5153214131d493be9d014689a6a1e93e4a50989f0342941");
@@ -243,10 +243,10 @@ fn test_deoxys_i_256_7() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext: [u8; 33] =
         hex!("705f9db5d50ec6ff0ae28557a5640d32b19504833d5fc6de3baf638cef4cda50bc");
@@ -281,10 +281,10 @@ fn test_deoxys_i_256_8() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f");
-    let key = GenericArray::from_slice(&key);
+    let key = Array::from_slice(&key);
 
     let nonce = hex!("0001020304050607");
-    let nonce = GenericArray::from_slice(&nonce[..8]);
+    let nonce = Array::from_slice(&nonce[..8]);
 
     let ciphertext =
         hex!("e94c5c6df7c19474bbdd292baa2555fdbd5e90a35fb94627cdd7dd3b424ca47d6779f3e6997809204263bdbd4825b7d6510995b1c371e582942bd7f6ab909f993cd5b7db5f95e8b8b56e4cdf016f5cab37f662329b32801fda4403f731fa61f7aa16b9a23f2637b1f75fa0b36ced90ce6a1f73aafbb5adca756e0d59b8ae6661f2d3fc409c88d8baf3836fac55df78b9ba522221345f42bd794c26d5d1a83fed0114d1d1b04d3c3b77ff0083647710b316e17896b2081d9375fde1f2fe063e66423a0d413919ffa6b5754d10de8de64d32ede0d02ebe8f8791d8e9f59462b615f4122dd8c3b97671a8c156eb32ebebb3fb91832fd01f6afee9d4ab045fea83ec87743823ea3bd18f7826229c312ad8a4bc9e2f6d1ad520e6d850bd189b4538d10005abf5a7c50f4f8ded6a62b18cd2a7e6bd3159edc3e9b553cbddd419af540da10576e9ea7d49e2fd0dc1c5ee7693504b63b928e4e23b1753147a3d0ad00cc2e6390fba10e925dc536db4eb30cf152ddb0420f8e8eaa8460feb9a7f0be589ccb877732d8d606085536c405c2ba6c03cb68e12f7d14609587a6c478e2a32794290ba35ce6dba21784d8f6faf401920bfc2aa172c3b4d9bea2eae8542b18410d3a40414247a406379855cb78c28e82ab67b62433a4016b15c4abf4f01c372ba4f1562596531cb0337117ad769eaa666b497b7822eba924e358693bc48cf555f70");

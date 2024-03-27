@@ -6,7 +6,7 @@
 mod common;
 
 use self::common::TestVector;
-use aes_gcm::aead::{generic_array::GenericArray, Aead, AeadInPlace, KeyInit, Payload};
+use aes_gcm::aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
 use aes_gcm::Aes128Gcm;
 use hex_literal::hex;
 

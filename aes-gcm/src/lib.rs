@@ -12,7 +12,14 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
+#![cfg_attr(
+    all(feature = "getrandom", feature = "heapless", feature = "std"),
+    doc = "```"
+)]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
+    doc = "```ignore"
+)]
 //! use aes_gcm::{
 //!     aead::{Aead, AeadCore, KeyInit, OsRng},
 //!     Aes256Gcm, Nonce, Key // Or `Aes128Gcm`
@@ -21,7 +28,7 @@
 //! # fn gen_key() -> Result<(), core::array::TryFromSliceError> {
 //! // The encryption key can be generated randomly:
 //! # #[cfg(all(feature = "getrandom", feature = "std"))] {
-//! let key = Aes256Gcm::generate_key(OsRng);
+//! let key = Aes256Gcm::generate_key().expect("generate key");
 //! # }
 //!
 //! // Transformed from a byte array:
@@ -33,14 +40,14 @@
 //! let key: [u8; 32] = key.try_into()?;
 //! # Ok(()) }
 //!
-//! # fn main() -> Result<(), aes_gcm::Error> {
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Alternatively, the key can be transformed directly from a byte slice
 //! // (panics on length mismatch):
 //! # let key: &[u8] = &[42; 32];
 //! let key = Key::<Aes256Gcm>::from_slice(key);
 //!
 //! let cipher = Aes256Gcm::new(&key);
-//! let nonce = Aes256Gcm::generate_nonce(&mut OsRng); // 96-bits; unique per message
+//! let nonce = Aes256Gcm::generate_nonce()?; // 96-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -77,9 +84,9 @@
 //!     Aes256Gcm, Nonce, // Or `Aes128Gcm`
 //! };
 //!
-//! let key = Aes256Gcm::generate_key(&mut OsRng);
+//! let key = Aes256Gcm::generate_key()?;
 //! let cipher = Aes256Gcm::new(&key);
-//! let nonce = Aes256Gcm::generate_nonce(&mut OsRng); // 96-bits; unique per message
+//! let nonce = Aes256Gcm::generate_nonce()?; // 96-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
@@ -107,9 +114,9 @@ pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 pub use aes;
 
 use cipher::{
+    array::{Array, ArraySize},
     consts::{U0, U16},
-    generic_array::{ArrayLength, GenericArray},
-    BlockCipher, BlockEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
+    BlockCipher, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use core::marker::PhantomData;
 use ghash::{universal_hash::UniversalHash, GHash};
@@ -130,10 +137,10 @@ pub const P_MAX: u64 = 1 << 36;
 pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// AES-GCM nonces.
-pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// AES-GCM tags.
-pub type Tag<TagSize = U16> = GenericArray<u8, TagSize>;
+pub type Tag<TagSize = U16> = Array<u8, TagSize>;
 
 /// Trait implemented for valid tag sizes, i.e.
 /// [`U12`][consts::U12], [`U13`][consts::U13], [`U14`][consts::U14],
@@ -143,11 +150,10 @@ pub trait TagSize: private::SealedTagSize {}
 impl<T: private::SealedTagSize> TagSize for T {}
 
 mod private {
-    use aead::generic_array::ArrayLength;
-    use cipher::{consts, Unsigned};
+    use cipher::{array::ArraySize, consts, Unsigned};
 
     // Sealed traits stop other crates from implementing any traits that use it.
-    pub trait SealedTagSize: ArrayLength<u8> + Unsigned {}
+    pub trait SealedTagSize: ArraySize + Unsigned {}
 
     impl SealedTagSize for consts::U12 {}
     impl SealedTagSize for consts::U13 {}
@@ -167,7 +173,7 @@ pub type Aes128Gcm = AesGcm<Aes128, U12>;
 pub type Aes256Gcm = AesGcm<Aes256, U12>;
 
 /// AES block.
-type Block = GenericArray<u8, U16>;
+type Block = Array<u8, U16>;
 
 /// Counter mode with a 32-bit big endian counter.
 type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
@@ -217,7 +223,7 @@ where
 
 impl<Aes, NonceSize, TagSize> KeyInit for AesGcm<Aes, NonceSize, TagSize>
 where
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt + KeyInit,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
     TagSize: self::TagSize,
 {
     fn new(key: &Key<Self>) -> Self {
@@ -227,7 +233,7 @@ where
 
 impl<Aes, NonceSize, TagSize> From<Aes> for AesGcm<Aes, NonceSize, TagSize>
 where
-    Aes: BlockSizeUser<BlockSize = U16> + BlockEncrypt,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     TagSize: self::TagSize,
 {
     fn from(cipher: Aes) -> Self {
@@ -250,7 +256,7 @@ where
 
 impl<Aes, NonceSize, TagSize> AeadCore for AesGcm<Aes, NonceSize, TagSize>
 where
-    NonceSize: ArrayLength<u8>,
+    NonceSize: ArraySize,
     TagSize: self::TagSize,
 {
     type NonceSize = NonceSize;
@@ -260,8 +266,8 @@ where
 
 impl<Aes, NonceSize, TagSize> AeadInPlace for AesGcm<Aes, NonceSize, TagSize>
 where
-    Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: ArrayLength<u8>,
+    Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    NonceSize: ArraySize,
     TagSize: self::TagSize,
 {
     fn encrypt_in_place_detached(
@@ -313,8 +319,8 @@ where
 
 impl<Aes, NonceSize, TagSize> AesGcm<Aes, NonceSize, TagSize>
 where
-    Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockEncrypt,
-    NonceSize: ArrayLength<u8>,
+    Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    NonceSize: ArraySize,
     TagSize: self::TagSize,
 {
     /// Initialize counter mode.

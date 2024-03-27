@@ -1,12 +1,15 @@
-use aead::generic_array::{typenum::U16, ArrayLength, GenericArray};
+use aead::{
+    array::{Array, ArraySize},
+    consts::U16,
+};
 
 const BLOCK_SIZE: usize = 16;
-pub(crate) type Block = GenericArray<u8, U16>;
+pub(crate) type Block = Array<u8, U16>;
 
 #[inline]
-pub(crate) fn inplace_xor<T, U>(a: &mut GenericArray<T, U>, b: &GenericArray<T, U>)
+pub(crate) fn inplace_xor<T, U>(a: &mut Array<T, U>, b: &Array<T, U>)
 where
-    U: ArrayLength<T>,
+    U: ArraySize,
     T: core::ops::BitXor<Output = T> + Copy,
 {
     for (aa, bb) in a.as_mut_slice().iter_mut().zip(b.as_slice()) {
@@ -39,6 +42,7 @@ pub(crate) fn ntz(n: usize) -> usize {
 
 #[inline]
 pub(crate) fn split_into_two_blocks(two_blocks: &mut [u8]) -> [&mut Block; 2] {
+    debug_assert_eq!(two_blocks.len(), BLOCK_SIZE * 2);
     let (b0, b1) = two_blocks.split_at_mut(BLOCK_SIZE);
-    [b0.into(), b1.into()]
+    [b0.try_into().unwrap(), b1.try_into().unwrap()]
 }

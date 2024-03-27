@@ -15,16 +15,16 @@ keywords = ["aead", "deoxys", "deoxys-i", "deoxys-ii"]
 categories = ["cryptography", "no-std"]
 readme = "README.md"
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.72"
 
 [dependencies]
-aead = { version = "0.5", default-features = false }
-aes = { version = "0.8", features = ["hazmat"], default-features = false }
+aead = { version = "=0.6.0-pre.0", default-features = false }
+aes = { version = "=0.9.0-pre", features = ["hazmat"], default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.5", features = ["dev"], default-features = false }
+aead = { version = "=0.6.0-pre.0", features = ["dev"], default-features = false }
 hex-literal = "0.3"
 
 [features]

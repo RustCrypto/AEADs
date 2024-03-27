@@ -19,9 +19,9 @@
 //!     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key(&mut OsRng);
+//! let key = Aes256GcmSiv::generate_key()?;
 //! let cipher = Aes256GcmSiv::new(&key);
-//! let nonce = Aes256GcmSiv::generate_nonce(&mut OsRng); // 96-bits; unique per message
+//! let nonce = Aes256GcmSiv::generate_nonce()?; // 96-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -58,7 +58,7 @@
 //!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key(&mut OsRng);
+//! let key = Aes256GcmSiv::generate_key()?;
 //! let cipher = Aes256GcmSiv::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
@@ -85,9 +85,9 @@
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use cipher::{
+    array::Array,
     consts::{U0, U12, U16},
-    generic_array::GenericArray,
-    BlockCipher, BlockEncrypt, InnerIvInit, StreamCipherCore,
+    BlockCipher, BlockCipherEncrypt, InnerIvInit, StreamCipherCore,
 };
 use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
@@ -106,10 +106,10 @@ pub const P_MAX: u64 = 1 << 36;
 pub const C_MAX: u64 = (1 << 36) + 16;
 
 /// AES-GCM-SIV nonces.
-pub type Nonce = GenericArray<u8, U12>;
+pub type Nonce = Array<u8, U12>;
 
 /// AES-GCM-SIV tags.
-pub type Tag = GenericArray<u8, U16>;
+pub type Tag = Array<u8, U16>;
 
 /// AES-GCM-SIV with a 128-bit key.
 #[cfg(feature = "aes")]
@@ -138,7 +138,7 @@ where
 
 impl<Aes> KeyInit for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
+    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     fn new(key_bytes: &Key<Self>) -> Self {
         Self {
@@ -149,7 +149,7 @@ where
 
 impl<Aes> From<Aes> for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt,
 {
     fn from(key_generating_key: Aes) -> Self {
         Self { key_generating_key }
@@ -158,7 +158,7 @@ where
 
 impl<Aes> AeadCore for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
+    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -167,7 +167,7 @@ where
 
 impl<Aes> AeadInPlace for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
+    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -197,7 +197,7 @@ where
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC8452).
 struct Cipher<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt,
 {
     /// Encryption cipher.
     enc_cipher: Aes,
@@ -211,13 +211,13 @@ where
 
 impl<Aes> Cipher<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt + KeyInit,
+    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
     pub(crate) fn new(key_generating_key: &Aes, nonce: &Nonce) -> Self {
         let mut mac_key = polyval::Key::default();
-        let mut enc_key = GenericArray::default();
+        let mut enc_key = Array::default();
         let mut block = cipher::Block::<Aes>::default();
         let mut counter = 0u32;
 
@@ -347,7 +347,7 @@ where
 #[inline]
 fn init_ctr<Aes>(cipher: Aes, nonce: &cipher::Block<Aes>) -> Ctr32LE<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockEncrypt,
+    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt,
 {
     let mut counter_block = *nonce;
     counter_block[15] |= 0x80;

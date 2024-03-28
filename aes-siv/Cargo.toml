@@ -31,7 +31,7 @@ pmac = { version = "0.8.0-pre", optional = true }
 
 [dev-dependencies]
 blobby = "0.3"
-hex-literal = "0.3"
+hex-literal = "0.4"
 
 [features]
 default = ["alloc", "getrandom"]

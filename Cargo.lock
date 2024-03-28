@@ -35,7 +35,7 @@ dependencies = [
  "cipher",
  "ctr",
  "ghash",
- "hex-literal 0.3.4",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -65,7 +65,7 @@ dependencies = [
  "ctr",
  "dbl",
  "digest",
- "hex-literal 0.3.4",
+ "hex-literal",
  "pmac",
  "zeroize",
 ]
@@ -91,7 +91,7 @@ version = "0.4.2"
 dependencies = [
  "aead",
  "ascon",
- "hex-literal 0.3.4",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -134,7 +134,7 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
- "hex-literal 0.3.4",
+ "hex-literal",
  "subtle",
 ]
 
@@ -229,7 +229,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "aes",
- "hex-literal 0.3.4",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -299,12 +299,6 @@ dependencies = [
 
 [[package]]
 name = "hex-literal"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ebdb29d2ea9ed0083cd8cece49bbd968021bd99b0849edb4a9a7ee0fdf6a4e0"
-
-[[package]]
-name = "hex-literal"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
@@ -342,7 +336,7 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
- "hex-literal 0.4.1",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]

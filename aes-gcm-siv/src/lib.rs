@@ -84,6 +84,9 @@
 
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
+#[cfg(feature = "aes")]
+pub use aes;
+
 use cipher::{
     array::Array,
     consts::{U0, U12, U16},

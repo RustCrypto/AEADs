@@ -9,6 +9,7 @@ members = [
     "deoxys",
     "eax",
     "ocb3",
+    "colm",
 ]
 resolver = "2"
 

@@ -1,0 +1,39 @@
+[package]
+name = "belt-dwp"
+version = "0.1.0"
+description = "Pure Rust implementation of the Belt-DWP authenticated encryption algorithm (STB 34.101.31-2020)"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/belt-dwp"
+repository = "https://github.com/RustCrypto/AEADs/tree/master/belt-dwp"
+keywords = ["aead", "belt-dwp"]
+categories = ["cryptography", "no-std"]
+rust-version = "1.56"
+
+[dependencies]
+aead = { version = "0.5", default-features = false }
+zeroize = { version = "1.7", default-features = false }
+universal-hash = { version = "0.5" }
+opaque-debug = { version = "0.3" }
+
+belt-block = { version = "0.1" }
+belt-ctr = { version = "0.1"}
+
+[dev-dependencies]
+hex-literal = "0.4"
+
+[features]
+default       = ["alloc", "getrandom"]
+std           = ["aead/std", "alloc"]
+alloc         = ["aead/alloc"]
+arrayvec      = ["aead/arrayvec"]
+getrandom     = ["aead/getrandom", "rand_core"]
+heapless      = ["aead/heapless"]
+rand_core     = ["aead/rand_core"]
+reduced-round = []
+stream        = ["aead/stream"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

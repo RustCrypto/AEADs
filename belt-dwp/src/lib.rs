@@ -82,14 +82,12 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
+use aead::consts::{U0, U16, U32, U8};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
-use aead:: {
-    consts::{U0, U16, U32, U8},
-};
 
+use belt_block::cipher::{Block, BlockEncrypt, KeyIvInit, StreamCipher};
 use belt_block::{belt_block_raw, BeltBlock};
 use belt_ctr::BeltCtr;
-use belt_block::cipher::{Block, BlockEncrypt, KeyIvInit, StreamCipher};
 use universal_hash::UniversalHash;
 
 use crate::{
@@ -172,7 +170,7 @@ impl Cipher {
     ) -> aead::Result<Tag> {
         let sizes_block =
             get_sizes_block(associated_data.len() as u64 * 8, buffer.len() as u64 * 8);
-        
+
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
         //  3.2 𝑡 ← 𝑡 * 𝑟.

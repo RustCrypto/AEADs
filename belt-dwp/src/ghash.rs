@@ -1,9 +1,4 @@
-use aead::{
-    consts::U16,
-    KeyInit,
-    KeySizeUser,
-    consts::U1
-};
+use aead::{consts::U1, consts::U16, KeyInit, KeySizeUser};
 use belt_block::cipher::{BlockSizeUser, ParBlocksSizeUser};
 use universal_hash::{Reset, UhfBackend, UhfClosure, UniversalHash};
 

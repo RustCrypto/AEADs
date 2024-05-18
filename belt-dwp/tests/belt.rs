@@ -1,6 +1,6 @@
 use aead::AeadInPlace;
-use hex_literal::hex;
 use belt_dwp::{BeltDwp, KeyInit};
+use hex_literal::hex;
 
 /// Test from Appendix A, tables 19-20 of [STB 34.101.31-2020](https://apmi.bsu.by/assets/files/std/belt-spec372.pdf)
 #[test]
@@ -30,9 +30,9 @@ fn test_belt_dwp() {
             x: hex!("DF181ED0 08A20F43 DCBBB936 50DAD34B"),
             y: hex!("E12BDC1A E28257EC 703FCCF0 95EE8DF1"),
             t: hex!("6A2C2C94 C4150DC0"),
-        }
+        },
     ];
-    
+
     for vec in test_vectors {
         let mut x = vec.x;
         let beltdwp = BeltDwp::new_from_slice(&vec.k).unwrap();

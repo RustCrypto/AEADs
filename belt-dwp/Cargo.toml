@@ -31,8 +31,6 @@ arrayvec      = ["aead/arrayvec"]
 getrandom     = ["aead/getrandom", "rand_core"]
 heapless      = ["aead/heapless"]
 rand_core     = ["aead/rand_core"]
-reduced-round = []
-stream        = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true

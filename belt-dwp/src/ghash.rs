@@ -14,7 +14,7 @@ pub type Block = universal_hash::Block<GHash>;
 pub type Tag = universal_hash::Block<GHash>;
 
 #[derive(Clone)]
-pub(crate) struct GHash {
+pub struct GHash {
     s: Element,
     h: Element,
 }

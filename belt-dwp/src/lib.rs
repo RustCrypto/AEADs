@@ -58,7 +58,7 @@
 //!     BeltDwp, Nonce
 //! };
 //!
-//! let key = BeltDwp::generate_key()?;
+//! let key = BeltDwp::generate_key(&mut OsRng)?;
 //! let cipher = BeltDwp::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce1234"); // 128-bits; unique per message
 //!

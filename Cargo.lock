@@ -336,6 +336,7 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
+ "dbl",
  "hex-literal",
  "subtle",
  "zeroize",

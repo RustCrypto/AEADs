@@ -13,20 +13,19 @@ pub mod consts {
     pub use cipher::consts::{U0, U12, U15, U16, U6};
 }
 
-mod util;
-
 pub use aead::{
     self,
     array::{Array, AssocArraySize},
     AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser,
 };
 
-use crate::util::{double, inplace_xor, ntz, Block};
+use aead::array::ArraySize;
 use cipher::{
     consts::{U0, U12, U16},
     BlockCipherDecrypt, BlockCipherEncrypt, BlockSizeUser, Unsigned,
 };
 use core::marker::PhantomData;
+use dbl::Dbl;
 use subtle::ConstantTimeEq;
 
 /// Number of L values to be precomputed. Precomputing m values, allows
@@ -55,6 +54,8 @@ pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// OCB3 tag
 pub type Tag<TagSize> = Array<u8, TagSize>;
+
+pub(crate) type Block = Array<u8, U16>;
 
 mod sealed {
     use aead::array::{
@@ -202,13 +203,13 @@ fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherE
     let mut zeros = [0u8; 16];
     let ll_star = Block::from_mut_slice(&mut zeros);
     cipher.encrypt_block(ll_star);
-    let ll_dollar = double(ll_star);
+    let ll_dollar = ll_star.dbl();
 
     let mut ll = [Block::default(); L_TABLE_SIZE];
     let mut ll_i = ll_dollar;
     #[allow(clippy::needless_range_loop)]
     for i in 0..L_TABLE_SIZE {
-        ll_i = double(&ll_i);
+        ll_i = ll_i.dbl();
         ll[i] = ll_i
     }
     (*ll_star, ll_dollar, ll)
@@ -366,7 +367,6 @@ where
     /// Adapted from https://www.cs.ucdavis.edu/~rogaway/ocb/news/code/ocb.c
     fn wide_encrypt(&self, nonce: &Nonce<NonceSize>, buffer: &mut [u8]) -> (usize, Block, Block) {
         const WIDTH: usize = 2;
-        let split_into_blocks = crate::util::split_into_two_blocks;
 
         let mut i = 1;
 
@@ -374,7 +374,7 @@ where
         offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
         let mut checksum_i = Block::default();
         for wide_blocks in buffer.chunks_exact_mut(<Block as AssocArraySize>::Size::USIZE * WIDTH) {
-            let p_i = split_into_blocks(wide_blocks);
+            let p_i = split_into_two_blocks(wide_blocks);
 
             // checksum_i = checksum_{i-1} xor p_i
             for p_ij in &p_i {
@@ -409,7 +409,6 @@ where
     /// Adapted from https://www.cs.ucdavis.edu/~rogaway/ocb/news/code/ocb.c
     fn wide_decrypt(&self, nonce: &Nonce<NonceSize>, buffer: &mut [u8]) -> (usize, Block, Block) {
         const WIDTH: usize = 2;
-        let split_into_blocks = crate::util::split_into_two_blocks;
 
         let mut i = 1;
 
@@ -417,7 +416,7 @@ where
         offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
         let mut checksum_i = Block::default();
         for wide_blocks in buffer.chunks_exact_mut(16 * WIDTH) {
-            let c_i = split_into_blocks(wide_blocks);
+            let c_i = split_into_two_blocks(wide_blocks);
 
             // offset_i = offset_{i-1} xor L_{ntz(i)}
             offset_i[0] = offset_i[offset_i.len() - 1];
@@ -504,6 +503,33 @@ fn initial_offset<
     offset.to_be_bytes().into()
 }
 
+#[inline]
+pub(crate) fn inplace_xor<T, U>(a: &mut Array<T, U>, b: &Array<T, U>)
+where
+    U: ArraySize,
+    T: core::ops::BitXor<Output = T> + Copy,
+{
+    for (aa, bb) in a.as_mut_slice().iter_mut().zip(b.as_slice()) {
+        *aa = *aa ^ *bb;
+    }
+}
+
+/// Counts the number of non-trailing zeros in the binary representation.
+///
+/// Defined in https://www.rfc-editor.org/rfc/rfc7253.html#section-2
+#[inline]
+pub(crate) fn ntz(n: usize) -> usize {
+    n.trailing_zeros().try_into().unwrap()
+}
+
+#[inline]
+pub(crate) fn split_into_two_blocks(two_blocks: &mut [u8]) -> [&mut Block; 2] {
+    const BLOCK_SIZE: usize = 16;
+    debug_assert_eq!(two_blocks.len(), BLOCK_SIZE * 2);
+    let (b0, b1) = two_blocks.split_at_mut(BLOCK_SIZE);
+    [b0.try_into().unwrap(), b1.try_into().unwrap()]
+}
+
 impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
@@ -570,15 +596,16 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use dbl::Dbl;
     use hex_literal::hex;
 
     #[test]
     fn double_basic_test() {
         let zero = Block::from(hex!("00000000000000000000000000000000"));
-        assert_eq!(zero, double(&zero));
+        assert_eq!(zero, zero.dbl());
         let one = Block::from(hex!("00000000000000000000000000000001"));
         let two = Block::from(hex!("00000000000000000000000000000002"));
-        assert_eq!(two, double(&one));
+        assert_eq!(two, one.dbl());
     }
 
     #[test]

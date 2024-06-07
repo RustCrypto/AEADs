@@ -138,7 +138,7 @@ mod chacha20 {
 
 /// XChaCha20Poly1305 test vectors.
 ///
-/// From <https://tools.ietf.org/html/draft-arciszewski-xchacha-03#appendix-A.1>
+/// From <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha#appendix-A.1>
 mod xchacha20 {
     use super::{AAD, KEY, PLAINTEXT};
     use chacha20poly1305::aead::array::Array;

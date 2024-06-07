@@ -112,7 +112,7 @@
 //! proof from the XSalsa20 paper to the construction in order to demonstrate
 //! that XChaCha20 is secure if ChaCha20 is secure (see Section 3.1):
 //!
-//! <https://tools.ietf.org/html/draft-arciszewski-xchacha-03>
+//! <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha>
 //!
 //! It is worth noting that NaCl/libsodium's default "secretbox" algorithm is
 //! XSalsa20Poly1305, not XChaCha20Poly1305, and thus not compatible with

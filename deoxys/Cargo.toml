@@ -9,8 +9,8 @@ CAESAR competition as the first choice for in-depth security
 authors = ["RustCrypto Developers, zer0x64"]
 license = "Apache-2.0 OR MIT"
 documentation = "https://docs.rs/deoxys"
-repository = "https://github.com/RustCrypto/AEADs/tree/master/deoxys"
-homepage = "https://github.com/RustCrypto"
+homepage = "https://github.com/RustCrypto/AEADs/tree/master/deoxys"
+repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "deoxys", "deoxys-i", "deoxys-ii"]
 categories = ["cryptography", "no-std"]
 readme = "README.md"

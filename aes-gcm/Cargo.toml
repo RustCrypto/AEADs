@@ -20,7 +20,7 @@ rust-version = "1.65"
 aead = { version = "=0.6.0-pre.0", default-features = false }
 aes = { version = "=0.9.0-pre", optional = true }
 cipher = "=0.5.0-pre.4"
-ctr = "=0.10.0-pre"
+ctr = "=0.10.0-pre.0"
 ghash = { version = "=0.6.0-pre.0", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }

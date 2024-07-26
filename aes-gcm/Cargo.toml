@@ -1,6 +1,6 @@
 [package]
 name = "aes-gcm"
-version = "0.11.0-pre"
+version = "0.11.0-pre.0"
 description = """
 Pure Rust implementation of the AES-GCM (Galois/Counter Mode)
 Authenticated Encryption with Associated Data (AEAD) Cipher
@@ -30,14 +30,14 @@ aead = { version = "=0.6.0-pre.0", features = ["dev"], default-features = false 
 hex-literal = "0.4"
 
 [features]
-default   = ["aes", "alloc", "getrandom"]
-std       = ["aead/std", "cipher/std", "alloc"]
-alloc     = ["aead/alloc"]
-arrayvec  = ["aead/arrayvec"]
+default = ["aes", "alloc", "getrandom"]
+std = ["aead/std", "cipher/std", "alloc"]
+alloc = ["aead/alloc"]
+arrayvec = ["aead/arrayvec"]
 getrandom = ["aead/getrandom", "rand_core"]
-heapless  = ["aead/heapless"]
+heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
-stream    = ["aead/stream"]
+stream = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true

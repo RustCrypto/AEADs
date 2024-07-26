@@ -16,7 +16,7 @@ rust-version = "1.65"
 [dependencies]
 aead = { version = "=0.6.0-pre.0", default-features = false }
 cipher = { version = "=0.5.0-pre.4", default-features = false }
-ctr = { version = "=0.10.0-pre", default-features = false }
+ctr = { version = "=0.10.0-pre.0", default-features = false }
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
@@ -29,7 +29,7 @@ default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
-getrandom  = ["aead/getrandom", "rand_core"]
+getrandom = ["aead/getrandom", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
 stream = ["aead/stream"]

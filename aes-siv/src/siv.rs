@@ -93,9 +93,10 @@ where
         // Use the first half of the key as the MAC key and
         // the second one as the encryption key
         let (mac_key, enc_key) = key.split_at(M::key_size());
+
         Self {
-            encryption_key: Array::clone_from_slice(enc_key),
-            mac: <M as KeyInit>::new(Array::from_slice(mac_key)),
+            encryption_key: enc_key.try_into().expect("encryption key size mismatch"),
+            mac: <M as KeyInit>::new(mac_key.try_into().expect("MAC key size mismatch")),
         }
     }
 }
@@ -203,7 +204,7 @@ where
             return Err(Error);
         }
 
-        let siv_tag = Tag::clone_from_slice(&buffer.as_ref()[..IV_SIZE]);
+        let siv_tag = Tag::try_from(&buffer.as_ref()[..IV_SIZE]).expect("tag size mismatch");
         self.decrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..], &siv_tag)?;
 
         let pt_len = buffer.len() - IV_SIZE;

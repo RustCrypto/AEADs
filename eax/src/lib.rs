@@ -256,7 +256,7 @@ where
             .take(OutputSize::<Cmac<Cipher>>::to_usize())
             .collect();
 
-        let tag = Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()]);
+        let tag = Tag::<M>::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch");
         Ok(tag)
     }
 

@@ -11,11 +11,3 @@ members = [
     "ocb3",
 ]
 resolver = "2"
-
-[patch.crates-io]
-# https://github.com/RustCrypto/MACs/pull/158
-cmac = { git = "https://github.com/RustCrypto/MACs.git" }
-pmac = { git = "https://github.com/RustCrypto/MACs.git" }
-
-# https://github.com/RustCrypto/stream-ciphers/pull/345
-chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }

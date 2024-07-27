@@ -24,7 +24,7 @@ macro_rules! rfc7253_wider_variety {
         let mut key_bytes = vec![0u8; $keylen];
         key_bytes[$keylen - 1] = 8 * $taglen; // taglen in bytes
 
-        let key = Array::from_slice(key_bytes.as_slice());
+        let key = <&Array<_, _>>::try_from(key_bytes.as_slice()).unwrap();
         let ocb = $ocb::new(key);
 
         let mut ciphertext = Vec::new();

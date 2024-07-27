@@ -213,8 +213,7 @@ where
         let mut i = (processed_bytes / 16) + 1;
 
         // Then, process the remaining blocks.
-        for p_i in buffer[processed_bytes..].chunks_exact_mut(16) {
-            let p_i = Block::from_mut_slice(p_i);
+        for p_i in Block::slice_as_chunks_mut(&mut buffer[processed_bytes..]).0 {
             // offset_i = offset_{i-1} xor L_{ntz(i)}
             inplace_xor(&mut offset_i, &self.ll[ntz(i)]);
             // checksum_i = checksum_{i-1} xor p_i
@@ -243,7 +242,7 @@ where
             let checksum_rhs = &mut [0u8; 16];
             checksum_rhs[..remaining_bytes].copy_from_slice(&buffer[processed_bytes..]);
             checksum_rhs[remaining_bytes] = 0b1000_0000;
-            inplace_xor(&mut checksum_i, Block::from_slice(checksum_rhs));
+            inplace_xor(&mut checksum_i, checksum_rhs.as_ref());
             // C_* = P_* xor Pad[1..bitlen(P_*)]
             let p_star = &mut buffer[processed_bytes..];
             let pad = &mut pad[..p_star.len()];
@@ -296,8 +295,8 @@ where
         let mut i = (processed_bytes / 16) + 1;
 
         // Then, process the remaining blocks.
-        for c_i in buffer[processed_bytes..].chunks_exact_mut(16) {
-            let c_i = Block::from_mut_slice(c_i);
+        let (blocks, _remaining) = Block::slice_as_chunks_mut(&mut buffer[processed_bytes..]);
+        for c_i in blocks {
             // offset_i = offset_{i-1} xor L_{ntz(i)}
             inplace_xor(&mut offset_i, &self.ll[ntz(i)]);
             // p_i = offset_i xor DECIPHER(K, c_i xor offset_i)
@@ -332,7 +331,7 @@ where
             let checksum_rhs = &mut [0u8; 16];
             checksum_rhs[..remaining_bytes].copy_from_slice(&buffer[processed_bytes..]);
             checksum_rhs[remaining_bytes] = 0b1000_0000;
-            inplace_xor(&mut checksum_i, Block::from_slice(checksum_rhs));
+            inplace_xor(&mut checksum_i, checksum_rhs.as_ref());
         }
 
         self.compute_tag(associated_data, &mut checksum_i, &offset_i)
@@ -424,11 +423,12 @@ where
         let mut sum_i = Block::default();
 
         let mut i = 1;
-        for a_i in associated_data.chunks_exact(16) {
+        let (blocks, remaining) = Block::slice_as_chunks(associated_data);
+        for a_i in blocks {
             // offset_i = offset_{i-1} xor L_{ntz(i)}
             inplace_xor(&mut offset_i, &self.ll[ntz(i)]);
             // Sum_i = Sum_{i-1} xor ENCIPHER(K, A_i xor offset_i)
-            let mut a_i = *Block::from_slice(a_i);
+            let mut a_i = *a_i;
             inplace_xor(&mut a_i, &offset_i);
             self.cipher.encrypt_block(&mut a_i);
             inplace_xor(&mut sum_i, &a_i);
@@ -437,21 +437,21 @@ where
         }
 
         // Process any partial blocks.
-        if (associated_data.len() % 16) != 0 {
+        if !remaining.is_empty() {
             let processed_bytes = (i - 1) * 16;
             let remaining_bytes = associated_data.len() - processed_bytes;
 
             // offset_* = offset_m xor L_*
             inplace_xor(&mut offset_i, &self.ll_star);
             // CipherInput = (A_* || 1 || zeros(127-bitlen(A_*))) xor offset_*
-            let cipher_input = &mut [0u8; 16];
+            let mut cipher_input = Block::default();
             cipher_input[..remaining_bytes].copy_from_slice(&associated_data[processed_bytes..]);
             cipher_input[remaining_bytes] = 0b1000_0000;
-            let cipher_input = Block::from_mut_slice(cipher_input);
-            inplace_xor(cipher_input, &offset_i);
+            //let cipher_input = Block::from_mut_slice(cipher_input);
+            inplace_xor(&mut cipher_input, &offset_i);
             // Sum = Sum_m xor ENCIPHER(K, CipherInput)
-            self.cipher.encrypt_block(cipher_input);
-            inplace_xor(&mut sum_i, cipher_input);
+            self.cipher.encrypt_block(&mut cipher_input);
+            inplace_xor(&mut sum_i, &cipher_input);
         }
 
         sum_i
@@ -471,7 +471,7 @@ where
         inplace_xor(full_tag, &self.hash(associated_data));
 
         // truncate the tag to the required length
-        Tag::clone_from_slice(&full_tag[..TagSize::to_usize()])
+        Tag::try_from(&full_tag[..TagSize::to_usize()]).expect("tag size mismatch")
     }
 }
 
@@ -480,9 +480,8 @@ where
 fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt>(
     cipher: &Cipher,
 ) -> (Block, Block, [Block; L_TABLE_SIZE]) {
-    let mut zeros = [0u8; 16];
-    let ll_star = Block::from_mut_slice(&mut zeros);
-    cipher.encrypt_block(ll_star);
+    let mut ll_star = Block::default();
+    cipher.encrypt_block(&mut ll_star);
     let ll_dollar = ll_star.dbl();
 
     let mut ll = [Block::default(); L_TABLE_SIZE];
@@ -492,7 +491,7 @@ fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherE
         ll_i = ll_i.dbl();
         ll[i] = ll_i
     }
-    (*ll_star, ll_dollar, ll)
+    (ll_star, ll_dollar, ll)
 }
 
 /// Computes nonce-dependent variables as defined
@@ -605,7 +604,7 @@ mod tests {
         let expected_ll0 = Block::from(hex!("1A84ECDE1E3D6E09BD3E058A8723606D"));
         let expected_ll1 = Block::from(hex!("3509D9BC3C7ADC137A7C0B150E46C0DA"));
 
-        let cipher = aes::Aes128::new(Array::from_slice(&key));
+        let cipher = aes::Aes128::new(key.as_ref());
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
 
         assert_eq!(ll_star, expected_ll_star);
@@ -625,7 +624,7 @@ mod tests {
 
         const TAGLEN: u32 = 16;
 
-        let cipher = aes::Aes128::new(Array::from_slice(&key));
+        let cipher = aes::Aes128::new(key.as_ref());
         let (bottom, stretch) =
             nonce_dependent_variables::<aes::Aes128, U12>(&cipher, &Nonce::from(nonce), TAGLEN);
         let offset_0 = initial_offset::<aes::Aes128, U12>(&cipher, &Nonce::from(nonce), TAGLEN);

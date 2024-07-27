@@ -3,7 +3,7 @@
 
 use ascon_aead::{
     aead::{Aead, AeadInPlace, KeyInit, Payload},
-    Ascon128, Ascon128a, Ascon80pq, Key, Nonce,
+    Ascon128, Ascon128a, Ascon80pq,
 };
 use hex_literal::hex;
 
@@ -14,10 +14,10 @@ fn run_tv<A: KeyInit + AeadInPlace>(
     associated_data: &[u8],
     ciphertext: &[u8],
 ) {
-    let core = A::new(Key::<A>::from_slice(key));
+    let core = A::new(key.try_into().unwrap());
     let ctxt = core
         .encrypt(
-            Nonce::<A>::from_slice(nonce),
+            nonce.try_into().unwrap(),
             Payload {
                 msg: plaintext,
                 aad: associated_data,
@@ -28,7 +28,7 @@ fn run_tv<A: KeyInit + AeadInPlace>(
 
     let ptxt = core
         .decrypt(
-            Nonce::<A>::from_slice(nonce),
+            nonce.try_into().unwrap(),
             Payload {
                 msg: ciphertext,
                 aad: associated_data,

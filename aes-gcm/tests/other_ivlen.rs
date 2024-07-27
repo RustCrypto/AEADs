@@ -34,7 +34,7 @@ mod ivlen8 {
         let plaintext = hex!("8cfa255530c6fbc19d51bd4aeb39c91b");
 
         let ciphertext = Aes128GcmWith8BitNonce::new(&key.into())
-            .encrypt(Array::from_slice(&nonce), &plaintext[..])
+            .encrypt(&Array(nonce), &plaintext[..])
             .unwrap();
 
         let (ct, tag) = ciphertext.split_at(ciphertext.len() - 16);
@@ -69,7 +69,7 @@ mod ivlen1024 {
         let plaintext = hex!("705da82292143d2c949dc4ba014f6396");
 
         let ciphertext = Aes128GcmWith1024BitNonce::new(&key.into())
-            .encrypt(Array::from_slice(&nonce), &plaintext[..])
+            .encrypt(&Array(nonce), &plaintext[..])
             .unwrap();
 
         let (ct, tag) = ciphertext.split_at(ciphertext.len() - 16);

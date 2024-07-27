@@ -16,15 +16,15 @@ macro_rules! tests {
         #[test]
         fn encrypt() {
             for vector in $vectors {
-                let key = Array::from_slice(vector.key);
-                let nonce = Array::from_slice(vector.nonce);
+                let key = Array(*vector.key);
+                let nonce = Array(*vector.nonce);
                 let payload = Payload {
                     msg: vector.plaintext,
                     aad: vector.aad,
                 };
 
-                let cipher = <$aead>::new(key);
-                let ciphertext = cipher.encrypt(nonce, payload).unwrap();
+                let cipher = <$aead>::new(&key);
+                let ciphertext = cipher.encrypt(&nonce, payload).unwrap();
 
                 assert_eq!(vector.ciphertext, ciphertext.as_slice());
             }
@@ -33,16 +33,16 @@ macro_rules! tests {
         #[test]
         fn decrypt() {
             for vector in $vectors {
-                let key = Array::from_slice(vector.key);
-                let nonce = Array::from_slice(vector.nonce);
+                let key = Array(*vector.key);
+                let nonce = Array(*vector.nonce);
 
                 let payload = Payload {
                     msg: vector.ciphertext,
                     aad: vector.aad,
                 };
 
-                let cipher = <$aead>::new(key);
-                let plaintext = cipher.decrypt(nonce, payload).unwrap();
+                let cipher = <$aead>::new(&key);
+                let plaintext = cipher.decrypt(&nonce, payload).unwrap();
 
                 assert_eq!(vector.plaintext, plaintext.as_slice());
             }
@@ -51,8 +51,8 @@ macro_rules! tests {
         #[test]
         fn decrypt_modified() {
             let vector = &$vectors[1];
-            let key = Array::from_slice(vector.key);
-            let nonce = Array::from_slice(vector.nonce);
+            let key = Array(*vector.key);
+            let nonce = Array(*vector.nonce);
 
             let mut ciphertext = Vec::from(vector.ciphertext);
 
@@ -64,8 +64,8 @@ macro_rules! tests {
                 aad: vector.aad,
             };
 
-            let cipher = <$aead>::new(key);
-            assert!(cipher.decrypt(nonce, payload).is_err());
+            let cipher = <$aead>::new(&key);
+            assert!(cipher.decrypt(&nonce, payload).is_err());
 
             // TODO(tarcieri): test ciphertext is unmodified in in-place API
         }

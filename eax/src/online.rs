@@ -358,7 +358,7 @@ where
             .take(Cipher::BlockSize::to_usize())
             .collect();
 
-        Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()])
+        Tag::<M>::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch")
     }
 
     /// Derives the tag from the encrypted/decrypted message so far.
@@ -377,7 +377,7 @@ where
             .take(Cipher::BlockSize::to_usize())
             .collect();
 
-        Tag::<M>::clone_from_slice(&full_tag[..M::to_usize()])
+        Tag::<M>::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch")
     }
 
     /// Finishes the decryption stream, verifying whether the associated and

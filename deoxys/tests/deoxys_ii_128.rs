@@ -20,16 +20,16 @@ fn test_deoxys_ii_128_1() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext: Vec<u8> = Vec::new();
 
     let tag: [u8; 16] = hex!("97d951f2fd129001483e831f2a6821e9");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -40,7 +40,7 @@ fn test_deoxys_ii_128_1() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(plaintext, decrypted);
 }
@@ -57,16 +57,16 @@ fn test_deoxys_ii_128_2() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext: Vec<u8> = Vec::new();
 
     let tag: [u8; 16] = hex!("3c197ca5317af5a2b95b178a60553132");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -77,7 +77,7 @@ fn test_deoxys_ii_128_2() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(plaintext, decrypted);
 }
@@ -94,16 +94,16 @@ fn test_deoxys_ii_128_3() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext: Vec<u8> = Vec::new();
 
     let tag: [u8; 16] = hex!("0a989ed78fa16776cd6c691ea734d874");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -114,7 +114,7 @@ fn test_deoxys_ii_128_3() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(plaintext, decrypted);
 }
@@ -131,16 +131,16 @@ fn test_deoxys_ii_128_4() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext = hex!("fa22f8eb84ee6d2388bdb16150232e856cd5fa3508bc589dad16d284208048c9");
 
     let tag: [u8; 16] = hex!("a381b06ef16db99df089e738c3b4064a");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -151,7 +151,7 @@ fn test_deoxys_ii_128_4() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(&plaintext[..], &decrypted[..]);
 }
@@ -168,16 +168,16 @@ fn test_deoxys_ii_128_5() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext = hex!("82bf241958b324ed053555d23315d3cc20935527fc970ff34a9f521a95e302136d");
 
     let tag: [u8; 16] = hex!("0eadc8612d5208c491e93005195e9769");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -188,7 +188,7 @@ fn test_deoxys_ii_128_5() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(&plaintext[..], &decrypted[..]);
 }
@@ -205,17 +205,17 @@ fn test_deoxys_ii_128_6() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext: [u8; 32] =
         hex!("9cdb554dfc03bff4feeb94df7736038361a76532b6b5a9c0bdb64a74dee983ff");
 
     let tag: [u8; 16] = hex!("bc1a7b5b8e961e65ceff6877ef9e4a98");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -226,7 +226,7 @@ fn test_deoxys_ii_128_6() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(&plaintext[..], &decrypted[..]);
 }
@@ -243,17 +243,17 @@ fn test_deoxys_ii_128_7() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext: [u8; 33] =
         hex!("801f1b81878faca562c8c6c0859b166c2669fbc54b1784be637827b4905729bdf9");
 
     let tag: [u8; 16] = hex!("fe4e9bcd26b96647350eda1e550cc994");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -264,7 +264,7 @@ fn test_deoxys_ii_128_7() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(&plaintext[..], &decrypted[..]);
 }
@@ -282,17 +282,17 @@ fn test_deoxys_ii_128_8() {
     };
 
     let key = hex!("101112131415161718191a1b1c1d1e1f");
-    let key = Array::from_slice(&key);
+    let key = Array(key);
 
     let nonce = hex!("202122232425262728292a2b2c2d2e2f");
-    let nonce = Array::from_slice(&nonce[..15]);
+    let nonce = Array::try_from(&nonce[..15]).unwrap();
 
     let ciphertext=
         hex!("b8eddddb8d0042bb42fdf675bae285e504b90e4d73e02f99f790b2ffe7815dba40fe4c7bc886ce44505f6ac53d3bba5d3c73efd98daf4b7a5af250a5d100ff5558c211cb03a28d9519502d7d0fc85a6d73e618feb6b503af12cb0330bb9c5743b19996174a84dbf5bac38d10d207067e4ab211a62ad0f85dd8245dfb077443017b7847996fe7ed547b9e02051f1cbe39128e21486b4f73399d0a50d9a1111bed11ebb0547454d0a922633c83f0bba784571f63f55dc33f92e09862471945312d99e40b4ed739556f102afd43055497739a4b22d107e867cc652a5d96974ff785976c82bc1ff89731c780e84a257bb885cd23e00a7bdc7a68e0a1668516fb972721a777429c76cfd4adb45afa554d44a8932d133af8c9254fd3fef2bd0bb65801f2ffbf752f14eaa783e53c2342f021863598e88b20232a0c44e963dd8943e9a54213ffbb174b90e38b55aa9b223e9596acb1517ff21b7458b7694488047797c521883c00762e7227f1e8a5e3f11a43962bdccde8dc4009aef7628a96efa8793d6080982f9b00a7b97d93fd5928702e78427f34eb434e2286de00216b405c36105dc2e8dae68c3342a23274b32a6d2d8ac85239a8fa2947126f505a517fb18847104b21b0326b7fd67efb54f5d0b12b311ef998ebaf14939b7cdb44b35435eedf1ba5b07eea99533f1857b8cc1538290a8dbd44ca696c6bc2f1105451032a650c");
 
     let tag: [u8; 16] = hex!("e68a5de27beaeb6472611dfa9783602a");
 
-    let encrypted = DeoxysII128::new(key).encrypt(nonce, payload).unwrap();
+    let encrypted = DeoxysII128::new(&key).encrypt(&nonce, payload).unwrap();
 
     let tag_begins = encrypted.len() - 16;
     assert_eq!(ciphertext, encrypted[..tag_begins]);
@@ -303,7 +303,7 @@ fn test_deoxys_ii_128_8() {
         aad: &aad,
     };
 
-    let decrypted = DeoxysII128::new(key).decrypt(nonce, payload).unwrap();
+    let decrypted = DeoxysII128::new(&key).decrypt(&nonce, payload).unwrap();
 
     assert_eq!(&plaintext[..], &decrypted[..]);
 }

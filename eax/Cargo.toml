@@ -20,15 +20,15 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.71"
 
 [dependencies]
-aead = { version = "=0.6.0-pre.0", default-features = false }
-cipher = "=0.5.0-pre.4"
-cmac = "=0.8.0-pre"
-ctr = "=0.10.0-pre.0"
+aead = { version = "0.6.0-rc.0", default-features = false }
+cipher = "=0.5.0-pre.6"
+cmac = "=0.8.0-pre.1"
+ctr = "=0.10.0-pre.1"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
-aead = { version = "=0.6.0-pre.0", features = ["dev"], default-features = false }
-aes = "=0.9.0-pre"
+aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
+aes = "=0.9.0-pre.1"
 
 [features]
 default = ["alloc", "getrandom"]

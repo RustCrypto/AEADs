@@ -37,7 +37,7 @@ where
         let mut mac_key = poly1305::Key::default();
         cipher.apply_keystream(&mut mac_key);
 
-        let mac = Poly1305::new(Array::from_slice(&mac_key));
+        let mac = Poly1305::new(&mac_key);
         mac_key.zeroize();
 
         // Set ChaCha20 counter to 1

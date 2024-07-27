@@ -14,16 +14,16 @@ fn test_data_len_check() {
     let nonce = hex!("2F1DBD38CE3EDA7C23F04DD650");
 
     type Cipher = Ccm<aes::Aes128, U10, U13>;
-    let key = Array::from_slice(&key);
-    let nonce = Array::from_slice(&nonce);
-    let c = Cipher::new(key);
+    let key = Array(key);
+    let nonce = Array(nonce);
+    let c = Cipher::new(&key);
 
     let mut buf1 = [1; core::u16::MAX as usize];
-    let res = c.encrypt_in_place_detached(nonce, &[], &mut buf1);
+    let res = c.encrypt_in_place_detached(&nonce, &[], &mut buf1);
     assert!(res.is_ok());
 
     let mut buf2 = [1; core::u16::MAX as usize + 1];
-    let res = c.encrypt_in_place_detached(nonce, &[], &mut buf2);
+    let res = c.encrypt_in_place_detached(&nonce, &[], &mut buf2);
     assert!(res.is_err());
 }
 
@@ -36,13 +36,13 @@ fn sp800_38c_examples() {
             $key:expr, $m:ty, $n:ty,
             nonce: $nonce:expr, adata: $adata:expr, pt: $pt:expr, ct: $ct:expr,
         ) => {
-            let key = Array::from_slice(&$key);
-            let c = Ccm::<aes::Aes128, $m, $n>::new(key);
-            let nonce = Array::from_slice(&$nonce);
-            let res = c.encrypt(nonce, Payload { aad: &$adata, msg: &$pt })
+            let key = Array($key);
+            let c = Ccm::<aes::Aes128, $m, $n>::new(&key);
+            let nonce = Array($nonce);
+            let res = c.encrypt(&nonce, Payload { aad: &$adata, msg: &$pt })
                 .unwrap();
             assert_eq!(res, &$ct);
-            let res = c.decrypt(nonce, Payload { aad: &$adata, msg: &$ct })
+            let res = c.decrypt(&nonce, Payload { aad: &$adata, msg: &$ct })
                 .unwrap();
             assert_eq!(res, &$pt);
         };

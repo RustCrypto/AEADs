@@ -18,7 +18,7 @@ macro_rules! tests {
         #[test]
         fn encrypt() {
             for vector in $vectors {
-                let mut cipher = <$siv>::new(Array::from_slice(vector.key));
+                let mut cipher = <$siv>::new(&Array(*vector.key));
                 let ciphertext = cipher.encrypt(vector.aad, vector.plaintext).unwrap();
                 assert_eq!(vector.ciphertext, ciphertext.as_slice());
             }
@@ -27,7 +27,7 @@ macro_rules! tests {
         #[test]
         fn decrypt() {
             for vector in $vectors {
-                let mut cipher = <$siv>::new(Array::from_slice(vector.key));
+                let mut cipher = <$siv>::new(&Array(*vector.key));
                 let plaintext = cipher.decrypt(vector.aad, vector.ciphertext).unwrap();
                 assert_eq!(vector.plaintext, plaintext.as_slice());
             }
@@ -41,7 +41,7 @@ macro_rules! tests {
             // Tweak the first byte
             ciphertext[0] ^= 0xaa;
 
-            let mut cipher = <$siv>::new(Array::from_slice(vector.key));
+            let mut cipher = <$siv>::new(&Array(*vector.key));
             assert!(cipher.decrypt(vector.aad, &ciphertext).is_err());
 
             // TODO(tarcieri): test ciphertext is unmodified in in-place API
@@ -63,7 +63,7 @@ macro_rules! wycheproof_tests {
                 ct: &[u8],
                 pass: bool,
             ) -> Option<&'static str> {
-                let mut cipher = <$siv>::new(Array::from_slice(key));
+                let mut cipher = <$siv>::new(key.try_into().expect("key size mismatch"));
                 let ciphertext = cipher.encrypt(&[aad], pt).unwrap();
                 if pass && ct != ciphertext.as_slice() {
                     return Some("encryption mismatch");

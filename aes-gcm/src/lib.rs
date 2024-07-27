@@ -287,7 +287,7 @@ where
         ctr.apply_keystream_partial(buffer.into());
 
         let full_tag = self.compute_tag(mask, associated_data, buffer);
-        Ok(Tag::clone_from_slice(&full_tag[..TagSize::to_usize()]))
+        Ok(Tag::try_from(&full_tag[..TagSize::to_usize()]).expect("tag size mismatch"))
     }
 
     fn decrypt_in_place_detached(

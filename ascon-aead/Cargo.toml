@@ -15,16 +15,14 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.65"
 
 [dependencies]
-aead = { version = "=0.6.0-pre.0", default-features = false }
+aead = { version = "0.6.0-rc.0", default-features = false }
 subtle = { version = "2", default-features = false }
-zeroize_crate = { package = "zeroize", version = "1.6", optional = true, default-features = false, features = [
-    "derive",
-] }
+zeroize = { version = "1.6", optional = true, default-features = false, features = ["derive"] }
 ascon = "0.4"
 
 [dev-dependencies]
 hex-literal = "0.4"
-aead = { version = "=0.6.0-pre.0", features = ["alloc"] }
+aead = { version = "0.6.0-rc.0", features = ["alloc"] }
 
 [features]
 default = ["alloc", "getrandom"]
@@ -35,7 +33,7 @@ getrandom = ["aead/getrandom", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
 stream = ["aead/stream"]
-zeroize = ["zeroize_crate", "ascon/zeroize"]
+zeroize = ["dep:zeroize", "ascon/zeroize"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -16,16 +16,16 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.72"
 
 [dependencies]
-aead = { version = "=0.6.0-pre.0", default-features = false }
-cipher = "=0.5.0-pre.4"
-ctr = "=0.10.0-pre.0"
-dbl = "=0.4.0-pre.4"
+aead = { version = "0.6.0-rc.0", default-features = false }
+cipher = "=0.5.0-pre.6"
+ctr = "=0.10.0-pre.1"
+dbl = "=0.4.0-rc.0"
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "=0.6.0-pre.0", features = ["dev"], default-features = false }
-aes = { version = "=0.9.0-pre", default-features = false }
+aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
+aes = { version = "=0.9.0-pre.1", default-features = false }
 hex-literal = "0.4"
 
 [features]

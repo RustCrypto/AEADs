@@ -21,14 +21,14 @@ macro_rules! impl_tests {
     ($cipher:ty, $key:expr, $nonce:expr, $aad:expr, $plaintext:expr, $ciphertext:expr, $tag:expr) => {
         #[test]
         fn encrypt() {
-            let key = Array::from_slice($key);
-            let nonce = Array::from_slice($nonce);
+            let key = Array(*$key);
+            let nonce = Array(*$nonce);
             let payload = Payload {
                 msg: $plaintext,
                 aad: $aad,
             };
 
-            let ciphertext = <$cipher>::new(key).encrypt(nonce, payload).unwrap();
+            let ciphertext = <$cipher>::new(&key).encrypt(&nonce, payload).unwrap();
 
             let tag_begins = ciphertext.len() - 16;
             assert_eq!($ciphertext, &ciphertext[..tag_begins]);
@@ -37,8 +37,8 @@ macro_rules! impl_tests {
 
         #[test]
         fn decrypt() {
-            let key = Array::from_slice($key);
-            let nonce = Array::from_slice($nonce);
+            let key = Array(*$key);
+            let nonce = Array(*$nonce);
 
             let mut ciphertext = Vec::from($ciphertext);
             ciphertext.extend_from_slice($tag);
@@ -47,15 +47,15 @@ macro_rules! impl_tests {
                 aad: $aad,
             };
 
-            let plaintext = <$cipher>::new(key).decrypt(nonce, payload).unwrap();
+            let plaintext = <$cipher>::new(&key).decrypt(&nonce, payload).unwrap();
 
             assert_eq!($plaintext, plaintext.as_slice());
         }
 
         #[test]
         fn decrypt_modified() {
-            let key = Array::from_slice($key);
-            let nonce = Array::from_slice($nonce);
+            let key = Array(*$key);
+            let nonce = Array(*$nonce);
 
             let mut ciphertext = Vec::from($ciphertext);
             ciphertext.extend_from_slice($tag);
@@ -68,8 +68,8 @@ macro_rules! impl_tests {
                 aad: $aad,
             };
 
-            let cipher = <$cipher>::new(key);
-            assert!(cipher.decrypt(nonce, payload).is_err());
+            let cipher = <$cipher>::new(&key);
+            assert!(cipher.decrypt(&nonce, payload).is_err());
         }
     };
 }
@@ -132,7 +132,7 @@ mod chacha20 {
 
     #[test]
     fn clone_impl() {
-        let _ = ChaCha20Poly1305::new(Array::from_slice(KEY)).clone();
+        let _ = ChaCha20Poly1305::new(KEY.into()).clone();
     }
 }
 

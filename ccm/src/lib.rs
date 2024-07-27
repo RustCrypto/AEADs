@@ -242,7 +242,7 @@ where
             ctr.apply_keystream(buffer);
         }
 
-        Ok(Tag::clone_from_slice(&full_tag[..M::to_usize()]))
+        Ok(Tag::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch"))
     }
 
     fn decrypt_in_place_detached(
@@ -302,11 +302,12 @@ where
     }
 
     fn update(&mut self, data: &[u8]) {
-        let mut chunks = data.chunks_exact(C::BlockSize::USIZE);
-        for chunk in &mut chunks {
-            self.block_update(Block::<C>::from_slice(chunk));
+        let (blocks, rem) = Block::<C>::slice_as_chunks(data);
+
+        for block in blocks {
+            self.block_update(block);
         }
-        let rem = chunks.remainder();
+
         if !rem.is_empty() {
             let mut bn = Block::<C>::default();
             bn[..rem.len()].copy_from_slice(rem);

@@ -99,7 +99,7 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec`.
 
 #[cfg(feature = "zeroize")]
-extern crate zeroize_crate as zeroize;
+pub use zeroize;
 
 pub use aead::{self, Error, Key, Nonce, Tag};
 use aead::{

@@ -1,19 +1,18 @@
 //! XAES-256-GCM test vectors
 
-#![cfg(all(feature = "aes", feature = "alloc"))]
-
 #[macro_use]
+#[path = "../../aes-gcm/tests/common/mod.rs"]
 mod common;
 
 use aes_gcm::aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
-use aes_gcm::XaesGcm256;
 use common::TestVector;
 use hex_literal::hex;
+use xaes_256_gcm::XaesGcm256;
 
 /// C2SP XAES-256-GCM test vectors
 ///
 /// <https://github.com/C2SP/C2SP/blob/main/XAES-256-GCM.md>
-const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
+const TEST_VECTORS: &[TestVector<[u8; 32], [u8; 24]>] = &[
     TestVector {
         key: &hex!("0101010101010101010101010101010101010101010101010101010101010101"),
         nonce: b"ABCDEFGHIJKLMNOPQRSTUVWX",

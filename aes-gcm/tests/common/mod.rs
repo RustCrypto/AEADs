@@ -2,9 +2,9 @@
 
 /// Test vectors
 #[derive(Debug)]
-pub struct TestVector<K: 'static> {
+pub struct TestVector<K: 'static, N: 'static> {
     pub key: &'static K,
-    pub nonce: &'static [u8],
+    pub nonce: &'static N,
     pub aad: &'static [u8],
     pub plaintext: &'static [u8],
     pub ciphertext: &'static [u8],

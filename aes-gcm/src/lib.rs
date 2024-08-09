@@ -110,16 +110,10 @@
 //! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
 //! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
-#[cfg(feature = "aes")]
-mod xaes;
-
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 #[cfg(feature = "aes")]
 pub use aes;
-
-#[cfg(feature = "aes")]
-pub use xaes::XaesGcm256;
 
 use cipher::{
     array::{Array, ArraySize},

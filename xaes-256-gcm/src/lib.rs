@@ -1,9 +1,21 @@
+#![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
+#![deny(unsafe_code)]
+#![warn(missing_docs, rust_2018_idioms)]
+
+//! # TBD
+
 use core::ops::{Div, Mul};
 
 use aead::{array::Array, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+use aes::Aes256;
+use aes_gcm::{Aes256Gcm, Nonce, Tag};
 use cipher::{consts::U2, BlockCipherEncrypt, BlockSizeUser};
-
-use crate::{Aes256, Aes256Gcm, Nonce, Tag};
 
 /// XAES-256-GCM
 #[derive(Clone)]

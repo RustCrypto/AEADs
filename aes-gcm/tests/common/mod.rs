@@ -2,9 +2,9 @@
 
 /// Test vectors
 #[derive(Debug)]
-pub struct TestVector<K: 'static> {
+pub struct TestVector<K: 'static, N: 'static> {
     pub key: &'static K,
-    pub nonce: &'static [u8; 12],
+    pub nonce: &'static N,
     pub aad: &'static [u8],
     pub plaintext: &'static [u8],
     pub ciphertext: &'static [u8],
@@ -27,8 +27,11 @@ macro_rules! tests {
                 let cipher = <$aead>::new(&key);
                 let ciphertext = cipher.encrypt(&nonce, payload).unwrap();
                 let (ct, tag) = ciphertext.split_at(ciphertext.len() - 16);
-                assert_eq!(vector.ciphertext, ct);
-                assert_eq!(vector.tag, tag);
+                assert_eq!(
+                    vector.ciphertext, ct,
+                    "ciphertext mismatch (expected != actual)"
+                );
+                assert_eq!(vector.tag, tag, "tag mismatch (expected != actual)");
             }
         }
 
@@ -48,7 +51,7 @@ macro_rules! tests {
                 let cipher = <$aead>::new(&key);
                 let plaintext = cipher.decrypt(&nonce, payload).unwrap();
 
-                assert_eq!(vector.plaintext, plaintext.as_slice());
+                assert_eq!(vector.plaintext, plaintext.as_slice(), "plaintext mismatch");
             }
         }
 

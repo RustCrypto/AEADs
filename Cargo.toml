@@ -9,5 +9,6 @@ members = [
     "deoxys",
     "eax",
     "ocb3",
+    "xaes-256-gcm",
 ]
 resolver = "2"

@@ -7,7 +7,7 @@ mod common;
 use aes_gcm::aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
 use common::TestVector;
 use hex_literal::hex;
-use xaes_256_gcm::XaesGcm256;
+use xaes_256_gcm::Xaes256Gcm;
 
 /// C2SP XAES-256-GCM test vectors
 ///
@@ -31,4 +31,4 @@ const TEST_VECTORS: &[TestVector<[u8; 32], [u8; 24]>] = &[
     },
 ];
 
-tests!(XaesGcm256, TEST_VECTORS);
+tests!(Xaes256Gcm, TEST_VECTORS);

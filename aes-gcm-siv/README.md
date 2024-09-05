@@ -63,7 +63,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://buildstats.info/crate/aes-gcm-siv
+[crate-image]: https://img.shields.io/crates/v/aes-gcm-siv
 [crate-link]: https://crates.io/crates/aes-gcm-siv
 [docs-image]: https://docs.rs/aes-gcm-siv/badge.svg
 [docs-link]: https://docs.rs/aes-gcm-siv/

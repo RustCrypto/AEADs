@@ -29,7 +29,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://buildstats.info/crate/eax
+[crate-image]: https://img.shields.io/crates/v/eax
 [crate-link]: https://crates.io/crates/eax
 [docs-image]: https://docs.rs/eax/badge.svg
 [docs-link]: https://docs.rs/eax/

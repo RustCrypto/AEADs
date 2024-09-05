@@ -61,7 +61,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://buildstats.info/crate/chacha20poly1305
+[crate-image]: https://img.shields.io/crates/v/chacha20poly1305
 [crate-link]: https://crates.io/crates/chacha20poly1305
 [docs-image]: https://docs.rs/chacha20poly1305/badge.svg
 [docs-link]: https://docs.rs/chacha20poly1305/

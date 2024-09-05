@@ -41,7 +41,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://buildstats.info/crate/ccm
+[crate-image]: https://img.shields.io/crates/v/ccm
 [crate-link]: https://crates.io/crates/ccm
 [docs-image]: https://docs.rs/ccm/badge.svg
 [docs-link]: https://docs.rs/ccm

@@ -1,6 +1,7 @@
 //! Core AEAD cipher implementation for (X)ChaCha20Poly1305.
 
 use ::cipher::{StreamCipher, StreamCipherSeek};
+use ::cipher::inout::InOutBuf;
 use aead::array::Array;
 use aead::Error;
 use poly1305::{
@@ -46,6 +47,26 @@ where
         Self { cipher, mac }
     }
 
+    pub(crate) fn encrypt_inout_detached(
+        mut self,
+        associated_data: &[u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
+    ) -> Result<Tag, Error> {
+        if buffer.len() / BLOCK_SIZE >= MAX_BLOCKS {
+            return Err(Error);
+        }
+
+        self.mac.update_padded(associated_data);
+
+        // TODO(tarcieri): interleave encryption with Poly1305
+        // See: <https://github.com/RustCrypto/AEADs/issues/74>
+        self.cipher.apply_keystream_inout(buffer.reborrow());
+        self.mac.update_padded(buffer.get_out());
+
+        self.authenticate_lengths(associated_data, buffer.get_out())?;
+        Ok(self.mac.finalize())
+    }
+
     /// Encrypt the given message in-place, returning the authentication tag
     pub(crate) fn encrypt_in_place_detached(
         mut self,
@@ -65,6 +86,31 @@ where
 
         self.authenticate_lengths(associated_data, buffer)?;
         Ok(self.mac.finalize())
+    }
+
+    pub(crate) fn decrypt_inout_detached(
+        mut self,
+        associated_data: &[u8],
+        buffer: InOutBuf<'_, '_, u8>,
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        if buffer.len() / BLOCK_SIZE >= MAX_BLOCKS {
+            return Err(Error);
+        }
+
+        self.mac.update_padded(associated_data);
+        self.mac.update_padded(buffer.get_in());
+        self.authenticate_lengths(associated_data, buffer.get_in())?;
+
+        // This performs a constant-time comparison using the `subtle` crate
+        if self.mac.verify(tag).is_ok() {
+            // TODO(tarcieri): interleave decryption with Poly1305
+            // See: <https://github.com/RustCrypto/AEADs/issues/74>
+            self.cipher.apply_keystream_inout(buffer);
+            Ok(())
+        } else {
+            Err(Error)
+        }
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity

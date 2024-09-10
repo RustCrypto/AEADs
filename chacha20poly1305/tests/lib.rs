@@ -2,6 +2,8 @@
 
 #![cfg(feature = "alloc")]
 
+pub mod aead_into;
+
 use chacha20poly1305::ChaCha20Poly1305;
 use chacha20poly1305::XChaCha20Poly1305;
 

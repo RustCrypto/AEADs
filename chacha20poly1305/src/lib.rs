@@ -143,10 +143,11 @@
 
 mod cipher;
 
-pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
+pub use aead::{self, consts, AeadCore, AeadInto, AeadInPlace, Error, KeyInit, KeySizeUser};
 
 use self::cipher::Cipher;
 use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
+use ::cipher::inout::InOutBuf;
 use aead::{
     array::{Array, ArraySize},
     consts::{U0, U12, U16, U24, U32},
@@ -250,6 +251,37 @@ where
     type NonceSize = N;
     type TagSize = U16;
     type CiphertextOverhead = U0;
+}
+
+impl<C, N> AeadInto for ChaChaPoly1305<C, N>
+where
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
+    N: ArraySize,
+{
+    fn encrypt_into_detached(
+        &self,
+        nonce: &aead::Nonce<Self>,
+        plaintext: &[u8],
+        associated_data: &[u8],
+        ciphertext: &mut [u8],
+    ) -> Result<Tag, Error> {
+        Cipher::new(C::new(&self.key, nonce)).encrypt_inout_detached(associated_data, InOutBuf::new(plaintext, ciphertext).map_err(|_| Error)?)
+    }
+
+    fn decrypt_into_detached(
+        &self,
+        nonce: &aead::Nonce<Self>,
+        ciphertext: &[u8],
+        associated_data: &[u8],
+        plaintext: &mut [u8],
+        tag: &Tag,
+    ) -> Result<(), Error> {
+        Cipher::new(C::new(&self.key, nonce)).decrypt_inout_detached(
+            associated_data,
+            InOutBuf::new(ciphertext, plaintext).map_err(|_| Error)?,
+            tag,
+        )
+    }
 }
 
 impl<C, N> AeadInPlace for ChaChaPoly1305<C, N>

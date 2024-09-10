@@ -108,7 +108,8 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInto, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+use ::cipher::inout::InOutBuf;
 
 #[cfg(feature = "aes")]
 pub use aes;
@@ -262,6 +263,63 @@ where
     type NonceSize = NonceSize;
     type TagSize = TagSize;
     type CiphertextOverhead = U0;
+}
+
+impl<Aes, NonceSize, TagSize> AeadInto for AesGcm<Aes, NonceSize, TagSize>
+where
+    Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    NonceSize: ArraySize,
+    TagSize: self::TagSize,
+{
+    fn encrypt_into_detached(
+        &self,
+        nonce: &Nonce<NonceSize>,
+        plaintext: &[u8],
+        associated_data: &[u8],
+        ciphertext: &mut [u8],
+    ) -> Result<Tag<TagSize>, Error> {
+        if plaintext.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
+            return Err(Error);
+        }
+
+        let buffer = InOutBuf::new(plaintext, ciphertext).map_err(|_| Error)?;
+        let (ctr, mask) = self.init_ctr(nonce);
+
+        // TODO(tarcieri): interleave encryption with GHASH
+        // See: <https://github.com/RustCrypto/AEADs/issues/74>
+        ctr.apply_keystream_partial(buffer);
+
+        let full_tag = self.compute_tag(mask, associated_data, ciphertext);
+        Ok(Tag::try_from(&full_tag[..TagSize::to_usize()]).expect("tag size mismatch"))
+    }
+
+    fn decrypt_into_detached(
+        &self,
+        nonce: &Nonce<NonceSize>,
+        ciphertext: &[u8],
+        associated_data: &[u8],
+        plaintext: &mut [u8],
+        tag: &Tag<TagSize>,
+    ) -> Result<(), Error> {
+        if ciphertext.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
+            return Err(Error);
+        }
+
+        let buffer = InOutBuf::new(ciphertext, plaintext).map_err(|_| Error)?;
+        let (ctr, mask) = self.init_ctr(nonce);
+
+        // TODO(tarcieri): interleave encryption with GHASH
+        // See: <https://github.com/RustCrypto/AEADs/issues/74>
+        let expected_tag = self.compute_tag(mask, associated_data, ciphertext);
+
+        use subtle::ConstantTimeEq;
+        if expected_tag[..TagSize::to_usize()].ct_eq(tag).into() {
+            ctr.apply_keystream_partial(buffer);
+            Ok(())
+        } else {
+            Err(Error)
+        }
+    }
 }
 
 impl<Aes, NonceSize, TagSize> AeadInPlace for AesGcm<Aes, NonceSize, TagSize>

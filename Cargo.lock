@@ -16,6 +16,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "aead-stream"
+version = "0.1.0"
+dependencies = [
+ "aead",
+]
+
+[[package]]
 name = "aes"
 version = "0.9.0-pre.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "aead-stream",
     "aes-gcm",
     "aes-gcm-siv",
     "aes-siv",

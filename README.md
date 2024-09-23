@@ -65,6 +65,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [`aead`]: https://docs.rs/aead
 [`aes-ccm`]: https://crates.io/crates/aes-ccm
+[`aead-stream`]: https://github.com/RustCrypto/AEADs/tree/master/aead-stream
 [`aes-gcm`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm
 [`aes-gcm-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm-siv
 [`aes-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-siv

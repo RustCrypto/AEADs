@@ -16,7 +16,7 @@ const BLOCK_SIZE: usize = 64;
 
 /// Maximum number of blocks that can be encrypted with ChaCha20 before the
 /// counter overflows.
-const MAX_BLOCKS: usize = core::u32::MAX as usize;
+const MAX_BLOCKS: usize = u32::MAX as usize;
 
 /// ChaCha20Poly1305 instantiated with a particular nonce
 pub(crate) struct Cipher<C>

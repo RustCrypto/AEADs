@@ -85,13 +85,13 @@ impl<T: private::SealedNonce> NonceSize for T {}
 /// Type parameters:
 /// - `C`: block cipher.
 /// - `M`: size of MAC tag in bytes, valid values:
-/// [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
-/// [`U10`][consts::U10], [`U12`][consts::U12], [`U14`][consts::U14],
-/// [`U16`][consts::U16].
+///   [`U4`][consts::U4], [`U6`][consts::U6], [`U8`][consts::U8],
+///   [`U10`][consts::U10], [`U12`][consts::U12], [`U14`][consts::U14],
+///   [`U16`][consts::U16].
 /// - `N`: size of nonce, valid values:
-/// [`U7`][consts::U7], [`U8`][consts::U8], [`U9`][consts::U9],
-/// [`U10`][consts::U10], [`U11`][consts::U11], [`U12`][consts::U12],
-/// [`U13`][consts::U13].
+///   [`U7`][consts::U7], [`U8`][consts::U8], [`U9`][consts::U9],
+///   [`U10`][consts::U10], [`U11`][consts::U11], [`U12`][consts::U12],
+///   [`U13`][consts::U13].
 #[derive(Clone)]
 pub struct Ccm<C, M, N>
 where
@@ -335,7 +335,7 @@ fn fill_aad_header(adata_len: usize) -> (usize, Array<u8, U16>) {
     let n = if adata_len < 0xFF00 {
         b[..2].copy_from_slice(&(adata_len as u16).to_be_bytes());
         2
-    } else if adata_len <= core::u32::MAX as usize {
+    } else if adata_len <= u32::MAX as usize {
         b[0] = 0xFF;
         b[1] = 0xFE;
         b[2..6].copy_from_slice(&(adata_len as u32).to_be_bytes());

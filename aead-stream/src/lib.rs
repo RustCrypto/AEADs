@@ -1,36 +1,5 @@
-//! Streaming AEAD support.
-//!
-//! Implementation of the STREAM online authenticated encryption construction
-//! as described in the paper [Online Authenticated-Encryption and its Nonce-Reuse
-//! Misuse-Resistance][1].
-//!
-//! ## About
-//!
-//! The STREAM construction supports encrypting/decrypting sequences of AEAD
-//! message segments, which is useful in cases where the overall message is too
-//! large to fit in a single buffer and needs to be processed incrementally.
-//!
-//! STREAM defends against reordering and truncation attacks which are common
-//! in naive schemes which attempt to provide these properties, and is proven
-//! to meet the security definition of "nonce-based online authenticated
-//! encryption" (nOAE) as given in the aforementioned paper.
-//!
-//! ## Diagram
-//!
-//! ![STREAM Diagram](https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/img/AEADs/rogaway-stream.svg)
-//!
-//! Legend:
-//!
-//! - 𝐄k: AEAD encryption under key `k`
-//! - 𝐌: message
-//! - 𝐍: nonce
-//! - 𝐀: additional associated data
-//! - 𝐂: ciphertext
-//! - 𝜏: MAC tag
-//!
-//! [1]: https://eprint.iacr.org/2015/189.pdf
-
 #![no_std]
+#![doc = include_str!("../README.md")]
 #![allow(clippy::upper_case_acronyms)]
 
 #[cfg(feature = "alloc")]

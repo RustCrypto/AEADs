@@ -18,11 +18,11 @@ fn test_data_len_check() {
     let nonce = Array(nonce);
     let c = Cipher::new(&key);
 
-    let mut buf1 = [1; core::u16::MAX as usize];
+    let mut buf1 = [1; u16::MAX as usize];
     let res = c.encrypt_in_place_detached(&nonce, &[], &mut buf1);
     assert!(res.is_ok());
 
-    let mut buf2 = [1; core::u16::MAX as usize + 1];
+    let mut buf2 = [1; u16::MAX as usize + 1];
     let res = c.encrypt_in_place_detached(&nonce, &[], &mut buf2);
     assert!(res.is_err());
 }

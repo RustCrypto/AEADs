@@ -115,6 +115,7 @@ pub type Tag = Array<u8, U16>;
 /// The `SivAead` type wraps the more powerful `Siv` interface in a more
 /// commonly used Authenticated Encryption with Associated Data (AEAD) API,
 /// which accepts a key, nonce, and associated data when encrypting/decrypting.
+/// See the [`Siv`](mod@siv) module documentation for more information and examples.
 pub struct SivAead<C, M, NonceSize = U16>
 where
     Self: KeySizeUser,

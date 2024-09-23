@@ -1,6 +1,6 @@
 [package]
 name = "aead-stream"
-version = "0.1.0"
+version = "0.6.0-pre"
 description = "Generic implementation of the STREAM online authenticated encryption construction"
 authors = ["RustCrypto Developers"]
 edition = "2021"

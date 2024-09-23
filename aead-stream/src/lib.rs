@@ -30,6 +30,7 @@
 //!
 //! [1]: https://eprint.iacr.org/2015/189.pdf
 
+#![no_std]
 #![allow(clippy::upper_case_acronyms)]
 
 #[cfg(feature = "alloc")]

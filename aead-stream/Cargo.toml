@@ -1,0 +1,19 @@
+[package]
+name = "aead-stream"
+version = "0.6.0-pre"
+description = "Generic implementation of the STREAM online authenticated encryption construction"
+authors = ["RustCrypto Developers"]
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/aead-stream"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["aead", "stream", "encryption"]
+categories = ["cryptography", "no-std"]
+rust-version = "1.65"
+
+[dependencies]
+aead = { version = "=0.6.0-rc.0", default-features = false, features = ["stream"] }
+
+[features]
+alloc = ["aead/alloc"]

@@ -12,3 +12,7 @@ members = [
     "ocb3",
 ]
 resolver = "2"
+
+[patch.crates-io]
+# https://github.com/RustCrypto/stream-ciphers/pull/368
+chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }

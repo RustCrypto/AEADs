@@ -15,13 +15,13 @@ rust-version = "1.65"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }
-cipher = { version = "=0.5.0-pre.6", default-features = false }
-ctr = { version = "=0.10.0-pre.1", default-features = false }
+cipher = { version = "=0.5.0-pre.7", default-features = false }
+ctr = { version = "0.10.0-pre.2", default-features = false }
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
-aes = { version = "=0.9.0-pre.1" }
+aes = { version = "=0.9.0-pre.2" }
 hex-literal = "0.4.1"
 
 [features]

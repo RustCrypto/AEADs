@@ -75,7 +75,7 @@ use aead::{
 };
 use aes::{Aes128, Aes256};
 use cipher::{
-    BlockCipher, BlockCipherEncrypt, InnerIvInit, Key, KeyInit, KeySizeUser, StreamCipherCore,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, Key, KeyInit, KeySizeUser, StreamCipherCore,
 };
 use cmac::Cmac;
 use core::ops::Add;
@@ -105,7 +105,7 @@ pub type KeySize<C> = <<C as KeySizeUser>::KeySize as Add>::Output;
 /// authenticated encryption (MRAE).
 pub struct Siv<C, M>
 where
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16>,
 {
     encryption_key: Key<C>,
@@ -138,7 +138,7 @@ pub type Aes256PmacSiv = PmacSiv<Aes256>;
 
 impl<C, M> KeySizeUser for Siv<C, M>
 where
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     KeySize<C>: ArraySize,
@@ -148,7 +148,7 @@ where
 
 impl<C, M> KeyInit for Siv<C, M>
 where
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     KeySize<C>: ArraySize,
@@ -168,7 +168,7 @@ where
 
 impl<C, M> Siv<C, M>
 where
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
 {
     /// Encrypt the given plaintext, allocating and returning a `Vec<u8>` for
@@ -325,7 +325,7 @@ where
 
 impl<C, M> Drop for Siv<C, M>
 where
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16>,
 {
     fn drop(&mut self) {

@@ -118,7 +118,7 @@ pub use aes;
 use cipher::{
     array::{Array, ArraySize},
     consts::{U0, U16},
-    BlockCipher, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use core::marker::PhantomData;
 use ghash::{universal_hash::UniversalHash, GHash};
@@ -152,7 +152,7 @@ pub trait TagSize: private::SealedTagSize {}
 impl<T: private::SealedTagSize> TagSize for T {}
 
 mod private {
-    use cipher::{array::ArraySize, consts, Unsigned};
+    use cipher::{array::ArraySize, consts, typenum::Unsigned};
 
     // Sealed traits stop other crates from implementing any traits that use it.
     pub trait SealedTagSize: ArraySize + Unsigned {}
@@ -268,7 +268,7 @@ where
 
 impl<Aes, NonceSize, TagSize> AeadInPlace for AesGcm<Aes, NonceSize, TagSize>
 where
-    Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: ArraySize,
     TagSize: self::TagSize,
 {
@@ -321,7 +321,7 @@ where
 
 impl<Aes, NonceSize, TagSize> AesGcm<Aes, NonceSize, TagSize>
 where
-    Aes: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: ArraySize,
     TagSize: self::TagSize,
 {

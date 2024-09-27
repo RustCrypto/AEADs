@@ -17,7 +17,7 @@ documentation = "https://docs.rs/eax"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "aes", "encryption"]
 categories = ["cryptography", "no-std"]
-rust-version = "1.71"
+rust-version = "1.81"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }

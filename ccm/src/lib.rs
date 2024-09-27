@@ -49,8 +49,7 @@ use aead::{
     consts::{U0, U16},
 };
 use cipher::{
-    Block, BlockCipher, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipher,
-    StreamCipherSeek,
+    Block, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
 };
 use core::marker::PhantomData;
 use ctr::{Ctr32BE, Ctr64BE, CtrCore};
@@ -95,7 +94,7 @@ impl<T: private::SealedNonce> NonceSize for T {}
 #[derive(Clone)]
 pub struct Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
@@ -105,7 +104,7 @@ where
 
 impl<C, M, N> Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
@@ -171,7 +170,7 @@ where
 
 impl<C, M, N> From<C> for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
@@ -185,7 +184,7 @@ where
 
 impl<C, M, N> KeySizeUser for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
@@ -194,7 +193,7 @@ where
 
 impl<C, M, N> KeyInit for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
@@ -205,7 +204,7 @@ where
 
 impl<C, M, N> AeadCore for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
@@ -216,7 +215,7 @@ where
 
 impl<C, M, N> AeadInPlace for Ccm<C, M, N>
 where
-    C: BlockCipher + BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
@@ -285,14 +284,14 @@ where
     }
 }
 
-struct CbcMac<'a, C: BlockCipher + BlockCipherEncrypt> {
+struct CbcMac<'a, C: BlockCipherEncrypt> {
     cipher: &'a C,
     state: Block<C>,
 }
 
 impl<'a, C> CbcMac<'a, C>
 where
-    C: BlockCipher + BlockCipherEncrypt,
+    C: BlockCipherEncrypt,
 {
     fn from_cipher(cipher: &'a C) -> Self {
         Self {

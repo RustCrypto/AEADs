@@ -98,7 +98,7 @@ use aead::{
     Buffer,
 };
 use aes::{Aes128, Aes256};
-use cipher::{typenum::IsGreaterOrEqual, ArraySize, BlockCipher, BlockCipherEncrypt};
+use cipher::{array::ArraySize, typenum::IsGreaterOrEqual, BlockCipherEncrypt, BlockSizeUser};
 use cmac::Cmac;
 use core::{marker::PhantomData, ops::Add};
 use digest::{FixedOutputReset, Mac};
@@ -121,7 +121,7 @@ pub type Tag = Array<u8, U16>;
 pub struct SivAead<C, M, NonceSize = U16>
 where
     Self: KeySizeUser,
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,
@@ -199,7 +199,7 @@ where
 impl<C, M, NonceSize> AeadCore for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,
@@ -217,7 +217,7 @@ impl<C, M, NonceSize> AeadInPlace for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
     Siv<C, M>: KeyInit + KeySizeUser<KeySize = <Self as KeySizeUser>::KeySize>,
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,

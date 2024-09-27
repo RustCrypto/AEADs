@@ -22,7 +22,8 @@ pub use aead::{
 use aead::array::ArraySize;
 use cipher::{
     consts::{U0, U12, U16},
-    BlockCipherDecrypt, BlockCipherEncrypt, BlockSizeUser, Unsigned,
+    typenum::Unsigned,
+    BlockCipherDecrypt, BlockCipherEncrypt, BlockSizeUser,
 };
 use core::marker::PhantomData;
 use dbl::Dbl;

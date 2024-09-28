@@ -14,7 +14,7 @@ documentation = "https://docs.rs/aes-siv"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "aes", "encryption", "siv"]
 categories = ["cryptography", "no-std"]
-rust-version = "1.72"
+rust-version = "1.81"
 
 [dependencies]
 aead = "0.6.0-rc.0"

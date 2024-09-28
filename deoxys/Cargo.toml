@@ -15,7 +15,7 @@ keywords = ["aead", "deoxys", "deoxys-i", "deoxys-ii"]
 categories = ["cryptography", "no-std"]
 readme = "README.md"
 edition = "2021"
-rust-version = "1.72"
+rust-version = "1.81"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }

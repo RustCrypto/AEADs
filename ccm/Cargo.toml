@@ -11,7 +11,7 @@ homepage = "https://github.com/RustCrypto/AEADs/tree/master/ccm"
 repository = "https://github.com/RustCrypto/AEADs"
 categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
-rust-version = "1.65"
+rust-version = "1.81"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }

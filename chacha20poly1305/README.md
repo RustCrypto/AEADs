@@ -79,5 +79,5 @@ dual licensed as above, without any additional terms or conditions.
 [2]: https://en.wikipedia.org/wiki/Authenticated_encryption
 [3]: https://github.com/RustCrypto/stream-ciphers/tree/master/chacha20
 [4]: https://github.com/RustCrypto/universal-hashes/tree/master/poly1305
-[5]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
+[5]: https://web.archive.org/web/20200606025324/https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
 [6]: https://www.mobilecoin.com/

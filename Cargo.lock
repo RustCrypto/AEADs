@@ -36,7 +36,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.11.0-pre.1"
+version = "0.11.0-pre.2"
 dependencies = [
  "aead",
  "aes",
@@ -50,7 +50,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.12.0-pre.1"
+version = "0.12.0-pre.2"
 dependencies = [
  "aead",
  "aes",
@@ -63,7 +63,7 @@ dependencies = [
 
 [[package]]
 name = "aes-siv"
-version = "0.7.0"
+version = "0.8.0-pre.2"
 dependencies = [
  "aead",
  "aes",
@@ -160,8 +160,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chacha20"
-version = "0.10.0-pre.1"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#9fcbf802c3ec29672f6fa2f22fc6ac1abce24996"
+version = "0.10.0-pre.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29b84c7bfc26c71699d402c69451239fc99b736135bef89fc1115671c99c1a1e"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -171,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.11.0-pre.1"
+version = "0.11.0-pre.2"
 dependencies = [
  "aead",
  "chacha20",

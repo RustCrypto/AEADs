@@ -80,7 +80,9 @@
 //!
 //! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]).
+//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
+//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
+//! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
@@ -90,7 +92,7 @@ pub use aes;
 use cipher::{
     array::Array,
     consts::{U0, U12, U16},
-    BlockCipher, BlockCipherEncrypt, InnerIvInit, StreamCipherCore,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use polyval::{universal_hash::UniversalHash, Polyval};
 use zeroize::Zeroize;
@@ -141,7 +143,7 @@ where
 
 impl<Aes> KeyInit for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     fn new(key_bytes: &Key<Self>) -> Self {
         Self {
@@ -152,7 +154,7 @@ where
 
 impl<Aes> From<Aes> for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
 {
     fn from(key_generating_key: Aes) -> Self {
         Self { key_generating_key }
@@ -161,7 +163,7 @@ where
 
 impl<Aes> AeadCore for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     type NonceSize = U12;
     type TagSize = U16;
@@ -170,7 +172,7 @@ where
 
 impl<Aes> AeadInPlace for AesGcmSiv<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     fn encrypt_in_place_detached(
         &self,
@@ -200,7 +202,7 @@ where
 /// AES-GCM-SIV: Misuse-Resistant Authenticated Encryption Cipher (RFC8452).
 struct Cipher<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
 {
     /// Encryption cipher.
     enc_cipher: Aes,
@@ -214,7 +216,7 @@ where
 
 impl<Aes> Cipher<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
     /// Initialize AES-GCM-SIV, deriving per-nonce message-authentication and
     /// message-encryption keys.
@@ -350,7 +352,7 @@ where
 #[inline]
 fn init_ctr<Aes>(cipher: Aes, nonce: &cipher::Block<Aes>) -> Ctr32LE<Aes>
 where
-    Aes: BlockCipher<BlockSize = U16> + BlockCipherEncrypt,
+    Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
 {
     let mut counter_block = *nonce;
     counter_block[15] |= 0x80;

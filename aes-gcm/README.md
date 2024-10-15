@@ -43,7 +43,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://buildstats.info/crate/aes-gcm
+[crate-image]: https://img.shields.io/crates/v/aes-gcm
 [crate-link]: https://crates.io/crates/aes-gcm
 [docs-image]: https://docs.rs/aes-gcm/badge.svg
 [docs-link]: https://docs.rs/aes-gcm/
@@ -57,5 +57,5 @@ dual licensed as above, without any additional terms or conditions.
 [//]: # (general links)
 
 [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-[2]: https://research.nccgroup.com/2020/02/26/public-report-rustcrypto-aes-gcm-and-chacha20poly1305-implementation-review/
+[2]: https://web.archive.org/web/20240108154854/https://research.nccgroup.com/wp-content/uploads/2020/02/NCC_Group_MobileCoin_RustCrypto_AESGCM_ChaCha20Poly1305_Implementation_Review_2020-02-12_v1.0.pdf
 [3]: https://www.mobilecoin.com/

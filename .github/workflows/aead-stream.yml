@@ -1,17 +1,17 @@
-name: aes-gcm
+name: aead-stream
 
 on:
   pull_request:
     paths:
-      - ".github/workflows/aes-gcm.yml"
-      - "aes-gcm/**"
+      - ".github/workflows/aead-stream.yml"
+      - "aead-stream/**"
       - "Cargo.*"
   push:
     branches: master
 
 defaults:
   run:
-    working-directory: aes-gcm
+    working-directory: aead-stream
 
 env:
   CARGO_INCREMENTAL: 0
@@ -26,7 +26,6 @@ jobs:
           - 1.81.0 # MSRV
           - stable
         target:
-          - armv7a-none-eabi
           - thumbv7em-none-eabi
           - wasm32-unknown-unknown
     steps:
@@ -62,8 +61,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           targets: ${{ matrix.target }}
       - run: ${{ matrix.deps }}
-      - run: cargo test --target ${{ matrix.target }} --release --no-default-features --lib
+      - run: cargo test --target ${{ matrix.target }} --release --no-default-features
       - run: cargo test --target ${{ matrix.target }} --release
-      - run: cargo test --target ${{ matrix.target }} --release --features stream,std,zeroize
       - run: cargo test --target ${{ matrix.target }} --release --all-features
       - run: cargo build --target ${{ matrix.target }} --benches

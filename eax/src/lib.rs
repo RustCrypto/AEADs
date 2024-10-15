@@ -83,7 +83,9 @@
 //!
 //! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]).
+//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
+//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
+//! [`aead`] crate as [`aead::bytes::BytesMut`]).
 //!
 //! ## Custom Tag Length
 //!
@@ -129,7 +131,8 @@ use cipher::{
     array::Array,
     consts::{U0, U16},
     crypto_common::OutputSizeUser,
-    BlockCipher, BlockCipherEncrypt, InnerIvInit, StreamCipherCore, Unsigned,
+    typenum::Unsigned,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use cmac::{digest::Output, Cmac, Mac};
 use core::marker::PhantomData;
@@ -173,7 +176,7 @@ type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
 #[derive(Clone)]
 pub struct Eax<Cipher, M = U16>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// Encryption key
@@ -183,7 +186,7 @@ where
 
 impl<Cipher, M> KeySizeUser for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     type KeySize = Cipher::KeySize;
@@ -191,7 +194,7 @@ where
 
 impl<Cipher, M> KeyInit for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     fn new(key: &Key<Cipher>) -> Self {
@@ -204,7 +207,7 @@ where
 
 impl<Cipher, M> AeadCore for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     type NonceSize = Cipher::BlockSize;
@@ -214,7 +217,7 @@ where
 
 impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     fn encrypt_in_place_detached(
@@ -309,7 +312,7 @@ where
 
 impl<Cipher, M> Eax<Cipher, M>
 where
-    Cipher: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
     /// CMAC/OMAC1

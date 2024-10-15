@@ -11,17 +11,17 @@ homepage = "https://github.com/RustCrypto/AEADs/tree/master/ccm"
 repository = "https://github.com/RustCrypto/AEADs"
 categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
-rust-version = "1.65"
+rust-version = "1.81"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }
-cipher = { version = "=0.5.0-pre.6", default-features = false }
-ctr = { version = "=0.10.0-pre.1", default-features = false }
+cipher = { version = "=0.5.0-pre.7", default-features = false }
+ctr = { version = "0.10.0-pre.2", default-features = false }
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
-aes = { version = "=0.9.0-pre.1" }
+aes = { version = "=0.9.0-pre.2" }
 hex-literal = "0.4.1"
 
 [features]
@@ -29,6 +29,7 @@ default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
+bytes = ["aead/bytes"]
 getrandom = ["aead/getrandom", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]

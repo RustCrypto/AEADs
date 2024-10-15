@@ -18,6 +18,7 @@ crate.
 
 | Name                 | Algorithm                    | Crates.io | Documentation | MSRV |
 |----------------------|------------------------------|-----------|---------------|-------|
+| [`aead-stream`]      | [STREAM]                | [![crates.io](https://img.shields.io/crates/v/aead-stream.svg)](https://crates.io/crates/aead-stream) | [![Documentation](https://docs.rs/aead-stream/badge.svg)](https://docs.rs/aead-stream) | 1.65 |
 | [`aes-gcm-siv`]      | [AES-GCM-SIV]                | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) | 1.51 |
 | [`aes-gcm`]          | [AES-GCM]                    | [![crates.io](https://img.shields.io/crates/v/aes-gcm.svg)](https://crates.io/crates/aes-gcm) | [![Documentation](https://docs.rs/aes-gcm/badge.svg)](https://docs.rs/aes-gcm) | 1.51 |
 | [`aes-siv`]          | [AES-SIV]                    | [![crates.io](https://img.shields.io/crates/v/aes-siv.svg)](https://crates.io/crates/aes-siv) | [![Documentation](https://docs.rs/aes-siv/badge.svg)](https://docs.rs/aes-siv) | 1.51 |
@@ -64,6 +65,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [`aead`]: https://docs.rs/aead
 [`aes-ccm`]: https://crates.io/crates/aes-ccm
+[`aead-stream`]: https://github.com/RustCrypto/AEADs/tree/master/aead-stream
 [`aes-gcm`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm
 [`aes-gcm-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-gcm-siv
 [`aes-siv`]: https://github.com/RustCrypto/AEADs/tree/master/aes-siv
@@ -76,6 +78,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (algorithms)
 
+[STREAM]: https://eprint.iacr.org/2015/189.pdf
 [AES-GCM]: https://en.wikipedia.org/wiki/Galois/Counter_Mode
 [AES-GCM-SIV]: https://en.wikipedia.org/wiki/AES-GCM-SIV
 [AES-SIV]: https://github.com/miscreant/meta/wiki/AES-SIV

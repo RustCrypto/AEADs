@@ -13,19 +13,19 @@ documentation = "https://docs.rs/ocb3"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "encryption", "ocb"]
 categories = ["cryptography", "no-std"]
-rust-version = "1.72"
+rust-version = "1.81"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }
-cipher = "=0.5.0-pre.6"
-ctr = "=0.10.0-pre.1"
+cipher = "=0.5.0-pre.7"
+ctr = "0.10.0-pre.2"
 dbl = "=0.4.0-rc.0"
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
-aes = { version = "=0.9.0-pre.1", default-features = false }
+aes = { version = "=0.9.0-pre.2", default-features = false }
 hex-literal = "0.4"
 
 [features]
@@ -33,6 +33,7 @@ default = ["alloc", "getrandom"]
 std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
+bytes = ["aead/bytes"]
 getrandom = ["aead/getrandom", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]

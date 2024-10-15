@@ -80,7 +80,9 @@
 //!
 //! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]).
+//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
+//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
+//! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -96,7 +98,7 @@ use aead::{
     Buffer,
 };
 use aes::{Aes128, Aes256};
-use cipher::{typenum::IsGreaterOrEqual, ArraySize, BlockCipher, BlockCipherEncrypt};
+use cipher::{array::ArraySize, typenum::IsGreaterOrEqual, BlockCipherEncrypt, BlockSizeUser};
 use cmac::Cmac;
 use core::{marker::PhantomData, ops::Add};
 use digest::{FixedOutputReset, Mac};
@@ -110,13 +112,16 @@ pub type Nonce<NonceSize = U16> = Array<u8, NonceSize>;
 /// AES-SIV tags (i.e. the Synthetic Initialization Vector value)
 pub type Tag = Array<u8, U16>;
 
+/// Convinience wrapper around `Siv` interface.
+///
 /// The `SivAead` type wraps the more powerful `Siv` interface in a more
 /// commonly used Authenticated Encryption with Associated Data (AEAD) API,
 /// which accepts a key, nonce, and associated data when encrypting/decrypting.
+/// See the [`Siv`](mod@siv) module documentation for more information and examples.
 pub struct SivAead<C, M, NonceSize = U16>
 where
     Self: KeySizeUser,
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,
@@ -194,7 +199,7 @@ where
 impl<C, M, NonceSize> AeadCore for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,
@@ -212,7 +217,7 @@ impl<C, M, NonceSize> AeadInPlace for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
     Siv<C, M>: KeyInit + KeySizeUser<KeySize = <Self as KeySizeUser>::KeySize>,
-    C: BlockCipher<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,

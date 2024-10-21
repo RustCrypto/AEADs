@@ -15,7 +15,7 @@ use hex_literal::hex;
 /// <https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/CAVP-TESTING-BLOCK-CIPHER-MODES>
 ///
 /// From: `gcmEncryptExtIV256.rsp`
-const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
+const TEST_VECTORS: &[TestVector<[u8; 32], [u8; 12]>] = &[
     TestVector {
         key: &hex!("b52c505a37d78eda5dd34f20c22540ea1b58963cf8e5bf8ffa85f9f2492505b4"),
         nonce: &hex!("516c33929df5a3284ff463d7"),

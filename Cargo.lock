@@ -49,6 +49,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "aes-gcm"
+version = "0.11.0-pre.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4ca4317859cecdb9849cf94087998a04efc7beedc07855836cb2534fd9aa4db"
+dependencies = [
+ "aead",
+ "aes",
+ "cipher",
+ "ctr",
+ "ghash",
+ "subtle",
+]
+
+[[package]]
 name = "aes-gcm-siv"
 version = "0.12.0-pre.2"
 dependencies = [
@@ -476,6 +490,17 @@ name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
+
+[[package]]
+name = "xaes-256-gcm"
+version = "0.0.1-pre.0"
+dependencies = [
+ "aead",
+ "aes",
+ "aes-gcm 0.11.0-pre.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cipher",
+ "hex-literal",
+]
 
 [[package]]
 name = "zeroize"

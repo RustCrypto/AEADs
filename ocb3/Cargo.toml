@@ -19,7 +19,7 @@ rust-version = "1.81"
 aead = { version = "0.6.0-rc.0", default-features = false }
 cipher = "=0.5.0-pre.7"
 ctr = "0.10.0-pre.2"
-dbl = "=0.4.0-rc.0"
+dbl = "=0.4.0-rc.1"
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 

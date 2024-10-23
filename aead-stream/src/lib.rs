@@ -177,7 +177,7 @@ where
     type NonceOverhead = U4;
     type Counter = u32;
     const COUNTER_INCR: u32 = 1;
-    const COUNTER_MAX: u32 = 0xfff_ffff;
+    const COUNTER_MAX: u32 = 0x7fff_ffff;
 
     fn encrypt_in_place(
         &self,

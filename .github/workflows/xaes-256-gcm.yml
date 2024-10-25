@@ -1,0 +1,69 @@
+name: xaes-256-gcm
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/xaes-256-gcm.yml"
+      - "xaes-256-gcm/**"
+      - "Cargo.*"
+  push:
+    branches: master
+
+defaults:
+  run:
+    working-directory: xaes-256-gcm
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.81.0 # MSRV
+          - stable
+        target:
+          - armv7a-none-eabi
+          - thumbv7em-none-eabi
+          - wasm32-unknown-unknown
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          targets: ${{ matrix.target }}
+      - run: cargo build --no-default-features --release --target ${{ matrix.target }}
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # 32-bit Linux
+          - target: i686-unknown-linux-gnu
+            rust: 1.81.0 # MSRV
+            deps: sudo apt update && sudo apt install gcc-multilib
+          - target: i686-unknown-linux-gnu
+            rust: stable
+            deps: sudo apt update && sudo apt install gcc-multilib
+
+          # 64-bit Linux
+          - target: x86_64-unknown-linux-gnu
+            rust: 1.81.0 # MSRV
+          - target: x86_64-unknown-linux-gnu
+            rust: stable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          targets: ${{ matrix.target }}
+      - run: ${{ matrix.deps }}
+      - run: cargo test --target ${{ matrix.target }} --release --no-default-features --lib
+      - run: cargo test --target ${{ matrix.target }} --release
+      - run: cargo test --target ${{ matrix.target }} --release --features stream,std
+      - run: cargo test --target ${{ matrix.target }} --release --all-features
+      - run: cargo build --target ${{ matrix.target }} --benches

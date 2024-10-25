@@ -37,12 +37,12 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://buildstats.info/crate/xaes-256-gcm
+[crate-image]: https://img.shields.io/crates/v/xaes-256-gcm
 [crate-link]: https://crates.io/crates/xaes-256-gcm
 [docs-image]: https://docs.rs/xaes-256-gcm/badge.svg
 [docs-link]: https://docs.rs/xaes-256-gcm/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.56+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.81+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/xaes-256-gcm/badge.svg?branch=master&event=push

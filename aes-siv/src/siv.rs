@@ -336,6 +336,14 @@ where
     }
 }
 
+#[cfg(feature = "zeroize")]
+impl<C, M> zeroize::ZeroizeOnDrop for Siv<C, M>
+where
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16>,
+{
+}
+
 /// "S2V" is a vectorized pseudorandom function (sometimes referred to as a
 /// vector MAC or "vMAC") which performs a "dbl"-and-xor operation on the
 /// outputs of a pseudo-random function (CMAC or PMAC).

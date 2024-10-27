@@ -7,7 +7,6 @@ use poly1305::{
     universal_hash::{KeyInit, UniversalHash},
     Poly1305,
 };
-use zeroize::Zeroize;
 
 use super::Tag;
 
@@ -38,7 +37,11 @@ where
         cipher.apply_keystream(&mut mac_key);
 
         let mac = Poly1305::new(&mac_key);
-        mac_key.zeroize();
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            mac_key.zeroize();
+        }
 
         // Set ChaCha20 counter to 1
         cipher.seek(BLOCK_SIZE as u64);

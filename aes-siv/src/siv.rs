@@ -81,7 +81,6 @@ use cmac::Cmac;
 use core::ops::Add;
 use dbl::Dbl;
 use digest::{CtOutput, FixedOutputReset, Mac};
-use zeroize::Zeroize;
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -329,8 +328,20 @@ where
     M: Mac<OutputSize = U16>,
 {
     fn drop(&mut self) {
-        self.encryption_key.zeroize()
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            self.encryption_key.zeroize()
+        }
     }
+}
+
+#[cfg(feature = "zeroize")]
+impl<C, M> zeroize::ZeroizeOnDrop for Siv<C, M>
+where
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16>,
+{
 }
 
 /// "S2V" is a vectorized pseudorandom function (sometimes referred to as a

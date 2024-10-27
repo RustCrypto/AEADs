@@ -95,7 +95,6 @@ use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use polyval::{universal_hash::UniversalHash, Polyval};
-use zeroize::Zeroize;
 
 /// AES is optional to allow swapping in hardware-specific backends.
 #[cfg(feature = "aes")]
@@ -261,9 +260,13 @@ where
 
         // Zeroize all intermediate buffers
         // TODO(tarcieri): use `Zeroizing` when const generics land
-        mac_key.as_mut_slice().zeroize();
-        enc_key.as_mut_slice().zeroize();
-        block.as_mut_slice().zeroize();
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            mac_key.as_mut_slice().zeroize();
+            enc_key.as_mut_slice().zeroize();
+            block.as_mut_slice().zeroize();
+        }
 
         result
     }

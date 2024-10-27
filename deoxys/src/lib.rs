@@ -118,8 +118,6 @@ use aead::{
 };
 use core::marker::PhantomData;
 
-use zeroize::Zeroize;
-
 /// Deoxys-I with 128-bit keys
 pub type DeoxysI128 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
 
@@ -299,8 +297,20 @@ where
     B: DeoxysBcType,
 {
     fn drop(&mut self) {
-        for s in self.subkeys.iter_mut() {
-            s.zeroize();
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            for s in self.subkeys.iter_mut() {
+                s.zeroize();
+            }
         }
     }
+}
+
+#[cfg(feature = "zeroize")]
+impl<M, B> zeroize::ZeroizeOnDrop for Deoxys<M, B>
+where
+    M: DeoxysMode<B>,
+    B: DeoxysBcType,
+{
 }

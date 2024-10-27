@@ -154,7 +154,6 @@ use aead::{
     consts::{U0, U12, U16, U24, U32},
 };
 use core::marker::PhantomData;
-use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use chacha20::{ChaCha20, XChaCha20};
 
@@ -301,8 +300,13 @@ where
     N: ArraySize,
 {
     fn drop(&mut self) {
-        self.key.as_mut_slice().zeroize();
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            self.key.as_mut_slice().zeroize();
+        }
     }
 }
 
-impl<C, N: ArraySize> ZeroizeOnDrop for ChaChaPoly1305<C, N> {}
+#[cfg(feature = "zeroize")]
+impl<C, N: ArraySize> zeroize::ZeroizeOnDrop for ChaChaPoly1305<C, N> {}

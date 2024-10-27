@@ -81,7 +81,6 @@ use cmac::Cmac;
 use core::ops::Add;
 use dbl::Dbl;
 use digest::{CtOutput, FixedOutputReset, Mac};
-use zeroize::Zeroize;
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -329,7 +328,11 @@ where
     M: Mac<OutputSize = U16>,
 {
     fn drop(&mut self) {
-        self.encryption_key.zeroize()
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            self.encryption_key.zeroize()
+        }
     }
 }
 

@@ -13,7 +13,7 @@ homepage = "https://github.com/RustCrypto/AEADs/tree/master/mgm"
 repository = "https://github.com/RustCrypto/AEADs"
 categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
-rust-version = "1.56"
+rust-version = "1.81"
 
 [dependencies]
 aead = { version = "0.5", default-features = false }

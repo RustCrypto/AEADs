@@ -17,7 +17,7 @@ crate.
 ## Crates
 
 | Name                 | Algorithm                    | Crates.io | Documentation | MSRV |
-|----------------------|------------------------------|-----------|---------------|-------|
+|----------------------|------------------------------|:---------:|:-------------:|:----:|
 | [`aead-stream`]      | [STREAM]                | [![crates.io](https://img.shields.io/crates/v/aead-stream.svg)](https://crates.io/crates/aead-stream) | [![Documentation](https://docs.rs/aead-stream/badge.svg)](https://docs.rs/aead-stream) | 1.81 |
 | [`aes-gcm-siv`]      | [AES-GCM-SIV]                | [![crates.io](https://img.shields.io/crates/v/aes-gcm-siv.svg)](https://crates.io/crates/aes-gcm-siv) | [![Documentation](https://docs.rs/aes-gcm-siv/badge.svg)](https://docs.rs/aes-gcm-siv) | 1.81 |
 | [`aes-gcm`]          | [AES-GCM]                    | [![crates.io](https://img.shields.io/crates/v/aes-gcm.svg)](https://crates.io/crates/aes-gcm) | [![Documentation](https://docs.rs/aes-gcm/badge.svg)](https://docs.rs/aes-gcm) | 1.81 |

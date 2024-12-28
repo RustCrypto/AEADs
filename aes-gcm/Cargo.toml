@@ -31,7 +31,7 @@ hex-literal = "0.4"
 
 [features]
 default = ["aes", "alloc", "getrandom"]
-std = ["aead/std", "cipher/std", "alloc"]
+std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]

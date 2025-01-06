@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Relax `zeroize` requirement to `^1` ([#360])
-- Bump `ctr`, `cipher`, annd `hex-literal` dependencies ([#432])
+- Bump `ctr`, `cipher`, and `hex-literal` dependencies ([#432])
 - Rust 2021 edition upgrade; MSRV 1.56+ ([#435])
 - Bump `aead` crate dependency to v0.5 ([#444])
 

@@ -1,6 +1,6 @@
 [package]
 name = "hs1-siv"
-version = "0.1.1"
+version = "0.2.0-pre.1"
 edition = "2021"
 description = """
 Pure Rust implementation of the HS1-SIV Authenticated Encryption
@@ -10,8 +10,8 @@ authors = ["David Hoppenbrouwers"]
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/hs1-siv"
-homepage = "https://codeberg.org/Demindiro/rust-hs1-siv"
-repository = "https://codeberg.org/Demindiro/rust-hs1-siv"
+homepage = "https://github.com/RustCrypto/AEADs/tree/master/hs1-siv"
+repository = "https://github.com/RustCrypto/AEADs/hs1-siv"
 keywords = ["aead", "hs1-siv", "hs1", "siv"]
 categories = ["cryptography", "no-std"]
 rust-version = "1.81"

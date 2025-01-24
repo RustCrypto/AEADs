@@ -175,7 +175,8 @@ const fn poly_step(a: u64, b: u64, k: u64) -> u64 {
 #[inline(always)]
 const fn poly_finalize(a: u64) -> u64 {
     let a = (a & mask(61)).wrapping_add(a >> 61);
-    [a, 0][(a == mask(61)) as usize]
+    let c = (a != mask(61)) as u64 * u64::MAX;
+    a & c
 }
 
 #[inline(always)]
@@ -188,4 +189,15 @@ where
     let mut v = Array::<I::Item, L>::default();
     v.iter_mut().zip(it).for_each(|(w, r)| *w = r);
     v
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn poly_finalize_mod_2_61() {
+        assert_eq!(super::poly_finalize(0), 0);
+        assert_eq!(super::poly_finalize((1 << 61) - 2), (1 << 61) - 2);
+        assert_eq!(super::poly_finalize((1 << 61) - 1), 0);
+        assert_eq!(super::poly_finalize(1 << 61), 1);
+    }
 }

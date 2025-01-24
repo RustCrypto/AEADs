@@ -151,6 +151,8 @@ impl<P: Hs1Params> Hasher<P> {
         // However, see the note in crate::test::test_vectors::hash_me_empty
         use sealed::Hs1HashFinal;
         if self.bytes != 0 {
+            let offt = usize::from(self.bytes);
+            self.block_u8()[offt..].fill(0);
             self.update_block();
         }
         let mut out = Array::<Output<P>, P::T>::default();

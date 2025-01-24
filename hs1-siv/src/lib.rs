@@ -388,6 +388,7 @@ mod test {
     use aead::{Aead, KeyInit};
 
     const MSG: &[u8] = b"Hello to the entire wide, round, global globe!";
+    const MSG_LONG: &[u8] = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
     const KEY: &[u8; 32] = b"Short keys? Use long for testing";
     const NONCE: &[u8; 12] = b"Quack quack!";
 
@@ -494,10 +495,10 @@ mod test {
 
         #[test]
         fn hash_me_64() {
-            const MSG64: &[u8; 64] =
+            const MSG_64: &[u8; 64] =
                 b"Hello to the entire wide, round, global globe!!! okookokokokokok";
             let k = hs1_subkeygen::<params::Hs1SivMe>(KEY);
-            let h = Hasher::new(&k.hash).update(MSG64).finalize();
+            let h = Hasher::new(&k.hash).update(MSG_64).finalize();
             assert_eq!(
                 h,
                 [
@@ -505,6 +506,42 @@ mod test {
                     0x0dc82e748a2a1395,
                     0x106966138221d2ba,
                     0x09f86f41d6677d4d,
+                ]
+                .map(u64::to_le_bytes)
+            );
+        }
+
+        #[test]
+        fn hash_me_65() {
+            const MSG_65: &[u8; 65] =
+                b"Hello to the entire wide, round, global globe!!! okookokokokokok?";
+            let k = hs1_subkeygen::<params::Hs1SivMe>(KEY);
+            let h = Hasher::new(&k.hash).update(MSG_65).finalize();
+            assert_eq!(
+                h,
+                [
+                    0x10619b1a23127759,
+                    0x160f2049c69ee554,
+                    0x1de3d0b0f4d56bec,
+                    0x03e8ec8fdef39c71,
+                ]
+                .map(u64::to_le_bytes)
+            );
+        }
+
+        #[test]
+        fn hash_me_128() {
+            const MSG_128: &[u8; 128] =
+                b"Hello to the entire wide, round, global globe!!! okookokokokokokHello to the entire wide, round, global globe!!! okookokokokokok";
+            let k = hs1_subkeygen::<params::Hs1SivMe>(KEY);
+            let h = Hasher::new(&k.hash).update(MSG_128).finalize();
+            assert_eq!(
+                h,
+                [
+                    0x07d3154786d50a10,
+                    0x145bceb11f846780,
+                    0x0321fdeb01118846,
+                    0x0a0ac6ce29b11e5a,
                 ]
                 .map(u64::to_le_bytes)
             );
@@ -527,6 +564,43 @@ mod test {
             assert_eq!(
                 h,
                 [0xcf452c22, 0x452317a2, 0x7fa1f1d6, 0x100d9702, 0xcf1defb0, 0x4c73da69,]
+                    .map(u32::to_le_bytes)
+            );
+        }
+
+        #[test]
+        fn hash_lo_long() {
+            let k = hs1_subkeygen::<params::Hs1SivLo>(KEY);
+            let h = Hasher::new(&k.hash).update(MSG_LONG).finalize();
+            assert_eq!(
+                h,
+                [0x0b65743a2f4c73aa, 0x1863d3ec1873cd72,].map(u64::to_le_bytes)
+            );
+        }
+
+        #[test]
+        fn hash_me_long() {
+            let k = hs1_subkeygen::<params::Hs1SivMe>(KEY);
+            let h = Hasher::new(&k.hash).update(MSG_LONG).finalize();
+            assert_eq!(
+                h,
+                [
+                    0x1f8e6282cbc4455f,
+                    0x0e6ade357355de7b,
+                    0x1a5834576032c7b0,
+                    0x1bd063cb8b70044a,
+                ]
+                .map(u64::to_le_bytes)
+            );
+        }
+
+        #[test]
+        fn hash_hi_long() {
+            let k = hs1_subkeygen::<params::Hs1SivHi>(KEY);
+            let h = Hasher::new(&k.hash).update(MSG_LONG).finalize();
+            assert_eq!(
+                h,
+                [0x52645829, 0x8f0c0687, 0x01f33121, 0xc94264e3, 0x85dc8143, 0xc8fd435e,]
                     .map(u32::to_le_bytes)
             );
         }

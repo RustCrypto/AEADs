@@ -1,8 +1,9 @@
-use super::{
-    mask, Array, ArraySize, False, Gr, Hs1HashKey, Hs1Params, PhantomData, Quot, True, B16, U4,
-};
+use super::{mask, Array, False, Gr, Hs1HashKey, Hs1Params, PhantomData, Quot, True, B16, U4};
 use aead::array::typenum::Unsigned;
 use core::mem;
+
+#[cfg(target_feature = "sse2")]
+mod sse2;
 
 #[derive(Clone)]
 pub struct Hasher<P: Hs1Params> {
@@ -53,41 +54,52 @@ impl<P: Hs1Params> Hasher<P> {
     pub fn new(k: &Hs1HashKey<P>) -> Self {
         Self {
             k: k.clone(),
-            h: array_from_iter(core::iter::repeat(1)),
-            block: Array::default(),
+            h: Array::from_fn(|_| 1),
+            block: Default::default(),
             bytes: 0,
             _marker: PhantomData,
         }
     }
 
+    #[inline(always)]
     fn update_block(&mut self) -> &mut Self {
         assert!(usize::from(self.bytes) <= self.block_u8().len());
 
+        #[cfg(target_feature = "sse2")]
+        if true {
+            // SAFETY: sse2 is supported
+            unsafe {
+                return self.update_block_sse2();
+            }
+        }
+
         #[inline(always)]
-        fn nh_step(&[ax, bx, cx, dx]: &[u32; 4], &[ay, by, cy, dy]: &[u32; 4]) -> u64 {
-            let d = u64::from(dx.wrapping_add(dy));
-            let c = u64::from(cx.wrapping_add(cy));
-            let b = u64::from(bx.wrapping_add(by));
+        fn nh_step(&[ax, bx, cx, dx]: &[u32; 4], &[ay, by, cy, dy]: &[u32; 4]) -> [u64; 2] {
             let a = u64::from(ax.wrapping_add(ay));
-            (a * c).wrapping_add(b * d)
+            let b = u64::from(bx.wrapping_add(by));
+            let c = u64::from(cx.wrapping_add(cy));
+            let d = u64::from(dx.wrapping_add(dy));
+            [a * c, b * d]
         }
 
         let m_ints = &self.block;
 
         let block16_count = usize::from(((self.bytes + 15) / 16).max(1));
 
-        let mut nh = Array::<u64, P::T>::default();
+        let mut nh = Array::<[u64; 2], P::T>::default();
         for (i0, m_ints_i) in m_ints.chunks_exact(4).enumerate().take(block16_count) {
-            for (nh_i, k_n_i_i) in nh.iter_mut().zip(self.k.nh.chunks_exact(4).skip(i0)) {
+            for ([nh_i0, nh_i1], k_n_i_i) in nh.iter_mut().zip(self.k.nh.chunks_exact(4).skip(i0)) {
                 let k_n_i_i = k_n_i_i.try_into().expect("exactly 4 elements");
                 let m_ints_i = m_ints_i.try_into().expect("exactly 4 elements");
-                let s = nh_step(k_n_i_i, m_ints_i);
-                *nh_i = nh_i.wrapping_add(s);
+                let [s0, s1] = nh_step(k_n_i_i, m_ints_i);
+                *nh_i0 = nh_i0.wrapping_add(s0);
+                *nh_i1 = nh_i1.wrapping_add(s1);
             }
         }
 
         nh.iter()
-            .map(|nh_i| (nh_i + (u64::from(self.bytes) & mask(4))) & mask(60))
+            .map(|&[ac, bd]| ac.wrapping_add(bd))
+            .map(|nh_i| (nh_i.wrapping_add(u64::from(self.bytes) & mask(4))) & mask(60))
             .zip(self.k.poly.iter())
             .zip(self.h.iter_mut())
             .for_each(|((a_i, &k_p_i), h_i)| *h_i = poly_step(*h_i, a_i, k_p_i));
@@ -97,6 +109,7 @@ impl<P: Hs1Params> Hasher<P> {
         self
     }
 
+    #[inline(always)]
     pub fn update<'a>(&'a mut self, bytes: &[u8]) -> &'a mut Self {
         assert!(usize::from(self.bytes) < self.block_u8().len());
         let start = usize::from(self.bytes);
@@ -123,6 +136,7 @@ impl<P: Hs1Params> Hasher<P> {
         self
     }
 
+    #[inline(always)]
     pub(crate) fn pad_to(&mut self, bits: u8) -> &mut Self {
         debug_assert!(1 << bits <= B16::<P>::to_u8());
         let m = mask(bits) as u8;
@@ -131,6 +145,7 @@ impl<P: Hs1Params> Hasher<P> {
     }
 
     // TODO &mut self helps avoid needing to clone(), but might be unintuitive
+    #[inline(always)]
     pub fn finalize(&mut self) -> Array<Output<P>, P::T> {
         // TODO we need to handle empty data properly
         // However, see the note in crate::test::test_vectors::hash_me_empty
@@ -146,6 +161,7 @@ impl<P: Hs1Params> Hasher<P> {
         out
     }
 
+    #[inline(always)]
     fn block_u8(&mut self) -> &mut Array<u8, B16<P>> {
         const {
             assert!(
@@ -175,18 +191,6 @@ const fn poly_finalize(a: u64) -> u64 {
     let a = (a & mask(61)).wrapping_add(a >> 61);
     let c = (a != mask(61)) as u64 * u64::MAX;
     a & c
-}
-
-#[inline(always)]
-fn array_from_iter<I, L>(it: I) -> Array<I::Item, L>
-where
-    I: IntoIterator,
-    L: ArraySize,
-    I::Item: Default,
-{
-    let mut v = Array::<I::Item, L>::default();
-    v.iter_mut().zip(it).for_each(|(w, r)| *w = r);
-    v
 }
 
 #[cfg(test)]

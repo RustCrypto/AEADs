@@ -283,7 +283,7 @@ fn hs1_siv_encrypt<P: Hs1Params>(
     a: &[u8],
     m: &mut [u8],
 ) -> Result<Array<u8, P::L>, aead::Error> {
-    if m.len() > 1 << 38 {
+    if m.len() as u128 > 1 << 38 {
         return Err(aead::Error);
     }
     let t = hs1_tag::<P>(k, a, n, &*m);
@@ -298,6 +298,9 @@ fn hs1_siv_decrypt<P: Hs1Params>(
     m: &mut [u8],
     t: &Array<u8, P::L>,
 ) -> Result<(), aead::Error> {
+    if m.len() as u128 > 1 << 38 {
+        return Err(aead::Error);
+    }
     hs1::<P>(k, &[t], n, 64, m);
     let t2 = hs1_tag::<P>(k, a, n, m);
     let diff = t.iter().zip(t2.iter()).fold(0, |s, (x, y)| s | (x ^ y));

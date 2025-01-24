@@ -1,4 +1,7 @@
 use super::{mask, poly_step, Array, Hasher, Hs1Params};
+#[cfg(target_arch = "x86")]
+use core::arch::x86::*;
+#[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
 impl<P: Hs1Params> Hasher<P> {

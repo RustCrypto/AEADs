@@ -28,6 +28,7 @@ crate.
 | [`deoxys`]           | [Deoxys-I/II]                | [![crates.io](https://img.shields.io/crates/v/deoxys.svg)](https://crates.io/crates/deoxys) | [![Documentation](https://docs.rs/deoxys/badge.svg)](https://docs.rs/deoxys) | 1.81 |
 | [`eax`]              | [EAX]                        | [![crates.io](https://img.shields.io/crates/v/eax.svg)](https://crates.io/crates/eax) | [![Documentation](https://docs.rs/eax/badge.svg)](https://docs.rs/eax) | 1.81 |
 | [`mgm`]              | [MGM]                        | [![crates.io](https://img.shields.io/crates/v/mgm.svg)](https://crates.io/crates/mgm) | [![Documentation](https://docs.rs/mgm/badge.svg)](https://docs.rs/mgm) | 1.81 |
+| [`hs1_siv`]          | [HS1-SIV]                    | [![crates.io](https://img.shields.io/crates/v/hs1-siv.svg)](https://crates.io/crates/hs1-siv) | [![Documentation](https://docs.rs/hs1_siv/badge.svg)](https://docs.rs/hs1_siv) | 1.84 |
 
 ## MSRV Policy
 
@@ -88,3 +89,4 @@ dual licensed as above, without any additional terms or conditions.
 [EAX]: https://en.wikipedia.org/wiki/EAX_mode
 [MGM]: https://eprint.iacr.org/2019/123.pdf
 [(X)ChaCha20Poly1305]: https://tools.ietf.org/html/rfc8439
+[HS1-SIV]: https://krovetz.net/csus/papers/hs1-siv_v2.2.pdf

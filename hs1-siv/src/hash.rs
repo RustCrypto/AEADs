@@ -64,31 +64,29 @@ impl<P: Hs1Params> Hasher<P> {
         assert!(usize::from(self.bytes) <= self.block_u8().len());
 
         #[inline(always)]
-        fn nh(v1: &[u32], v2: &[u32]) -> u64 {
-            debug_assert_eq!(v1.len(), v2.len());
-            debug_assert_eq!(v1.len() % 4, 0);
-            // I originally used a fancy, compact iterator chain here but the optimizer is shit
-            // (and honestly, this is pretty compact too)
-            let mut s = 0u64;
-            for (x, y) in v1.chunks_exact(4).zip(v2.chunks_exact(4)) {
-                let d = u64::from(x[3].wrapping_add(y[3]));
-                let c = u64::from(x[2].wrapping_add(y[2]));
-                let b = u64::from(x[1].wrapping_add(y[1]));
-                let a = u64::from(x[0].wrapping_add(y[0]));
-                s = s.wrapping_add(a * c).wrapping_add(b * d);
-            }
-            s
+        fn nh_step(&[ax, bx, cx, dx]: &[u32; 4], &[ay, by, cy, dy]: &[u32; 4]) -> u64 {
+            let d = u64::from(dx.wrapping_add(dy));
+            let c = u64::from(cx.wrapping_add(cy));
+            let b = u64::from(bx.wrapping_add(by));
+            let a = u64::from(ax.wrapping_add(ay));
+            (a * c).wrapping_add(b * d)
         }
 
         let m_ints = &self.block;
 
         let block16_count = usize::from(((self.bytes + 15) / 16).max(1));
 
-        self.k
-            .nh
-            .windows(B16::<P>::to_usize() / 4)
-            .step_by(4)
-            .map(|k_n_i| nh(&k_n_i[..block16_count * 4], &m_ints[..block16_count * 4]))
+        let mut nh = Array::<u64, P::T>::default();
+        for (i0, m_ints_i) in m_ints.chunks_exact(4).enumerate().take(block16_count) {
+            for (nh_i, k_n_i_i) in nh.iter_mut().zip(self.k.nh.chunks_exact(4).skip(i0)) {
+                let k_n_i_i = k_n_i_i.try_into().expect("exactly 4 elements");
+                let m_ints_i = m_ints_i.try_into().expect("exactly 4 elements");
+                let s = nh_step(k_n_i_i, m_ints_i);
+                *nh_i = nh_i.wrapping_add(s);
+            }
+        }
+
+        nh.iter()
             .map(|nh_i| (nh_i + (u64::from(self.bytes) & mask(4))) & mask(60))
             .zip(self.k.poly.iter())
             .zip(self.h.iter_mut())

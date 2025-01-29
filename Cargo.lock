@@ -174,9 +174,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chacha20"
-version = "0.10.0-pre.2"
+version = "0.10.0-pre.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29b84c7bfc26c71699d402c69451239fc99b736135bef89fc1115671c99c1a1e"
+checksum = "f9fcbd2a10f51a07b7d3345d68e413b517963a3ba5ef5bb187202e4525c11a67"
 dependencies = [
  "cfg-if",
  "cipher",

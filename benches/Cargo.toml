@@ -20,6 +20,7 @@ ascon-aead = { path = "../ascon-aead/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
 deoxys = { path = "../deoxys/" }
 eax = { path = "../eax/" }
+hs1-siv = { path = "../hs1-siv/" }
 
 [target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))'.dependencies]
 criterion-cycles-per-byte = "0.4.0"
@@ -52,4 +53,9 @@ harness = false
 [[bench]]
 name = "eax"
 path = "src/eax.rs"
+harness = false
+
+[[bench]]
+name = "hs1-siv"
+path = "src/hs1-siv.rs"
 harness = false

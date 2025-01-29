@@ -335,6 +335,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
+name = "hs1-siv"
+version = "0.2.0-pre.1"
+dependencies = [
+ "aead",
+ "chacha20",
+]
+
+[[package]]
 name = "hybrid-array"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

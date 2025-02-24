@@ -23,7 +23,7 @@ cipher = "=0.5.0-pre.7"
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
-hex-literal = "0.4"
+hex-literal = "1.0"
 
 [features]
 default = ["alloc", "getrandom"]

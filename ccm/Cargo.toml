@@ -22,7 +22,7 @@ subtle = { version = "2", default-features = false }
 [dev-dependencies]
 aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
 aes = { version = "=0.9.0-pre.2" }
-hex-literal = "0.4.1"
+hex-literal = "1.0.0"
 
 [features]
 default = ["alloc", "getrandom"]

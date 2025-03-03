@@ -1,5 +1,6 @@
 // Copyright 2021-2023 Sebastian Ramacher
 // SPDX-License-Identifier: Apache-2.0 OR MIT
+#![allow(non_local_definitions)]
 
 use aead::{
     consts::{U16, U20},
@@ -56,7 +57,6 @@ pub(crate) trait InternalKey<KS: ArrayLength<u8>>:
     fn get_k2(&self) -> u64;
 }
 
-#[allow(non_local_definitions)]
 #[derive(Clone)]
 #[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize, zeroize::ZeroizeOnDrop))]
 pub(crate) struct InternalKey16(u64, u64);

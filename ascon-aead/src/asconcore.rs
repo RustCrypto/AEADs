@@ -1,6 +1,6 @@
 // Copyright 2021-2023 Sebastian Ramacher
 // SPDX-License-Identifier: Apache-2.0 OR MIT
-#![allow(non_local_definitions)]
+#![allow(unknown_lints, non_local_definitions)]
 
 use aead::{
     consts::{U16, U20},

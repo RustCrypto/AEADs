@@ -1,5 +1,6 @@
 // Copyright 2021-2023 Sebastian Ramacher
 // SPDX-License-Identifier: Apache-2.0 OR MIT
+#![allow(unknown_lints, non_local_definitions)]
 
 use aead::{
     consts::{U16, U20},
@@ -360,6 +361,7 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         if bool::from(tag.ct_eq(expected_tag)) {
             Ok(())
         } else {
+            ciphertext.fill(0);
             Err(Error)
         }
     }

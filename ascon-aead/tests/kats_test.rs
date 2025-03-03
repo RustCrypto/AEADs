@@ -1,6 +1,7 @@
 // Copyright 2022 Sebastian Ramacher
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+use aead::Tag;
 use ascon_aead::{
     aead::{Aead, AeadInPlace, KeyInit, Payload},
     Ascon128, Ascon128a, Ascon80pq, Key, Nonce,
@@ -41,9 +42,10 @@ impl TestVector {
 
 fn run_tv<A: KeyInit + AeadInPlace>(tv: TestVector) {
     let core = A::new(Key::<A>::from_slice(&tv.key));
+    let nonce = Nonce::<A>::from_slice(&tv.nonce);
     asserting(format!("Test Vector {} encryption", tv.count).as_str())
         .that(&core.encrypt(
-            Nonce::<A>::from_slice(&tv.nonce),
+            nonce,
             Payload {
                 msg: &tv.plaintext,
                 aad: &tv.associated_data,
@@ -54,7 +56,7 @@ fn run_tv<A: KeyInit + AeadInPlace>(tv: TestVector) {
 
     asserting(format!("Test Vector {} decryption", tv.count).as_str())
         .that(&core.decrypt(
-            Nonce::<A>::from_slice(&tv.nonce),
+            nonce,
             Payload {
                 msg: &tv.ciphertext,
                 aad: &tv.associated_data,
@@ -62,6 +64,12 @@ fn run_tv<A: KeyInit + AeadInPlace>(tv: TestVector) {
         ))
         .is_ok()
         .is_equal_to(&tv.plaintext);
+
+    let bad_tag = Tag::<A>::default();
+    let mut buf = tv.ciphertext[..tv.ciphertext.len() - bad_tag.len()].to_vec();
+    let res = core.decrypt_in_place_detached(nonce, &tv.associated_data, &mut buf, &bad_tag);
+    assert!(res.is_err());
+    assert!(buf.iter().all(|b| *b == 0));
 }
 
 fn parse_tvs(tvs: &str) -> Vec<TestVector> {

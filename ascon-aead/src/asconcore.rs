@@ -360,6 +360,7 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         if bool::from(tag.ct_eq(expected_tag)) {
             Ok(())
         } else {
+            ciphertext.fill(0);
             Err(Error)
         }
     }

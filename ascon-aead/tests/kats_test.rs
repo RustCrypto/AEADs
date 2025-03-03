@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use ascon_aead::{
-    aead::{Aead, AeadInPlace, KeyInit, Payload},
+    aead::{Aead, AeadInPlace, KeyInit, Payload, Tag},
     Ascon128, Ascon128a, Ascon80pq,
 };
 use hex_literal::hex;
@@ -15,9 +15,10 @@ fn run_tv<A: KeyInit + AeadInPlace>(
     ciphertext: &[u8],
 ) {
     let core = A::new(key.try_into().unwrap());
+    let nonce = nonce.try_into().unwrap();
     let ctxt = core
         .encrypt(
-            nonce.try_into().unwrap(),
+            nonce,
             Payload {
                 msg: plaintext,
                 aad: associated_data,
@@ -28,7 +29,7 @@ fn run_tv<A: KeyInit + AeadInPlace>(
 
     let ptxt = core
         .decrypt(
-            nonce.try_into().unwrap(),
+            nonce,
             Payload {
                 msg: ciphertext,
                 aad: associated_data,
@@ -36,6 +37,12 @@ fn run_tv<A: KeyInit + AeadInPlace>(
         )
         .expect("Successful decryption");
     assert_eq!(ptxt, plaintext);
+
+    let bad_tag = Tag::<A>::default();
+    let mut buf = ciphertext[..ciphertext.len() - bad_tag.len()].to_vec();
+    let res = core.decrypt_in_place_detached(nonce, associated_data, &mut buf, &bad_tag);
+    assert!(res.is_err());
+    assert!(buf.iter().all(|b| *b == 0));
 }
 
 #[test]

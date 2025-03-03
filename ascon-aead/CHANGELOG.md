@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.4.3 (2025-03-03)
+### Fixed
+- Zeroize buffer during decryption on failed tag check ([#659])
+
+[#659]: https://github.com/RustCrypto/AEADs/pull/659
+
 ## 0.4.2 (2023-03-21)
 ### Changed
 - Drop MSRV back to 1.56 and keep it in sync with `ascon` ([#514])

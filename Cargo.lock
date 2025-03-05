@@ -119,6 +119,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "belt-block"
+version = "0.2.0-pre.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6df0a14d60362d7b6041d3fe85dfd787ced16c4928f93d72152142c67d01d0bc"
+dependencies = [
+ "cipher",
+]
+
+[[package]]
+name = "belt-ctr"
+version = "0.2.0-pre"
+source = "git+https://github.com/RustCrypto/block-modes#947f6cf638ddc58d454037844b6ff8fdd05b825f"
+dependencies = [
+ "belt-block",
+ "cipher",
+]
+
+[[package]]
+name = "belt-dwp"
+version = "0.1.0"
+dependencies = [
+ "aead",
+ "belt-block",
+ "belt-ctr",
+ "hex-literal",
+ "opaque-debug",
+ "universal-hash",
+ "zeroize",
+]
+
+[[package]]
 name = "blobby"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

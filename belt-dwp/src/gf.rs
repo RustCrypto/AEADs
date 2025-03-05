@@ -1,15 +1,15 @@
-use aead::generic_array::{ArrayLength, GenericArray};
+use aead::array::{Array, ArraySize};
 
 mod utils;
 
 pub(crate) mod gf128_soft64;
 
 pub trait GfElement {
-    type N: ArrayLength<u8>;
+    type N: ArraySize;
 
     fn new() -> Self;
-    fn into_bytes(self) -> GenericArray<u8, Self::N>;
-    fn mul_sum(&mut self, a: &GenericArray<u8, Self::N>, b: &GenericArray<u8, Self::N>);
+    fn into_bytes(self) -> Array<u8, Self::N>;
+    fn mul_sum(&mut self, a: &Array<u8, Self::N>, b: &Array<u8, Self::N>);
 }
 
 /// Tests from Appendix A, table 18 of [STB 34.101.31-2020](https://apmi.bsu.by/assets/files/std/belt-spec372.pdf)
@@ -19,7 +19,7 @@ fn test_a18() {
     use aead::consts::U16;
     use hex_literal::hex;
 
-    type Block = GenericArray<u8, U16>;
+    type Block = Array<u8, U16>;
 
     let test_vectors = [
         (
@@ -34,9 +34,9 @@ fn test_a18() {
         ),
     ];
     for (u, v, w) in test_vectors {
-        let a = Block::clone_from_slice(&u);
-        let b = Block::clone_from_slice(&v);
-        let c = Block::clone_from_slice(&w);
+        let a = Block::try_from(&u[..]).unwrap();
+        let b = Block::try_from(&v[..]).unwrap();
+        let c = Block::try_from(&w[..]).unwrap();
 
         let mut elem = Element::new();
         elem.mul_sum(&a, &b);

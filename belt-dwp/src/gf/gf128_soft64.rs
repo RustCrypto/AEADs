@@ -1,13 +1,12 @@
+use aead::{array::Array, consts::U16};
 use core::ops::{Add, Mul};
-
-use aead::{consts::U16, generic_array::GenericArray};
 
 use super::{utils::bmul64, GfElement};
 
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct Element(u64, u64);
 
-type Block = GenericArray<u8, U16>;
+type Block = Array<u8, U16>;
 
 impl GfElement for Element {
     type N = U16;

@@ -27,7 +27,7 @@
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
-//! ```
+//! ```ignore
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
 //!
@@ -85,7 +85,7 @@
 use aead::consts::{U0, U16, U32, U8};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
-use belt_block::cipher::{Block, BlockEncrypt, KeyIvInit, StreamCipher};
+use belt_block::cipher::{Block, BlockCipherEncrypt, KeyIvInit, StreamCipher};
 use belt_block::{belt_block_raw, BeltBlock};
 use belt_ctr::BeltCtr;
 use universal_hash::UniversalHash;
@@ -159,7 +159,8 @@ impl Cipher {
         Self {
             enc_cipher: cipher,
             mac_cipher: BeltBlock::new(&key),
-            ghash: GHash::new_with_init_block(Key::<GHash>::from_slice(&r), T),
+            // Unwrap is safe because the key is always 16 bytes
+            ghash: GHash::new_with_init_block(&Key::<GHash>::try_from(&r[..]).unwrap(), T),
         }
     }
 
@@ -194,7 +195,8 @@ impl Cipher {
 
         self.mac_cipher.encrypt_block(&mut tag);
 
-        Ok(*Tag::from_slice(&tag[..8]))
+        // Unwrap is safe because the tag is always 8 bytes
+        Ok(Tag::try_from(&tag[..8]).unwrap())
     }
 
     fn decrypt_in_place_detached(

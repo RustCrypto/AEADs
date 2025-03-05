@@ -19,9 +19,9 @@
 //!     BeltDwp, Nonce
 //! };
 //!
-//! let key = BeltDwp::generate_key(&mut OsRng);
+//! let key = BeltDwp::generate_key().unwrap();
 //! let cipher = BeltDwp::new(&key);
-//! let nonce = BeltDwp::generate_nonce(&mut OsRng); // 128-bits; unique per message
+//! let nonce = BeltDwp::generate_nonce().unwrap(); // 128-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");

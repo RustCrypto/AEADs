@@ -5,6 +5,7 @@ members = [
     "aes-gcm-siv",
     "aes-siv",
     "ascon-aead",
+    "belt-dwp",
     "ccm",
     "chacha20poly1305",
     "deoxys",
@@ -13,3 +14,6 @@ members = [
     "xaes-256-gcm",
 ]
 resolver = "2"
+
+[patch.crates-io]
+belt-ctr = { git = "https://github.com/RustCrypto/block-modes" }

@@ -53,3 +53,8 @@ harness = false
 name = "eax"
 path = "src/eax.rs"
 harness = false
+
+[[bench]]
+name = "belt-dwp"
+path = "src/belt-dwp.rs"
+harness = false

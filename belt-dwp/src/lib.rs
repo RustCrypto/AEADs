@@ -27,7 +27,7 @@
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
 //! # }
-//! ```ignore
+//! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
 //!

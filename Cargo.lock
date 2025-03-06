@@ -49,6 +49,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "aes-gcm-siv"
+version = "0.12.0-pre.2"
+dependencies = [
+ "aead",
+ "aead-stream",
+ "aes",
+ "cipher",
+ "ctr",
+ "polyval 0.7.0-rc.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -138,7 +152,7 @@ version = "0.6.0-rc.0"
 source = "git+https://github.com/RustCrypto/universal-hashes.git#448baca3324d259b0c7dd318f431910f3d25e691"
 dependencies = [
  "opaque-debug",
- "polyval",
+ "polyval 0.7.0-rc.0 (git+https://github.com/RustCrypto/universal-hashes.git)",
 ]
 
 [[package]]
@@ -195,6 +209,18 @@ name = "opaque-debug"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
+
+[[package]]
+name = "polyval"
+version = "0.7.0-rc.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b01cbf5c028f9f862c6f7f5a5544307d7858634df190488d432ec470c8fbc063"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "opaque-debug",
+ "universal-hash",
+]
 
 [[package]]
 name = "polyval"

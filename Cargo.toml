@@ -2,7 +2,7 @@
 members = [
     "aead-stream",
     "aes-gcm",
-    #"aes-gcm-siv",
+    "aes-gcm-siv",
     #"aes-siv",
     #"ascon-aead",
     #"ccm",

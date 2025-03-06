@@ -11,17 +11,17 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_gcm_siv::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
 //!     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key()?;
+//! let key = Aes256GcmSiv::generate_key().expect("generate key");
 //! let cipher = Aes256GcmSiv::new(&key);
-//! let nonce = Aes256GcmSiv::generate_nonce()?; // 96-bits; unique per message
+//! let nonce = Aes256GcmSiv::generate_nonce().expect("generate nonce"); // 96-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -44,21 +44,15 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(
-    all(feature = "getrandom", feature = "heapless", feature = "std"),
-    doc = "```"
-)]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
-    doc = "```ignore"
-)]
+#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_gcm_siv::{
-//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     aead::{AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key()?;
+//! let key = Aes256GcmSiv::generate_key().expect("generate key");
 //! let cipher = Aes256GcmSiv::new(&key);
 //! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
@@ -84,17 +78,18 @@
 //! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
 //! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
+use aead::PostfixTagged;
 use cipher::{
-    array::Array,
-    consts::{U0, U12, U16},
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
+    array::Array,
+    consts::{U12, U16},
 };
-use polyval::{universal_hash::UniversalHash, Polyval};
+use polyval::{Polyval, universal_hash::UniversalHash};
 
 /// AES is optional to allow swapping in hardware-specific backends.
 #[cfg(feature = "aes")]
@@ -166,10 +161,11 @@ where
 {
     type NonceSize = U12;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
-impl<Aes> AeadInPlace for AesGcmSiv<Aes>
+impl<Aes> PostfixTagged for AesGcmSiv<Aes> {}
+
+impl<Aes> AeadInPlaceDetached for AesGcmSiv<Aes>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {

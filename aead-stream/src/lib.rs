@@ -6,11 +6,11 @@
 extern crate alloc;
 
 use aead::{
-    array::{
-        typenum::{Unsigned, U4, U5},
-        Array, ArraySize,
-    },
     AeadCore, AeadInPlace, Buffer, Error, Result,
+    array::{
+        Array, ArraySize,
+        typenum::{U4, U5, Unsigned},
+    },
 };
 use core::ops::{AddAssign, Sub};
 

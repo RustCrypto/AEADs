@@ -1,11 +1,11 @@
 //! Core AEAD cipher implementation for (X)ChaCha20Poly1305.
 
 use ::cipher::{StreamCipher, StreamCipherSeek};
-use aead::array::Array;
 use aead::Error;
+use aead::array::Array;
 use poly1305::{
-    universal_hash::{KeyInit, UniversalHash},
     Poly1305,
+    universal_hash::{KeyInit, UniversalHash},
 };
 
 use super::Tag;

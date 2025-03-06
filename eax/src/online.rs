@@ -60,8 +60,8 @@
 use crate::{Cmac, Error, Nonce, Tag, TagSize};
 use aead::consts::U16;
 use cipher::{
-    array::Array, typenum::Unsigned, BlockCipherEncrypt, BlockSizeUser, Key, KeyInit, KeyIvInit,
-    StreamCipher,
+    BlockCipherEncrypt, BlockSizeUser, Key, KeyInit, KeyIvInit, StreamCipher, array::Array,
+    typenum::Unsigned,
 };
 use cmac::Mac;
 use core::marker::PhantomData;
@@ -266,16 +266,12 @@ where
 struct EaxImpl<Cipher, M>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
-
     M: TagSize,
 {
     nonce: Nonce<Cipher::BlockSize>,
     data: Cmac<Cipher>,
     message: Cmac<Cipher>,
     ctr: ctr::Ctr128BE<Cipher>,
-    // HACK: Needed for the test harness due to AEAD trait online/offline interface mismatch
-    #[cfg(test)]
-    key: Key<Cipher>,
     _tag_size: PhantomData<M>,
 }
 
@@ -317,8 +313,6 @@ where
             data: h,
             message: c,
             ctr: cipher,
-            #[cfg(test)]
-            key: key.clone(),
             _tag_size: Default::default(),
         }
     }
@@ -392,97 +386,6 @@ where
             Ok(())
         } else {
             Err(Error)
-        }
-    }
-}
-
-// Because the current AEAD test harness expects the types to implement both
-// `KeyInit` and `AeadMutInPlace` traits, do so here so that we can test the
-// internal logic used by the public interface for the online EAX variant.
-// These are not publicly implemented in general, because the traits are
-// designed for offline usage and are somewhat wasteful when used in online mode.
-#[cfg(test)]
-mod test_impl {
-    use super::*;
-    use aead::{array::Array, consts::U0, AeadCore, AeadMutInPlace, KeySizeUser};
-
-    impl<Cipher, M> KeySizeUser for EaxImpl<Cipher, M>
-    where
-        Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
-        M: TagSize,
-    {
-        type KeySize = Cipher::KeySize;
-    }
-
-    impl<Cipher, M> KeyInit for EaxImpl<Cipher, M>
-    where
-        Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
-        M: TagSize,
-    {
-        fn new(key: &Key<Cipher>) -> Self {
-            // HACK: The nonce will be initialized by the appropriate
-            // decrypt/encrypt functions from `AeadMutInPlace` implementation.
-            // This is currently done so because that trait only implements
-            // offline operations and thus need to re-initialize the `EaxImpl`
-            // instance.
-            let nonce = Array::default();
-
-            Self::with_key_and_nonce(key, &nonce)
-        }
-    }
-
-    impl<Cipher, M> AeadCore for super::EaxImpl<Cipher, M>
-    where
-        Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
-        M: TagSize,
-    {
-        type NonceSize = Cipher::BlockSize;
-        type TagSize = M;
-        type CiphertextOverhead = U0;
-    }
-
-    impl<Cipher, M> AeadMutInPlace for super::EaxImpl<Cipher, M>
-    where
-        Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
-        M: TagSize,
-    {
-        fn encrypt_in_place_detached(
-            &mut self,
-            nonce: &Nonce<Self::NonceSize>,
-            associated_data: &[u8],
-            buffer: &mut [u8],
-        ) -> Result<Tag<M>, Error> {
-            // HACK: Reinitialize the instance
-            *self = Self::with_key_and_nonce(&self.key.clone(), nonce);
-
-            self.update_assoc(associated_data);
-            self.encrypt(buffer);
-
-            Ok(self.tag_clone())
-        }
-
-        fn decrypt_in_place_detached(
-            &mut self,
-            nonce: &Nonce<Self::NonceSize>,
-            associated_data: &[u8],
-            buffer: &mut [u8],
-            expected_tag: &Tag<M>,
-        ) -> Result<(), Error> {
-            // HACK: Reinitialize the instance
-            *self = Self::with_key_and_nonce(&self.key.clone(), nonce);
-
-            self.update_assoc(associated_data);
-            self.decrypt(buffer);
-
-            let tag = self.tag_clone();
-
-            // Check mac using secure comparison
-            use subtle::ConstantTimeEq;
-            if expected_tag.ct_eq(&tag).into() {
-                Ok(())
-            } else {
-                Err(Error)
-            }
         }
     }
 }

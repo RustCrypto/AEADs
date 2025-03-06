@@ -1,7 +1,7 @@
 use super::{DeoxysBcType, DeoxysMode};
 use aead::{
     array::Array,
-    consts::{U15, U16, U8},
+    consts::{U8, U15, U16},
 };
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;

@@ -8,18 +8,18 @@
 
 //! # Usage
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use deoxys::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
 //!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
 //!     Nonce // Or `Aes128Gcm`
 //! };
 //!
-//! let key = DeoxysII256::generate_key()?;
+//! let key = DeoxysII256::generate_key().expect("Generate key");
 //! let cipher = DeoxysII256::new(&key);
-//! let nonce = DeoxysII256::generate_nonce()?; // 120-bits; unique per message
+//! let nonce = DeoxysII256::generate_nonce().expect("Generate nonce"); // 120-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -31,7 +31,7 @@
 //! Deoxys can authenticate additional data that is not encrypted alongside with the ciphertext.
 //! ```
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload, OsRng};
+//! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload, rand_core::OsRng};
 //!
 //! let key = DeoxysII256::generate_key().expect("generate key");
 //! let cipher = DeoxysII256::new(&key);
@@ -76,7 +76,7 @@
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadCore, AeadInPlace, KeyInit, OsRng, heapless::Vec};
+//! use deoxys::aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec};
 //!
 //! let key = DeoxysII256::generate_key().expect("generate key");
 //! let cipher = DeoxysII256::new(&key);
@@ -110,11 +110,12 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
-pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser, consts};
 
 use aead::{
+    PostfixTagged,
     array::{Array, ArraySize},
-    consts::{U0, U16},
+    consts::U16,
 };
 use core::marker::PhantomData;
 
@@ -258,10 +259,16 @@ where
 {
     type NonceSize = M::NonceSize;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
-impl<M, B> AeadInPlace for Deoxys<M, B>
+impl<M, B> PostfixTagged for Deoxys<M, B>
+where
+    M: DeoxysMode<B>,
+    B: DeoxysBcType,
+{
+}
+
+impl<M, B> AeadInPlaceDetached for Deoxys<M, B>
 where
     M: DeoxysMode<B>,
     B: DeoxysBcType,

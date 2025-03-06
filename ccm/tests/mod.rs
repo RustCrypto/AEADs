@@ -1,10 +1,10 @@
 #![cfg(feature = "alloc")]
 
-use aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
+use aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
 use aes::{Aes128, Aes192, Aes256};
 use ccm::{
-    consts::{U10, U11, U12, U13, U14, U16, U4, U6, U7, U8, U9},
     Ccm,
+    consts::{U4, U6, U7, U8, U9, U10, U11, U12, U13, U14, U16},
 };
 use hex_literal::hex;
 

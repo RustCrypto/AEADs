@@ -147,6 +147,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
+name = "ccm"
+version = "0.5.0"
+dependencies = [
+ "aead",
+ "aead-stream",
+ "aes",
+ "cipher",
+ "ctr",
+ "hex-literal",
+ "subtle",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

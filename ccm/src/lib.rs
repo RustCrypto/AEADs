@@ -11,12 +11,12 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(all(feature = "os_rng", feature = "alloc"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "alloc")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes::Aes256;
 //! use ccm::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng, array::Array},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng, array::Array},
 //!     consts::{U10, U13},
 //!     Ccm,
 //! };
@@ -24,9 +24,9 @@
 //! // AES-256-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
 //! pub type Aes256Ccm = Ccm<Aes256, U10, U13>;
 //!
-//! let key = Aes256Ccm::generate_key()?;
+//! let key = Aes256Ccm::generate_key().expect("generate key");
 //! let cipher = Aes256Ccm::new(&key);
-//! let nonce = Aes256Ccm::generate_nonce()?; // 13-bytes; unique per message
+//! let nonce = Aes256Ccm::generate_nonce().expect("Generate nonce"); // 13-bytes; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -42,11 +42,12 @@
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 
-pub use aead::{self, consts, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser, consts};
 
 use aead::{
-    array::{typenum::Unsigned, Array, ArraySize},
-    consts::{U0, U16},
+    PostfixTagged,
+    array::{Array, ArraySize, typenum::Unsigned},
+    consts::U16,
 };
 use cipher::{
     Block, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
@@ -210,10 +211,17 @@ where
 {
     type NonceSize = N;
     type TagSize = M;
-    type CiphertextOverhead = U0;
 }
 
-impl<C, M, N> AeadInPlace for Ccm<C, M, N>
+impl<C, M, N> PostfixTagged for Ccm<C, M, N>
+where
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
+{
+}
+
+impl<C, M, N> AeadInPlaceDetached for Ccm<C, M, N>
 where
     C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     M: ArraySize + TagSize,

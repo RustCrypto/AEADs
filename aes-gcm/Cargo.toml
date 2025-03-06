@@ -7,19 +7,19 @@ Authenticated Encryption with Associated Data (AEAD) Cipher
 with optional architecture-specific hardware acceleration
 """
 authors = ["RustCrypto Developers"]
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/aes-gcm"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["aead", "aes", "encryption", "gcm", "ghash"]
 categories = ["cryptography", "no-std"]
-rust-version = "1.81"
+rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }
-aes = { version = "=0.9.0-pre.2", optional = true }
-cipher = "=0.5.0-pre.7"
+aes = { version = "=0.9.0-pre.3", optional = true }
+cipher = "=0.5.0-pre.8"
 ctr = "0.10.0-pre.2"
 ghash = { version = "0.6.0-rc.0", default-features = false }
 subtle = { version = "2", default-features = false }
@@ -30,15 +30,13 @@ aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
 hex-literal = "0.4"
 
 [features]
-default = ["aes", "alloc", "getrandom"]
-std = ["aead/std", "cipher/std", "alloc"]
+default = ["aes", "alloc", "os_rng"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom", "rand_core"]
+os_rng = ["aead/os_rng", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
-stream = ["aead/stream"]
 
 [package.metadata.docs.rs]
 all-features = true

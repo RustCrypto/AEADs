@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "aead-stream",
-    #"aes-gcm",
+    "aes-gcm",
     #"aes-gcm-siv",
     #"aes-siv",
     #"ascon-aead",
@@ -15,4 +15,11 @@ members = [
 resolver = "2"
 
 [patch.crates-io]
-aead = { git = "https://github.com/RustCrypto/traits.git" }
+aead-stream = { path = "./aead-stream" }
+
+aead          = { git = "https://github.com/RustCrypto/traits.git" }
+crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
+
+ctr = { git = "https://github.com/RustCrypto/block-modes.git" }
+
+ghash = { git = "https://github.com/RustCrypto/universal-hashes.git" }

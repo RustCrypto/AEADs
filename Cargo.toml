@@ -13,3 +13,6 @@ members = [
     "xaes-256-gcm",
 ]
 resolver = "2"
+
+[patch.crates-io]
+aead = { git = "https://github.com/RustCrypto/traits.git" }

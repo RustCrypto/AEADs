@@ -17,7 +17,7 @@ Pure Rust implementation of the Offset Codebook Mode v3 (OCB3)
 ```rust
 use aes::Aes128;
 use ocb3::{
-    aead::{array::Array, Aead, AeadCore, KeyInit, OsRng},
+    aead::{Aead, AeadCore, KeyInit, array::Array, rand_core::OsRng},
     consts::U12,
     Ocb3,
 };
@@ -61,7 +61,7 @@ dual licensed as above, without any additional terms or conditions.
 [docs-image]: https://docs.rs/ocb3/badge.svg
 [docs-link]: https://docs.rs/ocb3/
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.81+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/ocb3.yml/badge.svg

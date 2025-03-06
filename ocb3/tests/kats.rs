@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
 use aead::{
-    consts::{U12, U8},
-    AeadInPlace, KeyInit,
+    AeadInPlaceDetached, KeyInit,
+    consts::{U8, U12},
 };
 use aes::{Aes128, Aes192, Aes256};
 use hex_literal::hex;

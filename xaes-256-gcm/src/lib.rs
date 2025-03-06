@@ -12,22 +12,16 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(
-    all(feature = "getrandom", feature = "heapless", feature = "std"),
-    doc = "```"
-)]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
-    doc = "```ignore"
-)]
+#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! use xaes_256_gcm::{
 //!     Xaes256Gcm, Nonce, Key,
-//!     aead::{Aead, AeadCore, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
 //! };
 //!
 //! # fn gen_key() -> Result<(), core::array::TryFromSliceError> {
 //! // The encryption key can be generated randomly:
-//! # #[cfg(all(feature = "getrandom", feature = "std"))] {
+//! # #[cfg(feature = "os_rng")] {
 //! let key = Xaes256Gcm::generate_key().expect("generate key");
 //! # }
 //!
@@ -40,14 +34,14 @@
 //! let key: [u8; 32] = key.try_into()?;
 //! # Ok(()) }
 //!
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! // Alternatively, the key can be transformed directly from a byte slice
 //! // (panics on length mismatch):
 //! # let key: &[u8] = &[42; 32];
 //! let key = <Key>::from_slice(key);
 //!
 //! let cipher = Xaes256Gcm::new(&key);
-//! let nonce = Xaes256Gcm::generate_nonce()?; // 192-bits
+//! let nonce = Xaes256Gcm::generate_nonce().expect("Generate nonce"); // 192-bits
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -61,10 +55,12 @@ pub use aes_gcm;
 
 use core::ops::{Div, Mul};
 
-use aead::{array::Array, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
+use aead::{
+    AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser, PostfixTagged, array::Array,
+};
 use aes::Aes256;
 use aes_gcm::Aes256Gcm;
-use cipher::{consts::U2, BlockCipherEncrypt, BlockSizeUser};
+use cipher::{BlockCipherEncrypt, BlockSizeUser, consts::U2};
 
 /// XAES-256-GCM
 #[derive(Clone)]
@@ -76,7 +72,6 @@ pub struct Xaes256Gcm {
 type KeySize = <Aes256Gcm as KeySizeUser>::KeySize;
 type NonceSize = <<Aes256Gcm as AeadCore>::NonceSize as Mul<U2>>::Output;
 type TagSize = <Aes256Gcm as AeadCore>::TagSize;
-type CiphertextOverhead = <Aes256Gcm as AeadCore>::CiphertextOverhead;
 type Block = Array<u8, <Aes256 as BlockSizeUser>::BlockSize>;
 
 /// XAES-256-GCM nonce.
@@ -101,7 +96,6 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 impl AeadCore for Xaes256Gcm {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
-    type CiphertextOverhead = CiphertextOverhead;
 }
 
 impl KeySizeUser for Xaes256Gcm {
@@ -132,7 +126,9 @@ impl KeyInit for Xaes256Gcm {
     }
 }
 
-impl AeadInPlace for Xaes256Gcm {
+impl PostfixTagged for Xaes256Gcm {}
+
+impl AeadInPlaceDetached for Xaes256Gcm {
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce,

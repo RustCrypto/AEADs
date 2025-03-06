@@ -570,6 +570,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "xaes-256-gcm"
+version = "0.0.1-pre.0"
+dependencies = [
+ "aead",
+ "aead-stream",
+ "aes",
+ "aes-gcm",
+ "cipher",
+ "hex-literal",
+]
+
+[[package]]
 name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

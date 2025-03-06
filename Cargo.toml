@@ -10,12 +10,13 @@ members = [
     "deoxys",
     "eax",
     "ocb3",
-    #"xaes-256-gcm",
+    "xaes-256-gcm",
 ]
 resolver = "2"
 
 [patch.crates-io]
 aead-stream = { path = "./aead-stream" }
+aes-gcm     = { path = "./aes-gcm" }
 
 aead          = { git = "https://github.com/RustCrypto/traits.git" }
 crypto-common = { git = "https://github.com/RustCrypto/traits.git" }

@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.81.0 # MSRV
+          - 1.85.0 # MSRV
           - stable
         target:
           - armv7a-none-eabi
@@ -44,7 +44,7 @@ jobs:
         include:
           # 32-bit Linux
           - target: i686-unknown-linux-gnu
-            rust: 1.81.0 # MSRV
+            rust: 1.85.0 # MSRV
             deps: sudo apt update && sudo apt install gcc-multilib
           - target: i686-unknown-linux-gnu
             rust: stable
@@ -52,7 +52,7 @@ jobs:
 
           # 64-bit Linux
           - target: x86_64-unknown-linux-gnu
-            rust: 1.81.0 # MSRV
+            rust: 1.85.0 # MSRV
           - target: x86_64-unknown-linux-gnu
             rust: stable
     steps:
@@ -64,5 +64,5 @@ jobs:
       - run: ${{ matrix.deps }}
       - run: cargo test --target ${{ matrix.target }} --release --no-default-features
       - run: cargo test --target ${{ matrix.target }} --release
-      - run: cargo test --target ${{ matrix.target }} --release --features std,zeroize
+      - run: cargo test --target ${{ matrix.target }} --release --features zeroize
       - run: cargo test --target ${{ matrix.target }} --release --all-features

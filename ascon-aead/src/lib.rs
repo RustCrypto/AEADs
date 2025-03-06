@@ -106,13 +106,13 @@ pub use zeroize;
 
 pub use aead::{self, Error, Key, Nonce, Tag};
 use aead::{
-    consts::{U0, U16, U20},
-    AeadCore, AeadInPlace, KeyInit, KeySizeUser,
+    AeadCore, AeadInPlaceDetached, KeyInit, KeySizeUser, PostfixTagged,
+    consts::{U16, U20},
 };
 
 mod asconcore;
 
-use asconcore::{AsconCore, Parameters, Parameters128, Parameters128a, Parameters80pq};
+use asconcore::{AsconCore, Parameters, Parameters80pq, Parameters128, Parameters128a};
 
 /// Ascon generic over some Parameters
 ///
@@ -138,10 +138,11 @@ impl<P: Parameters> KeyInit for Ascon<P> {
 impl<P: Parameters> AeadCore for Ascon<P> {
     type NonceSize = U16;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
-impl<P: Parameters> AeadInPlace for Ascon<P> {
+impl<P: Parameters> PostfixTagged for Ascon<P> {}
+
+impl<P: Parameters> AeadInPlaceDetached for Ascon<P> {
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce<Self>,
@@ -200,10 +201,11 @@ impl KeyInit for Ascon128 {
 impl AeadCore for Ascon128 {
     type NonceSize = U16;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
-impl AeadInPlace for Ascon128 {
+impl PostfixTagged for Ascon128 {}
+
+impl AeadInPlaceDetached for Ascon128 {
     #[inline(always)]
     fn encrypt_in_place_detached(
         &self,
@@ -251,10 +253,11 @@ impl KeyInit for Ascon128a {
 impl AeadCore for Ascon128a {
     type NonceSize = U16;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
-impl AeadInPlace for Ascon128a {
+impl PostfixTagged for Ascon128a {}
+
+impl AeadInPlaceDetached for Ascon128a {
     #[inline(always)]
     fn encrypt_in_place_detached(
         &self,
@@ -301,10 +304,11 @@ impl KeyInit for Ascon80pq {
 impl AeadCore for Ascon80pq {
     type NonceSize = U16;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
-impl AeadInPlace for Ascon80pq {
+impl PostfixTagged for Ascon80pq {}
+
+impl AeadInPlaceDetached for Ascon80pq {
     #[inline(always)]
     fn encrypt_in_place_detached(
         &self,

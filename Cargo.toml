@@ -3,7 +3,7 @@ members = [
     "aead-stream",
     "aes-gcm",
     "aes-gcm-siv",
-    #"aes-siv",
+    "aes-siv",
     #"ascon-aead",
     #"ccm",
     #"chacha20poly1305",
@@ -23,3 +23,5 @@ crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
 ctr = { git = "https://github.com/RustCrypto/block-modes.git" }
 
 ghash = { git = "https://github.com/RustCrypto/universal-hashes.git" }
+
+pmac = { git = "https://github.com/RustCrypto/MACs.git" }

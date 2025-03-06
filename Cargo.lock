@@ -9,7 +9,7 @@ version = "0.6.0-rc.0"
 source = "git+https://github.com/RustCrypto/traits.git#1548d2a7d7ce71a278a783d19d94b59b0103ab15"
 dependencies = [
  "arrayvec",
- "blobby",
+ "blobby 0.4.0-pre.0",
  "bytes",
  "crypto-common",
  "heapless",
@@ -63,6 +63,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "aes-siv"
+version = "0.8.0-pre.2"
+dependencies = [
+ "aead",
+ "aead-stream",
+ "aes",
+ "blobby 0.3.1",
+ "cipher",
+ "cmac",
+ "ctr",
+ "dbl",
+ "digest",
+ "hex-literal",
+ "pmac",
+ "zeroize",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -76,9 +94,24 @@ checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 
 [[package]]
 name = "blobby"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "847495c209977a90e8aad588b959d0ca9f5dc228096d29a6bd3defd53f35eaec"
+
+[[package]]
+name = "blobby"
 version = "0.4.0-pre.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a859067dcb257cb2ae028cb821399b55140b76fb8b2a360e052fe109019db43"
+
+[[package]]
+name = "block-buffer"
+version = "0.11.0-rc.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a229bfd78e4827c91b9b95784f69492c1b77c1ab75a45a8a037b139215086f94"
+dependencies = [
+ "hybrid-array",
+]
 
 [[package]]
 name = "byteorder"
@@ -109,6 +142,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmac"
+version = "0.8.0-pre.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5965a19674a22507a478bb9fc6db32b1a397cd0d91c4a7f8facc1b2547e9de54"
+dependencies = [
+ "cipher",
+ "dbl",
+ "digest",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -132,6 +176,26 @@ version = "0.10.0-pre.2"
 source = "git+https://github.com/RustCrypto/block-modes.git#3ec1c8191dea30def40c033513bbc8bdb3a9cd78"
 dependencies = [
  "cipher",
+]
+
+[[package]]
+name = "dbl"
+version = "0.4.0-rc.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb24c766034b76390c67f3d9c44e63019febeb4cc39e4ba40b5fc79e20c898e1"
+dependencies = [
+ "hybrid-array",
+]
+
+[[package]]
+name = "digest"
+version = "0.11.0-pre.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c478574b20020306f98d61c8ca3322d762e1ff08117422ac6106438605ea516"
+dependencies = [
+ "block-buffer",
+ "crypto-common",
+ "subtle",
 ]
 
 [[package]]
@@ -209,6 +273,16 @@ name = "opaque-debug"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
+
+[[package]]
+name = "pmac"
+version = "0.8.0-pre.2"
+source = "git+https://github.com/RustCrypto/MACs.git#48d909bc7c028df8ccbc4bd746e9315d2cb8757a"
+dependencies = [
+ "cipher",
+ "dbl",
+ "digest",
+]
 
 [[package]]
 name = "polyval"

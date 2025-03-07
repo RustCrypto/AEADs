@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 
-use ascon_aead::aead::{AeadInPlace, KeyInit};
+use ascon_aead::aead::{AeadInPlaceDetached, KeyInit};
 use ascon_aead::{Ascon128, Ascon128a, Ascon80pq};
 
 const KB: usize = 1024;
@@ -10,7 +10,7 @@ type Benchmarker = Criterion;
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 type Benchmarker = Criterion<criterion_cycles_per_byte::CyclesPerByte>;
 
-fn bench<A: AeadInPlace + KeyInit>(name: &str, c: &mut Benchmarker) {
+fn bench<A: AeadInPlaceDetached + KeyInit>(name: &str, c: &mut Benchmarker) {
     let mut group = c.benchmark_group(name);
     let nonce = black_box(Default::default());
     let cipher = black_box(A::new(&Default::default()));

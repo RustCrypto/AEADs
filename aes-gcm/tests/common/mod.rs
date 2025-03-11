@@ -90,9 +90,11 @@ macro_rules! tests {
             tag[0] ^= 0xaa;
 
             let cipher = <$aead>::new(&key);
-            assert!(cipher
-                .decrypt_in_place_detached(&nonce, &[], &mut buffer, &tag)
-                .is_err());
+            assert!(
+                cipher
+                    .decrypt_in_place_detached(&nonce, &[], &mut buffer, &tag)
+                    .is_err()
+            );
 
             assert_eq!(vector.ciphertext, buffer);
         }

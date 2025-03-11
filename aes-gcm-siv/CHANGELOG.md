@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.12.0 (UNRELEASED)
+### Added
+- `arrayvec` support ([#503])
+- re-export `aes` ([#603])
+- `bytes` feature passthrough ([#631])
+
+### Changed
+- Bump `aead` from `0.5` to `0.6` ([#583])
+- Bump `aes` from `0.8` to `0.9` ([#583])
+- Bump `cipher` from `0.4` to `0.5` ([#583])
+- Bump `ctr` from `0.9` to `0.10` ([#583])
+- Bump `ghash` from `0.5` to `0.6` ([#583])
+- Bump `polyval` from `0.6` to `0.7` ([#583])
+- Edition changed to 2024 and MSRV bumped to 1.85 ([#662])
+- Relax MSRV policy and allow MSRV bumps in patch releases
+- `getrandom` feature renamed as `os_rng` ([#662])
+
+## Removed
+- `std` and `stream` features ([#662])
+
+[#503]: https://github.com/RustCrypto/AEADs/pull/503
+[#583]: https://github.com/RustCrypto/AEADs/pull/583
+[#603]: https://github.com/RustCrypto/AEADs/pull/603
+[#631]: https://github.com/RustCrypto/AEADs/pull/631
+[#662]: https://github.com/RustCrypto/AEADs/pull/662
+
 ## 0.11.1 (2022-07-31)
 ### Fixed
 - rustdoc typos and formatting ([#460], [#461], [#462])

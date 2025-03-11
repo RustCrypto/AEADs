@@ -46,7 +46,7 @@ dual licensed as above, without any additional terms or conditions.
 [docs-image]: https://docs.rs/ccm/badge.svg
 [docs-link]: https://docs.rs/ccm
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.81+-blue.svg
+[rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [build-image]: https://github.com/RustCrypto/AEADs/workflows/ccm/badge.svg?branch=master&event=push

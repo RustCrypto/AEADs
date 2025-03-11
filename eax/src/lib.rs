@@ -12,20 +12,20 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes::Aes256;
 //! use eax::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng, array::Array},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng, array::Array},
 //!     Eax, Nonce
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
 //!
-//! let key = Aes256Eax::generate_key()?;
+//! let key = Aes256Eax::generate_key().expect("generate key");
 //! let cipher = Aes256Eax::new(&key);
-//! let nonce = Aes256Eax::generate_nonce()?; // 128-bits; unique per message
+//! let nonce = Aes256Eax::generate_nonce().expect("generate nonce"); // 128-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -56,7 +56,7 @@
 //! use eax::aead::{
 //!     array::Array,
 //!     heapless::Vec,
-//!     AeadCore, AeadInPlace, KeyInit, OsRng
+//!     AeadCore, AeadInPlace, KeyInit, rand_core::OsRng
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
@@ -97,7 +97,7 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlace, KeyInit, array::Array};
+//! use eax::aead::{AeadInPlaceDetached, KeyInit, array::Array};
 //! use eax::aead::heapless::Vec;
 //! use eax::aead::consts::{U8, U128};
 //!
@@ -124,17 +124,15 @@
 //! # }
 //! ```
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser};
 pub use cipher;
 
+use aead::PostfixTagged;
 use cipher::{
-    array::Array,
-    consts::{U0, U16},
-    crypto_common::OutputSizeUser,
-    typenum::Unsigned,
-    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array, consts::U16,
+    crypto_common::OutputSizeUser, typenum::Unsigned,
 };
-use cmac::{digest::Output, Cmac, Mac};
+use cmac::{Cmac, Mac, digest::Output};
 use core::marker::PhantomData;
 
 mod traits;
@@ -212,10 +210,16 @@ where
 {
     type NonceSize = Cipher::BlockSize;
     type TagSize = M;
-    type CiphertextOverhead = U0;
 }
 
-impl<Cipher, M> AeadInPlace for Eax<Cipher, M>
+impl<Cipher, M> PostfixTagged for Eax<Cipher, M>
+where
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    M: TagSize,
+{
+}
+
+impl<Cipher, M> AeadInPlaceDetached for Eax<Cipher, M>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,

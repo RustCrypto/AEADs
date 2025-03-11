@@ -10,20 +10,19 @@
 
 /// Constants used, reexported for convenience.
 pub mod consts {
-    pub use cipher::consts::{U0, U12, U15, U16, U6};
+    pub use cipher::consts::{U0, U6, U12, U15, U16};
 }
 
 pub use aead::{
-    self,
+    self, AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser,
     array::{Array, AssocArraySize},
-    AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser,
 };
 
-use aead::array::ArraySize;
+use aead::{PostfixTagged, array::ArraySize};
 use cipher::{
-    consts::{U0, U12, U16},
-    typenum::Unsigned,
     BlockCipherDecrypt, BlockCipherEncrypt, BlockSizeUser,
+    consts::{U12, U16},
+    typenum::Unsigned,
 };
 use core::marker::PhantomData;
 use dbl::Dbl;
@@ -60,8 +59,8 @@ pub(crate) type Block = Array<u8, U16>;
 
 mod sealed {
     use aead::array::{
-        typenum::{GrEq, IsGreaterOrEqual, IsLessOrEqual, LeEq, NonZero, U15, U16, U6},
         ArraySize,
+        typenum::{GrEq, IsGreaterOrEqual, IsLessOrEqual, LeEq, NonZero, U6, U15, U16},
     };
 
     /// Sealed trait for nonce sizes in the range of `6..=15` bytes.
@@ -169,7 +168,6 @@ where
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
-    type CiphertextOverhead = U0;
 }
 
 impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
@@ -192,7 +190,15 @@ where
     }
 }
 
-impl<Cipher, NonceSize, TagSize> AeadInPlace for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> PostfixTagged for Ocb3<Cipher, NonceSize, TagSize>
+where
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
+{
+}
+
+impl<Cipher, NonceSize, TagSize> AeadInPlaceDetached for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,

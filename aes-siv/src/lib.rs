@@ -11,17 +11,17 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_siv::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
 //!     Aes256SivAead, Nonce // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key()?;
+//! let key = Aes256SivAead::generate_key().expect("Generate key");
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Aes256SivAead::generate_nonce()?; // 128-bits; unique per message
+//! let nonce = Aes256SivAead::generate_nonce().expect("Generate nonce"); // 128-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -44,23 +44,17 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(
-    all(feature = "getrandom", feature = "heapless", feature = "std"),
-    doc = "```"
-)]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
-    doc = "```ignore"
-)]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_siv::{
-//!     aead::{AeadCore, AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     Aes256SivAead, Nonce, // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key()?;
+//! let key = Aes256SivAead::generate_key().expect("Generate key");
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Aes256SivAead::generate_nonce()?; // 128-bits; unique per message
+//! let nonce = Aes256SivAead::generate_nonce().expect("Generate nonce"); // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
@@ -89,16 +83,18 @@ extern crate alloc;
 
 pub mod siv;
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{
+    self, AeadCore, AeadInPlace, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser,
+};
 
 use crate::siv::Siv;
 use aead::{
-    array::Array,
-    consts::{U0, U1, U16, U32, U64},
     Buffer,
+    array::Array,
+    consts::{U1, U16, U32, U64},
 };
 use aes::{Aes128, Aes256};
-use cipher::{array::ArraySize, typenum::IsGreaterOrEqual, BlockCipherEncrypt, BlockSizeUser};
+use cipher::{BlockCipherEncrypt, BlockSizeUser, array::ArraySize, typenum::IsGreaterOrEqual};
 use cmac::Cmac;
 use core::{marker::PhantomData, ops::Add};
 use digest::{FixedOutputReset, Mac};
@@ -210,7 +206,6 @@ where
     // https://tools.ietf.org/html/rfc5297#section-6
     type NonceSize = NonceSize;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
 impl<C, M, NonceSize> AeadInPlace for SivAead<C, M, NonceSize>
@@ -236,6 +231,25 @@ where
         Siv::<C, M>::new(&self.key).encrypt_in_place([associated_data, nonce.as_slice()], buffer)
     }
 
+    fn decrypt_in_place(
+        &self,
+        nonce: &Array<u8, Self::NonceSize>,
+        associated_data: &[u8],
+        buffer: &mut dyn Buffer,
+    ) -> Result<(), Error> {
+        Siv::<C, M>::new(&self.key).decrypt_in_place([associated_data, nonce.as_slice()], buffer)
+    }
+}
+
+impl<C, M, NonceSize> AeadInPlaceDetached for SivAead<C, M, NonceSize>
+where
+    Self: KeySizeUser,
+    Siv<C, M>: KeyInit + KeySizeUser<KeySize = <Self as KeySizeUser>::KeySize>,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
+    <C as KeySizeUser>::KeySize: Add,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
+{
     fn encrypt_in_place_detached(
         &self,
         nonce: &Array<u8, Self::NonceSize>,
@@ -244,15 +258,6 @@ where
     ) -> Result<Array<u8, Self::TagSize>, Error> {
         Siv::<C, M>::new(&self.key)
             .encrypt_in_place_detached([associated_data, nonce.as_slice()], buffer)
-    }
-
-    fn decrypt_in_place(
-        &self,
-        nonce: &Array<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut dyn Buffer,
-    ) -> Result<(), Error> {
-        Siv::<C, M>::new(&self.key).decrypt_in_place([associated_data, nonce.as_slice()], buffer)
     }
 
     fn decrypt_in_place_detached(

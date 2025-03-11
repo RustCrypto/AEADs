@@ -3,7 +3,7 @@ name = "ccm"
 version = "0.5.0"
 description = "Generic implementation of the Counter with CBC-MAC (CCM) mode"
 authors = ["RustCrypto Developers"]
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/ccm"
@@ -11,26 +11,24 @@ homepage = "https://github.com/RustCrypto/AEADs/tree/master/ccm"
 repository = "https://github.com/RustCrypto/AEADs"
 categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
-rust-version = "1.81"
+rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }
-cipher = { version = "=0.5.0-pre.7", default-features = false }
+cipher = { version = "=0.5.0-pre.8", default-features = false }
 ctr = { version = "0.10.0-pre.2", default-features = false }
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
-aes = { version = "=0.9.0-pre.2" }
+aes = { version = "=0.9.0-pre.3" }
 hex-literal = "0.4.1"
 
 [features]
-default = ["alloc", "getrandom"]
-std = ["aead/std", "alloc"]
+default = ["alloc", "os_rng"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom", "rand_core"]
+os_rng = ["aead/os_rng", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
-stream = ["aead/stream"]

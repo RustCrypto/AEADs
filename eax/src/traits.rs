@@ -1,7 +1,7 @@
-use aead::array::typenum::type_operators::{IsGreaterOrEqual, IsLessOrEqual};
-use aead::array::typenum::Unsigned;
 use aead::array::ArraySize;
-use aead::consts::{U16, U4};
+use aead::array::typenum::Unsigned;
+use aead::array::typenum::type_operators::{IsGreaterOrEqual, IsLessOrEqual};
+use aead::consts::{U4, U16};
 
 mod private {
     // Sealed traits stop other crates from implementing any traits that use it.

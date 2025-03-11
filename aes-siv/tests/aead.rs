@@ -107,19 +107,23 @@ macro_rules! tests {
 
 mod aes128cmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
     use aes_siv::Aes128SivAead;
+    use aes_siv::aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
 
     /// AES-128-CMAC-SIV test vectors
-    const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
-        TestVector {
-            key: &hex!("7f7e7d7c7b7a79787776757473727170404142434445464748494a4b4c4d4e4f"),
-            nonce: &hex!("09f911029d74e35bd84156c5635688c0"),
-            aad: &hex!("00112233445566778899aabbccddeeffdeaddadadeaddadaffeeddccbbaa99887766554433221100"),
-            plaintext: &hex!("7468697320697320736f6d6520706c61696e7465787420746f20656e6372797074207573696e67205349562d414553"),
-            ciphertext: &hex!("85825e22e90cf2ddda2c548dc7c1b6310dcdaca0cebf9dc6cb90583f5bf1506e02cd48832b00e4e598b2b22a53e6199d4df0c1666a35a0433b250dc134d776"),
-        },
-    ];
+    const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[TestVector {
+        key: &hex!("7f7e7d7c7b7a79787776757473727170404142434445464748494a4b4c4d4e4f"),
+        nonce: &hex!("09f911029d74e35bd84156c5635688c0"),
+        aad: &hex!(
+            "00112233445566778899aabbccddeeffdeaddadadeaddadaffeeddccbbaa99887766554433221100"
+        ),
+        plaintext: &hex!(
+            "7468697320697320736f6d6520706c61696e7465787420746f20656e6372797074207573696e67205349562d414553"
+        ),
+        ciphertext: &hex!(
+            "85825e22e90cf2ddda2c548dc7c1b6310dcdaca0cebf9dc6cb90583f5bf1506e02cd48832b00e4e598b2b22a53e6199d4df0c1666a35a0433b250dc134d776"
+        ),
+    }];
 
     tests!(Aes128SivAead, TEST_VECTORS);
 }
@@ -127,19 +131,23 @@ mod aes128cmacsivaead {
 #[cfg(feature = "pmac")]
 mod aes128pmacsivaead {
     use super::TestVector;
-    use aes_siv::aead::{array::Array, Aead, AeadInPlace, KeyInit, Payload};
     use aes_siv::Aes128PmacSivAead;
+    use aes_siv::aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
 
     /// AES-128-PMAC-SIV test vectors
-    const AES_128_PMAC_SIV_TEST_VECTORS: &[TestVector<[u8; 32]>] = &[
-        TestVector {
-            key: &hex!("7f7e7d7c7b7a79787776757473727170404142434445464748494a4b4c4d4e4f"),
-            nonce: &hex!("09f911029d74e35bd84156c5635688c0"),
-            aad: &hex!("00112233445566778899aabbccddeeffdeaddadadeaddadaffeeddccbbaa99887766554433221100"),
-            plaintext: &hex!("7468697320697320736f6d6520706c61696e7465787420746f20656e6372797074207573696e67205349562d414553"),
-            ciphertext: &hex!("1463d1119b2a2797241bb1674633dff13b9de11e5e2f526048b36c40c7722667b2957018023bf0e52792b703a01e88aacd49898cecfce943d7f61a2337a097"),
-        },
-    ];
+    const AES_128_PMAC_SIV_TEST_VECTORS: &[TestVector<[u8; 32]>] = &[TestVector {
+        key: &hex!("7f7e7d7c7b7a79787776757473727170404142434445464748494a4b4c4d4e4f"),
+        nonce: &hex!("09f911029d74e35bd84156c5635688c0"),
+        aad: &hex!(
+            "00112233445566778899aabbccddeeffdeaddadadeaddadaffeeddccbbaa99887766554433221100"
+        ),
+        plaintext: &hex!(
+            "7468697320697320736f6d6520706c61696e7465787420746f20656e6372797074207573696e67205349562d414553"
+        ),
+        ciphertext: &hex!(
+            "1463d1119b2a2797241bb1674633dff13b9de11e5e2f526048b36c40c7722667b2957018023bf0e52792b703a01e88aacd49898cecfce943d7f61a2337a097"
+        ),
+    }];
 
     tests!(Aes128PmacSivAead, AES_128_PMAC_SIV_TEST_VECTORS);
 }

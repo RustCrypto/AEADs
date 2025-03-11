@@ -96,9 +96,9 @@ const PLAINTEXT: &[u8] = b"Ladies and Gentlemen of the class of '99: \
 /// <https://tools.ietf.org/html/rfc8439#section-2.8.2>
 mod chacha20 {
     use super::{AAD, KEY, PLAINTEXT};
+    use chacha20poly1305::ChaCha20Poly1305;
     use chacha20poly1305::aead::array::Array;
     use chacha20poly1305::aead::{Aead, KeyInit, Payload};
-    use chacha20poly1305::ChaCha20Poly1305;
 
     const NONCE: &[u8; 12] = &[
         0x07, 0x00, 0x00, 0x00, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
@@ -141,9 +141,9 @@ mod chacha20 {
 /// From <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha#appendix-A.1>
 mod xchacha20 {
     use super::{AAD, KEY, PLAINTEXT};
+    use chacha20poly1305::XChaCha20Poly1305;
     use chacha20poly1305::aead::array::Array;
     use chacha20poly1305::aead::{Aead, KeyInit, Payload};
-    use chacha20poly1305::XChaCha20Poly1305;
 
     const NONCE: &[u8; 24] = &[
         0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e,

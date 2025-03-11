@@ -4,9 +4,9 @@
 //! # Deterministic Authenticated Encryption Example
 //! Deterministic encryption with additional data. Suitable for example for key wrapping.
 //! Based on the test vector in [RFC 5297 Appendix: A1][3]
-#![cfg_attr(feature = "std", doc = "```")]
-#![cfg_attr(not(feature = "std"), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "alloc", doc = "```")]
+#![cfg_attr(not(feature = "alloc"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_siv::{siv::Aes128Siv, KeyInit};
 //! use hex_literal::hex;
 //!
@@ -33,9 +33,9 @@
 //! # Nonce-Based Authenticated Encryption Example
 //! Nonce-based encryption with multiple additional data vectors.
 //! Based on the test vector in [RFC 5297 Appendix: A2][4]
-#![cfg_attr(feature = "std", doc = "```")]
-#![cfg_attr(not(feature = "std"), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "alloc", doc = "```")]
+#![cfg_attr(not(feature = "alloc"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_siv::{siv::Aes128Siv, KeyInit};
 //! use hex_literal::hex;
 //!
@@ -70,8 +70,8 @@
 
 use crate::Tag;
 use aead::{
-    array::{typenum::U16, Array, ArraySize},
     Buffer, Error,
+    array::{Array, ArraySize, typenum::U16},
 };
 use aes::{Aes128, Aes256};
 use cipher::{

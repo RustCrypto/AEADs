@@ -6,13 +6,13 @@ authors = [
     "Sebastian Ramacher <sebastian.ramacher@ait.ac.at>",
     "RustCrypto Developers",
 ]
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 repository = "https://github.com/RustCrypto/AEADs"
 keywords = ["AEAD", "ascon", "encryption"]
 categories = ["cryptography", "no-std"]
-rust-version = "1.81"
+rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }
@@ -25,15 +25,13 @@ hex-literal = "0.4"
 aead = { version = "0.6.0-rc.0", features = ["alloc"] }
 
 [features]
-default = ["alloc", "getrandom"]
-std = ["aead/std", "alloc"]
+default = ["alloc", "os_rng"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom", "rand_core"]
+os_rng = ["aead/os_rng", "rand_core"]
 heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
-stream = ["aead/stream"]
 zeroize = ["dep:zeroize", "ascon/zeroize"]
 
 [package.metadata.docs.rs]

@@ -23,17 +23,17 @@
 //!
 //! # Usage
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
 //!     ChaCha20Poly1305, Nonce
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key()?;
+//! let key = ChaCha20Poly1305::generate_key().expect("generate key");
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = ChaCha20Poly1305::generate_nonce()?; // 96-bits; unique per message
+//! let nonce = ChaCha20Poly1305::generate_nonce().expect("Generate nonce"); // 96-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -56,23 +56,17 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(
-    all(feature = "getrandom", feature = "heapless", feature = "std"),
-    doc = "```"
-)]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
-    doc = "```ignore"
-)]
+#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{AeadCore, AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     ChaCha20Poly1305, Nonce,
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key()?;
+//! let key = ChaCha20Poly1305::generate_key().expect("Generate key");
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = ChaCha20Poly1305::generate_nonce()?; // 96-bits; unique per message
+//! let nonce = ChaCha20Poly1305::generate_nonce().expect("Generate nonce"); // 96-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
@@ -125,17 +119,17 @@
 //!
 //! # Usage
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
 //!     XChaCha20Poly1305, XNonce
 //! };
 //!
-//! let key = XChaCha20Poly1305::generate_key()?;
+//! let key = XChaCha20Poly1305::generate_key().expect("Generate key");
 //! let cipher = XChaCha20Poly1305::new(&key);
-//! let nonce = XChaCha20Poly1305::generate_nonce()?; // 192-bits; unique per message
+//! let nonce = XChaCha20Poly1305::generate_nonce().expect("Generate nonce"); // 192-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -145,20 +139,21 @@
 
 mod cipher;
 
-pub use aead::{self, consts, AeadCore, AeadInPlace, Error, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser, consts};
 
 use self::cipher::Cipher;
 use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
 use aead::{
+    PostfixTagged,
     array::{Array, ArraySize},
-    consts::{U0, U12, U16, U24, U32},
+    consts::{U12, U16, U24, U32},
 };
 use core::marker::PhantomData;
 
 use chacha20::{ChaCha20, XChaCha20};
 
 #[cfg(feature = "reduced-round")]
-use chacha20::{ChaCha12, ChaCha8, XChaCha12, XChaCha8};
+use chacha20::{ChaCha8, ChaCha12, XChaCha8, XChaCha12};
 
 /// Key type (256-bits/32-bytes).
 ///
@@ -250,10 +245,16 @@ where
 {
     type NonceSize = N;
     type TagSize = U16;
-    type CiphertextOverhead = U0;
 }
 
-impl<C, N> AeadInPlace for ChaChaPoly1305<C, N>
+impl<C, N> PostfixTagged for ChaChaPoly1305<C, N>
+where
+    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
+    N: ArraySize,
+{
+}
+
+impl<C, N> AeadInPlaceDetached for ChaChaPoly1305<C, N>
 where
     C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArraySize,

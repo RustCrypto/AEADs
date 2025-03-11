@@ -6,8 +6,8 @@
 #![cfg(all(feature = "aes", feature = "alloc"))]
 
 use aead::{
-    array::{typenum, Array},
     Aead, KeyInit,
+    array::{Array, typenum},
 };
 use aes::Aes128;
 use aes_gcm::AesGcm;

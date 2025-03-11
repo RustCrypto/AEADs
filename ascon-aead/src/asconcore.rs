@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use aead::{
-    array::{typenum::Unsigned, Array, ArraySize},
-    consts::{U16, U20},
     Error,
+    array::{Array, ArraySize, typenum::Unsigned},
+    consts::{U16, U20},
 };
-use ascon::{pad, State};
+use ascon::{State, pad};
 use subtle::ConstantTimeEq;
 
 /// Clear bytes from a 64 bit word.
@@ -17,7 +17,7 @@ const fn clear(word: u64, n: usize) -> u64 {
 
 #[inline(always)]
 const fn keyrot(lo2hi: u64, hi2lo: u64) -> u64 {
-    lo2hi << 32 | hi2lo >> 32
+    (lo2hi << 32) | (hi2lo >> 32)
 }
 
 // Helper functions to convert &[u8] to u64/u32. Once the `processing_*`

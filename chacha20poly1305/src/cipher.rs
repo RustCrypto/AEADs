@@ -50,7 +50,7 @@ where
     }
 
     /// Encrypt the given message in-place, returning the authentication tag
-    pub(crate) fn encrypt_in_place_detached(
+    pub(crate) fn encrypt_inout_detached(
         mut self,
         associated_data: &[u8],
         buffer: &mut [u8],
@@ -72,7 +72,7 @@ where
 
     /// Decrypt the given message, first authenticating ciphertext integrity
     /// and returning an error if it's been tampered with.
-    pub(crate) fn decrypt_in_place_detached(
+    pub(crate) fn decrypt_inout_detached(
         mut self,
         associated_data: &[u8],
         buffer: &mut [u8],

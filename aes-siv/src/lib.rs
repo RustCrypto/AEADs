@@ -83,15 +83,14 @@ extern crate alloc;
 
 pub mod siv;
 
-pub use aead::{
-    self, AeadCore, AeadInPlace, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser,
-};
+pub use aead::{self, AeadCore, AeadInOut, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 
 use crate::siv::Siv;
 use aead::{
     Buffer,
     array::Array,
     consts::{U1, U16, U32, U64},
+    inout::InOutBuf,
 };
 use aes::{Aes128, Aes256};
 use cipher::{BlockCipherEncrypt, BlockSizeUser, array::ArraySize, typenum::IsGreaterOrEqual};
@@ -241,7 +240,7 @@ where
     }
 }
 
-impl<C, M, NonceSize> AeadInPlaceDetached for SivAead<C, M, NonceSize>
+impl<C, M, NonceSize> AeadInOut for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
     Siv<C, M>: KeyInit + KeySizeUser<KeySize = <Self as KeySizeUser>::KeySize>,
@@ -250,24 +249,24 @@ where
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Array<u8, Self::TagSize>, Error> {
         Siv::<C, M>::new(&self.key)
-            .encrypt_in_place_detached([associated_data, nonce.as_slice()], buffer)
+            .encrypt_inout_detached([associated_data, nonce.as_slice()], buffer)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Array<u8, Self::TagSize>,
     ) -> Result<(), Error> {
-        Siv::<C, M>::new(&self.key).decrypt_in_place_detached(
+        Siv::<C, M>::new(&self.key).decrypt_inout_detached(
             [associated_data, nonce.as_slice()],
             buffer,
             tag,

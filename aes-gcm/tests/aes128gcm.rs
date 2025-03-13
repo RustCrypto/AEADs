@@ -6,8 +6,8 @@
 mod common;
 
 use self::common::TestVector;
+use aes_gcm::aead::{array::Array, Aead, AeadInOut, KeyInit, Payload};
 use aes_gcm::Aes128Gcm;
-use aes_gcm::aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
 use hex_literal::hex;
 
 /// NIST CAVS vectors

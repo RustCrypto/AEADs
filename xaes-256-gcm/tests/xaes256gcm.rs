@@ -4,7 +4,7 @@
 #[path = "../../aes-gcm/tests/common/mod.rs"]
 mod common;
 
-use aes_gcm::aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
+use aes_gcm::aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
 use common::TestVector;
 use hex_literal::hex;
 use xaes_256_gcm::Xaes256Gcm;

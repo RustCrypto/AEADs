@@ -54,7 +54,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -68,7 +68,7 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_gcm::{
-//!     aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     Aes256Gcm, Nonce, // Or `Aes128Gcm`
 //! };
 //!
@@ -98,12 +98,12 @@
 //! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
 //! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
-use aead::PostfixTagged;
+use aead::{TagPosition, inout::InOutBuf};
 
 use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
@@ -253,24 +253,20 @@ where
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl<Aes, NonceSize, TagSize> PostfixTagged for AesGcm<Aes, NonceSize, TagSize> where
-    TagSize: self::TagSize
-{
-}
-
-impl<Aes, NonceSize, TagSize> AeadInPlaceDetached for AesGcm<Aes, NonceSize, TagSize>
+impl<Aes, NonceSize, TagSize> AeadInOut for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: ArraySize,
     TagSize: self::TagSize,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<TagSize>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -280,17 +276,17 @@ where
 
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        ctr.apply_keystream_partial(buffer.into());
+        ctr.apply_keystream_partial(buffer.reborrow());
 
-        let full_tag = self.compute_tag(mask, associated_data, buffer);
+        let full_tag = self.compute_tag(mask, associated_data, buffer.get_out());
         Ok(Tag::try_from(&full_tag[..TagSize::to_usize()]).expect("tag size mismatch"))
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<TagSize>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
@@ -301,11 +297,11 @@ where
 
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        let expected_tag = self.compute_tag(mask, associated_data, buffer);
+        let expected_tag = self.compute_tag(mask, associated_data, buffer.get_in());
 
         use subtle::ConstantTimeEq;
         if expected_tag[..TagSize::to_usize()].ct_eq(tag).into() {
-            ctr.apply_keystream_partial(buffer.into());
+            ctr.apply_keystream_partial(buffer);
             Ok(())
         } else {
             Err(Error)

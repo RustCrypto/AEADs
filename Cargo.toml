@@ -4,12 +4,12 @@ members = [
     "aes-gcm",
     "aes-gcm-siv",
     "aes-siv",
-    "ascon-aead",
-    "ccm",
-    "chacha20poly1305",
-    "deoxys",
-    "eax",
-    "ocb3",
+    #"ascon-aead",
+    #"ccm",
+    #"chacha20poly1305",
+    #"deoxys",
+    #"eax",
+    #"ocb3",
     "xaes-256-gcm",
 ]
 resolver = "2"

@@ -77,7 +77,7 @@ macro_rules! tests {
         }
 
         #[test]
-        fn decrypt_in_place_detached_modified() {
+        fn decrypt_inout_detached_modified() {
             let vector = &$vectors.iter().last().unwrap();
             let key = Array(*vector.key);
             let nonce = Array(*vector.nonce);
@@ -92,7 +92,7 @@ macro_rules! tests {
             let cipher = <$aead>::new(&key);
             assert!(
                 cipher
-                    .decrypt_in_place_detached(&nonce, &[], &mut buffer, &tag)
+                    .decrypt_inout_detached(&nonce, &[], &mut buffer, &tag)
                     .is_err()
             );
 

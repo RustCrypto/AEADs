@@ -98,26 +98,26 @@
 //! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
 //! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
-use aead::PostfixTagged;
+use aead::{inout::InOutBuf, PostfixTagged};
 
 use cipher::{
-    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
     array::{Array, ArraySize},
     consts::U16,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use core::marker::PhantomData;
-use ghash::{GHash, universal_hash::UniversalHash};
+use ghash::{universal_hash::UniversalHash, GHash};
 
 #[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
 
 #[cfg(feature = "aes")]
-use aes::{Aes128, Aes256, cipher::consts::U12};
+use aes::{cipher::consts::U12, Aes128, Aes256};
 
 /// Maximum length of associated data.
 pub const A_MAX: u64 = 1 << 36;
@@ -260,17 +260,17 @@ impl<Aes, NonceSize, TagSize> PostfixTagged for AesGcm<Aes, NonceSize, TagSize> 
 {
 }
 
-impl<Aes, NonceSize, TagSize> AeadInPlaceDetached for AesGcm<Aes, NonceSize, TagSize>
+impl<Aes, NonceSize, TagSize> AeadInOut for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: ArraySize,
     TagSize: self::TagSize,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<TagSize>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -286,11 +286,11 @@ where
         Ok(Tag::try_from(&full_tag[..TagSize::to_usize()]).expect("tag size mismatch"))
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<TagSize>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {

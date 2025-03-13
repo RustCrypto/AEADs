@@ -6,13 +6,14 @@ version = 4
 [[package]]
 name = "aead"
 version = "0.6.0-rc.0"
-source = "git+https://github.com/RustCrypto/traits.git#1548d2a7d7ce71a278a783d19d94b59b0103ab15"
+source = "git+https://github.com/RustCrypto/traits.git#204a4e030fa98863429ccd3797e12f9e7c45dc33"
 dependencies = [
  "arrayvec",
  "blobby 0.4.0-pre.0",
  "bytes",
  "crypto-common",
  "heapless",
+ "inout",
 ]
 
 [[package]]
@@ -38,7 +39,6 @@ name = "aes-gcm"
 version = "0.11.0-pre.2"
 dependencies = [
  "aead",
- "aead-stream",
  "aes",
  "cipher",
  "ctr",
@@ -53,7 +53,6 @@ name = "aes-gcm-siv"
 version = "0.12.0-pre.2"
 dependencies = [
  "aead",
- "aead-stream",
  "aes",
  "cipher",
  "ctr",
@@ -67,7 +66,6 @@ name = "aes-siv"
 version = "0.8.0-pre.2"
 dependencies = [
  "aead",
- "aead-stream",
  "aes",
  "blobby 0.3.1",
  "cipher",
@@ -100,7 +98,6 @@ name = "ascon-aead"
 version = "0.4.2"
 dependencies = [
  "aead",
- "aead-stream",
  "ascon",
  "hex-literal",
  "subtle",
@@ -151,7 +148,6 @@ name = "ccm"
 version = "0.5.0"
 dependencies = [
  "aead",
- "aead-stream",
  "aes",
  "cipher",
  "ctr",
@@ -181,7 +177,6 @@ name = "chacha20poly1305"
 version = "0.11.0-pre.2"
 dependencies = [
  "aead",
- "aead-stream",
  "chacha20",
  "cipher",
  "poly1305",
@@ -221,7 +216,7 @@ dependencies = [
 [[package]]
 name = "crypto-common"
 version = "0.2.0-rc.2"
-source = "git+https://github.com/RustCrypto/traits.git#1548d2a7d7ce71a278a783d19d94b59b0103ab15"
+source = "git+https://github.com/RustCrypto/traits.git#204a4e030fa98863429ccd3797e12f9e7c45dc33"
 dependencies = [
  "hybrid-array",
  "rand_core",
@@ -249,7 +244,6 @@ name = "deoxys"
 version = "0.1.0"
 dependencies = [
  "aead",
- "aead-stream",
  "aes",
  "hex-literal",
  "subtle",
@@ -272,7 +266,6 @@ name = "eax"
 version = "0.5.0"
 dependencies = [
  "aead",
- "aead-stream",
  "aes",
  "cipher",
  "cmac",

@@ -32,7 +32,7 @@ macro_rules! tests {
         }
 
         #[test]
-        fn encrypt_in_place_detached() {
+        fn encrypt_inout_detached() {
             for vector in $vectors {
                 let key = Array(*vector.key);
                 let nonce = Array(*vector.nonce);
@@ -40,7 +40,7 @@ macro_rules! tests {
 
                 let cipher = <$aead>::new(&key);
                 let tag = cipher
-                    .encrypt_in_place_detached(&nonce, vector.aad, &mut buffer)
+                    .encrypt_inout_detached(&nonce, vector.aad, &mut buffer)
                     .unwrap();
                 let (expected_tag, expected_ciphertext) = vector.ciphertext.split_at(16);
                 assert_eq!(expected_tag, &tag[..]);
@@ -67,7 +67,7 @@ macro_rules! tests {
         }
 
         #[test]
-        fn decrypt_in_place_detached() {
+        fn decrypt_inout_detached() {
             for vector in $vectors {
                 let key = Array(*vector.key);
                 let nonce = Array(*vector.nonce);
@@ -75,7 +75,7 @@ macro_rules! tests {
                 let mut buffer = vector.ciphertext[16..].to_vec();
 
                 <$aead>::new(&key)
-                    .decrypt_in_place_detached(&nonce, vector.aad, &mut buffer, &tag)
+                    .decrypt_inout_detached(&nonce, vector.aad, &mut buffer, &tag)
                     .unwrap();
 
                 assert_eq!(vector.plaintext, buffer.as_slice());
@@ -108,7 +108,7 @@ macro_rules! tests {
 mod aes128cmacsivaead {
     use super::TestVector;
     use aes_siv::Aes128SivAead;
-    use aes_siv::aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
+    use aes_siv::aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
 
     /// AES-128-CMAC-SIV test vectors
     const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[TestVector {
@@ -132,7 +132,7 @@ mod aes128cmacsivaead {
 mod aes128pmacsivaead {
     use super::TestVector;
     use aes_siv::Aes128PmacSivAead;
-    use aes_siv::aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
+    use aes_siv::aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
 
     /// AES-128-PMAC-SIV test vectors
     const AES_128_PMAC_SIV_TEST_VECTORS: &[TestVector<[u8; 32]>] = &[TestVector {

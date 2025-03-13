@@ -78,18 +78,18 @@
 //! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
 //! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
-use aead::PostfixTagged;
+use aead::{inout::InOutBuf, PostfixTagged};
 use cipher::{
-    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
     array::Array,
     consts::{U12, U16},
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
-use polyval::{Polyval, universal_hash::UniversalHash};
+use polyval::{universal_hash::UniversalHash, Polyval};
 
 /// AES is optional to allow swapping in hardware-specific backends.
 #[cfg(feature = "aes")]
@@ -165,28 +165,28 @@ where
 
 impl<Aes> PostfixTagged for AesGcmSiv<Aes> {}
 
-impl<Aes> AeadInPlaceDetached for AesGcmSiv<Aes>
+impl<Aes> AeadInOut for AesGcmSiv<Aes>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
         Cipher::<Aes>::new(&self.key_generating_key, nonce)
-            .encrypt_in_place_detached(associated_data, buffer)
+            .encrypt_inout_detached(associated_data, buffer)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::<Aes>::new(&self.key_generating_key, nonce).decrypt_in_place_detached(
+        Cipher::<Aes>::new(&self.key_generating_key, nonce).decrypt_inout_detached(
             associated_data,
             buffer,
             tag,
@@ -268,10 +268,10 @@ where
     }
 
     /// Encrypt the given message in-place, returning the authentication tag.
-    pub(crate) fn encrypt_in_place_detached(
+    pub(crate) fn encrypt_inout_detached(
         mut self,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -288,10 +288,10 @@ where
 
     /// Decrypt the given message, first authenticating ciphertext integrity
     /// and returning an error if it's been tampered with.
-    pub(crate) fn decrypt_in_place_detached(
+    pub(crate) fn decrypt_inout_detached(
         mut self,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {

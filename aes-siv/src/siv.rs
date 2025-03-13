@@ -72,6 +72,7 @@ use crate::Tag;
 use aead::{
     Buffer, Error,
     array::{Array, ArraySize, typenum::U16},
+    inout::InOutBuf,
 };
 use aes::{Aes128, Aes256};
 use cipher::{
@@ -209,10 +210,10 @@ where
         // Make room in the buffer for the SIV tag. It needs to be prepended.
         buffer.extend_from_slice(Tag::default().as_slice())?;
 
-        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        // TODO(tarcieri): add offset param to `encrypt_inout_detached`
         buffer.as_mut().copy_within(..pt_len, IV_SIZE);
 
-        let tag = self.encrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..])?;
+        let tag = self.encrypt_inout_detached(headers, &mut buffer.as_mut()[IV_SIZE..])?;
         buffer.as_mut()[..IV_SIZE].copy_from_slice(tag.as_slice());
         Ok(())
     }
@@ -223,10 +224,10 @@ where
     ///
     /// Returns [`Error`] if `plaintext.len()` is less than `M::OutputSize`.
     /// Returns [`Error`] if `headers.len()` is greater than [`MAX_HEADERS`].
-    pub fn encrypt_in_place_detached<I, T>(
+    pub fn encrypt_inout_detached<I, T>(
         &mut self,
         headers: I,
-        plaintext: &mut [u8],
+        plaintext: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error>
     where
         I: IntoIterator<Item = T>,
@@ -270,11 +271,11 @@ where
         }
 
         let siv_tag = Tag::try_from(&buffer.as_ref()[..IV_SIZE]).expect("tag size mismatch");
-        self.decrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..], &siv_tag)?;
+        self.decrypt_inout_detached(headers, &mut buffer.as_mut()[IV_SIZE..], &siv_tag)?;
 
         let pt_len = buffer.len() - IV_SIZE;
 
-        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        // TODO(tarcieri): add offset param to `encrypt_inout_detached`
         buffer.as_mut().copy_within(IV_SIZE.., 0);
         buffer.truncate(pt_len);
         Ok(())
@@ -286,10 +287,10 @@ where
     /// # Errors
     ///
     /// Returns [`Error`] if the ciphertext is not authentic
-    pub fn decrypt_in_place_detached<I, T>(
+    pub fn decrypt_inout_detached<I, T>(
         &mut self,
         headers: I,
-        ciphertext: &mut [u8],
+        ciphertext: InOutBuf<'_, '_, u8>,
         siv_tag: &Tag,
     ) -> Result<(), Error>
     where

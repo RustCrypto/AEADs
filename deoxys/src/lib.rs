@@ -154,7 +154,7 @@ where
     fn encrypt_in_place(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> [u8; 16];
 
@@ -163,7 +163,7 @@ where
     fn decrypt_in_place(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error>;

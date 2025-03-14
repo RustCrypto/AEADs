@@ -19,11 +19,11 @@ fn test_data_len_check() {
     let c = Cipher::new(&key);
 
     let mut buf1 = [1; u16::MAX as usize];
-    let res = c.encrypt_inout_detached(&nonce, &[], &mut buf1);
+    let res = c.encrypt_inout_detached(&nonce, &[], (&mut buf1[..]).into());
     assert!(res.is_ok());
 
     let mut buf2 = [1; u16::MAX as usize + 1];
-    let res = c.encrypt_inout_detached(&nonce, &[], &mut buf2);
+    let res = c.encrypt_inout_detached(&nonce, &[], (&mut buf2[..]).into());
     assert!(res.is_err());
 }
 

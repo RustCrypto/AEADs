@@ -40,7 +40,8 @@ fn run_tv<A: KeyInit + Aead + AeadInOut>(
 
     let bad_tag = Tag::<A>::default();
     let mut buf = ciphertext[..ciphertext.len() - bad_tag.len()].to_vec();
-    let res = core.decrypt_inout_detached(nonce, associated_data, &mut buf, &bad_tag);
+    let res =
+        core.decrypt_inout_detached(nonce, associated_data, buf.as_mut_slice().into(), &bad_tag);
     assert!(res.is_err());
     assert!(buf.iter().all(|b| *b == 0));
 }

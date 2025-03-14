@@ -103,21 +103,21 @@ pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 #[cfg(feature = "aes")]
 pub use aes;
 
-use aead::{inout::InOutBuf, PostfixTagged};
+use aead::{PostfixTagged, inout::InOutBuf};
 
 use cipher::{
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
     array::{Array, ArraySize},
     consts::U16,
-    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
 };
 use core::marker::PhantomData;
-use ghash::{universal_hash::UniversalHash, GHash};
+use ghash::{GHash, universal_hash::UniversalHash};
 
 #[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
 
 #[cfg(feature = "aes")]
-use aes::{cipher::consts::U12, Aes128, Aes256};
+use aes::{Aes128, Aes256, cipher::consts::U12};
 
 /// Maximum length of associated data.
 pub const A_MAX: u64 = 1 << 36;
@@ -270,7 +270,7 @@ where
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<TagSize>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -280,9 +280,9 @@ where
 
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        ctr.apply_keystream_partial(buffer.into());
+        ctr.apply_keystream_partial(buffer.reborrow());
 
-        let full_tag = self.compute_tag(mask, associated_data, buffer);
+        let full_tag = self.compute_tag(mask, associated_data, buffer.get_in());
         Ok(Tag::try_from(&full_tag[..TagSize::to_usize()]).expect("tag size mismatch"))
     }
 
@@ -301,11 +301,11 @@ where
 
         // TODO(tarcieri): interleave encryption with GHASH
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        let expected_tag = self.compute_tag(mask, associated_data, buffer);
+        let expected_tag = self.compute_tag(mask, associated_data, buffer.get_in());
 
         use subtle::ConstantTimeEq;
         if expected_tag[..TagSize::to_usize()].ct_eq(tag).into() {
-            ctr.apply_keystream_partial(buffer.into());
+            ctr.apply_keystream_partial(buffer);
             Ok(())
         } else {
             Err(Error)

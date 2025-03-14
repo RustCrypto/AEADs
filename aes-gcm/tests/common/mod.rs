@@ -92,7 +92,7 @@ macro_rules! tests {
             let cipher = <$aead>::new(&key);
             assert!(
                 cipher
-                    .decrypt_inout_detached(&nonce, &[], &mut buffer, &tag)
+                    .decrypt_inout_detached(&nonce, &[], (buffer.as_mut_slice()).into(), &tag)
                     .is_err()
             );
 

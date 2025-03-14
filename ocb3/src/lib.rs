@@ -208,19 +208,20 @@ where
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Result<aead::Tag<Self>> {
         if (buffer.len() > P_MAX) || (associated_data.len() > A_MAX) {
             unimplemented!()
         }
 
         // First, try to process many blocks at once.
-        let (processed_bytes, mut offset_i, mut checksum_i) = self.wide_encrypt(nonce, buffer);
+        let (processed_bytes, mut offset_i, mut checksum_i) =
+            self.wide_encrypt(nonce, buffer.get_out());
 
         let mut i = (processed_bytes / 16) + 1;
 
         // Then, process the remaining blocks.
-        for p_i in Block::slice_as_chunks_mut(&mut buffer[processed_bytes..]).0 {
+        for p_i in Block::slice_as_chunks_mut(&mut buffer.get_out()[processed_bytes..]).0 {
             // offset_i = offset_{i-1} xor L_{ntz(i)}
             inplace_xor(&mut offset_i, &self.ll[ntz(i)]);
             // checksum_i = checksum_{i-1} xor p_i
@@ -247,11 +248,11 @@ where
             self.cipher.encrypt_block(&mut pad);
             // checksum_* = checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
             let checksum_rhs = &mut [0u8; 16];
-            checksum_rhs[..remaining_bytes].copy_from_slice(&buffer[processed_bytes..]);
+            checksum_rhs[..remaining_bytes].copy_from_slice(&buffer.get_in()[processed_bytes..]);
             checksum_rhs[remaining_bytes] = 0b1000_0000;
             inplace_xor(&mut checksum_i, checksum_rhs.as_ref());
             // C_* = P_* xor Pad[1..bitlen(P_*)]
-            let p_star = &mut buffer[processed_bytes..];
+            let p_star = &mut buffer.get_out()[processed_bytes..];
             let pad = &mut pad[..p_star.len()];
             for (aa, bb) in p_star.iter_mut().zip(pad) {
                 *aa ^= *bb;
@@ -267,10 +268,11 @@ where
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &aead::Tag<Self>,
     ) -> aead::Result<()> {
-        let expected_tag = self.decrypt_in_place_return_tag(nonce, associated_data, buffer);
+        let expected_tag =
+            self.decrypt_in_place_return_tag(nonce, associated_data, buffer.get_out());
         if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {

@@ -110,7 +110,7 @@
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! let tag = cipher.encrypt_inout_detached(nonce, b"", &mut buffer).expect("encryption failure!");
+//! let tag = cipher.encrypt_inout_detached(nonce, b"", buffer.as_mut_slice().into()).expect("encryption failure!");
 //!
 //! // The tag has only 8 bytes, compared to the usual 16 bytes
 //! assert_eq!(tag.len(), 8);
@@ -119,7 +119,7 @@
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_inout_detached(nonce, b"", &mut buffer, &tag).expect("decryption failure!");
+//! cipher.decrypt_inout_detached(nonce, b"", buffer.as_mut_slice().into(), &tag).expect("decryption failure!");
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
@@ -228,7 +228,7 @@ where
         &self,
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<M>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -247,10 +247,10 @@ where
 
         // 3. enc ← CTR(M) using n as iv
         Ctr128BE::<Cipher>::inner_iv_init(Cipher::new(&self.key), &n)
-            .apply_keystream_partial(buffer.into());
+            .apply_keystream_partial(buffer.reborrow());
 
         // 4. c ← OMAC(2 || enc)
-        let c = Self::cmac_with_iv(&self.key, 2, buffer);
+        let c = Self::cmac_with_iv(&self.key, 2, buffer.get_in());
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
@@ -285,7 +285,7 @@ where
         let h = Self::cmac_with_iv(&self.key, 1, associated_data);
 
         // 4. c ← OMAC(2 || enc)
-        let c = Self::cmac_with_iv(&self.key, 2, buffer);
+        let c = Self::cmac_with_iv(&self.key, 2, buffer.get_in());
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
@@ -305,7 +305,7 @@ where
         if expected_tag.ct_eq(tag).into() {
             // Decrypt
             Ctr128BE::<Cipher>::inner_iv_init(Cipher::new(&self.key), &n)
-                .apply_keystream_partial(buffer.into());
+                .apply_keystream_partial(buffer);
 
             Ok(())
         } else {

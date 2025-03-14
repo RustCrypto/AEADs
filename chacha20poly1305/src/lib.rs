@@ -264,19 +264,24 @@ where
         &self,
         nonce: &aead::Nonce<Self>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
-        Cipher::new(C::new(&self.key, nonce)).encrypt_inout_detached(associated_data, buffer)
+        Cipher::new(C::new(&self.key, nonce))
+            .encrypt_inout_detached(associated_data, buffer.get_out())
     }
 
     fn decrypt_inout_detached(
         &self,
         nonce: &aead::Nonce<Self>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::new(C::new(&self.key, nonce)).decrypt_inout_detached(associated_data, buffer, tag)
+        Cipher::new(C::new(&self.key, nonce)).decrypt_inout_detached(
+            associated_data,
+            buffer.get_out(),
+            tag,
+        )
     }
 }
 

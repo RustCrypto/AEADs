@@ -213,7 +213,7 @@ where
         // TODO(tarcieri): add offset param to `encrypt_inout_detached`
         buffer.as_mut().copy_within(..pt_len, IV_SIZE);
 
-        let tag = self.encrypt_inout_detached(headers, &mut buffer.as_mut()[IV_SIZE..])?;
+        let tag = self.encrypt_inout_detached(headers, (&mut buffer.as_mut()[IV_SIZE..]).into())?;
         buffer.as_mut()[..IV_SIZE].copy_from_slice(tag.as_slice());
         Ok(())
     }
@@ -227,15 +227,15 @@ where
     pub fn encrypt_inout_detached<I, T>(
         &mut self,
         headers: I,
-        plaintext: InOutBuf<'_, '_, u8>,
+        mut plaintext: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
         // Compute the synthetic IV for this plaintext
-        let siv_tag = s2v(&mut self.mac, headers, plaintext)?;
-        self.xor_with_keystream(siv_tag, plaintext);
+        let siv_tag = s2v(&mut self.mac, headers, plaintext.get_in())?;
+        self.xor_with_keystream(siv_tag, plaintext.get_out());
         Ok(siv_tag)
     }
 
@@ -271,7 +271,7 @@ where
         }
 
         let siv_tag = Tag::try_from(&buffer.as_ref()[..IV_SIZE]).expect("tag size mismatch");
-        self.decrypt_inout_detached(headers, &mut buffer.as_mut()[IV_SIZE..], &siv_tag)?;
+        self.decrypt_inout_detached(headers, (&mut buffer.as_mut()[IV_SIZE..]).into(), &siv_tag)?;
 
         let pt_len = buffer.len() - IV_SIZE;
 
@@ -290,22 +290,22 @@ where
     pub fn decrypt_inout_detached<I, T>(
         &mut self,
         headers: I,
-        ciphertext: InOutBuf<'_, '_, u8>,
+        mut ciphertext: InOutBuf<'_, '_, u8>,
         siv_tag: &Tag,
     ) -> Result<(), Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
-        self.xor_with_keystream(*siv_tag, ciphertext);
-        let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext)?;
+        self.xor_with_keystream(*siv_tag, ciphertext.get_out());
+        let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext.get_in())?;
 
         // Note: `CtOutput` provides constant-time equality
         if CtOutput::<M>::new(computed_siv_tag) == CtOutput::new(*siv_tag) {
             Ok(())
         } else {
             // Re-encrypt the decrypted plaintext to avoid revealing it
-            self.xor_with_keystream(*siv_tag, ciphertext);
+            self.xor_with_keystream(*siv_tag, ciphertext.get_out());
             Err(Error)
         }
     }

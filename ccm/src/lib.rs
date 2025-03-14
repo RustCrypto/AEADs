@@ -42,13 +42,13 @@
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 
-pub use aead::{self, consts, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, consts};
 
 use aead::{
-    array::{typenum::Unsigned, Array, ArraySize},
+    PostfixTagged,
+    array::{Array, ArraySize, typenum::Unsigned},
     consts::U16,
     inout::InOutBuf,
-    PostfixTagged,
 };
 use cipher::{
     Block, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
@@ -232,9 +232,9 @@ where
         &self,
         nonce: &Nonce<N>,
         adata: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<Self::TagSize>, Error> {
-        let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
+        let mut full_tag = self.calc_mac(nonce, adata, buffer.get_in())?;
 
         let ext_nonce = Self::extend_nonce(nonce);
         // number of bytes left for counter (max 8)
@@ -243,11 +243,11 @@ where
         if cb > 4 {
             let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream(buffer.get_out());
         } else {
             let mut ctr = Ctr32BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream(buffer.get_out());
         }
 
         Ok(Tag::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch"))
@@ -257,7 +257,7 @@ where
         &self,
         nonce: &Nonce<N>,
         adata: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
         let ext_nonce = Self::extend_nonce(nonce);
@@ -267,14 +267,14 @@ where
         if cb > 4 {
             let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.seek(C::BlockSize::USIZE);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream(buffer.get_out());
         } else {
             let mut ctr = Ctr32BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.seek(C::BlockSize::USIZE);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream(buffer.get_out());
         }
 
-        let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
+        let mut full_tag = self.calc_mac(nonce, adata, buffer.get_in())?;
 
         if cb > 4 {
             let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
@@ -287,7 +287,7 @@ where
         if full_tag[..tag.len()].ct_eq(tag).into() {
             Ok(())
         } else {
-            buffer.iter_mut().for_each(|v| *v = 0);
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

@@ -158,7 +158,7 @@ impl<P: Parameters> AeadInOut for Ascon<P> {
         }
 
         let mut core = AsconCore::<P>::new(&self.key, nonce);
-        Ok(core.encrypt_inplace(buffer, associated_data))
+        Ok(core.encrypt_inout(buffer, associated_data))
     }
 
     fn decrypt_inout_detached(
@@ -176,7 +176,7 @@ impl<P: Parameters> AeadInOut for Ascon<P> {
         }
 
         let mut core = AsconCore::<P>::new(&self.key, nonce);
-        core.decrypt_inplace(buffer, associated_data, tag)
+        core.decrypt_inout(buffer, associated_data, tag)
     }
 }
 

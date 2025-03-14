@@ -2,6 +2,7 @@ use super::{DeoxysBcType, DeoxysMode};
 use aead::{
     array::Array,
     consts::{U8, U15, U16},
+    inout::InOutBuf,
 };
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
@@ -83,7 +84,7 @@ where
     fn encrypt_in_place(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> [u8; 16] {
         let mut tag = [0u8; 16];
@@ -110,7 +111,7 @@ where
         if !buffer.is_empty() {
             tweak[0] = (tweak[0] & 0xf) | TWEAK_M;
 
-            for (index, data) in buffer.chunks_mut(16).enumerate() {
+            for (index, data) in buffer.get_out().chunks_mut(16).enumerate() {
                 // Copy block number
                 let tmp = tweak[8] & 0xf0;
                 tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
@@ -181,7 +182,7 @@ where
     fn decrypt_in_place(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Array<u8, U16>,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
@@ -209,7 +210,7 @@ where
         if !buffer.is_empty() {
             tweak[0] = (tweak[0] & 0xf) | TWEAK_M;
 
-            for (index, data) in buffer.chunks_mut(16).enumerate() {
+            for (index, data) in buffer.get_out().chunks_mut(16).enumerate() {
                 // Copy block number
                 let tmp = tweak[8] & 0xf0;
                 tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
@@ -372,7 +373,7 @@ where
     fn encrypt_in_place(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> [u8; 16] {
         let mut tag = [0u8; 16];
@@ -387,14 +388,14 @@ where
         );
 
         // Message authentication
-        Self::authenticate_message(buffer, &mut tweak, subkeys, &mut tag);
+        Self::authenticate_message(buffer.get_in(), &mut tweak, subkeys, &mut tag);
 
         tweak[0] = TWEAK_TAG;
         tweak[1..].copy_from_slice(nonce);
         B::encrypt_in_place(&mut tag, &tweak, subkeys);
 
         // Message encryption
-        Self::encrypt_decrypt_message(buffer, &mut tweak, subkeys, &tag.into(), nonce);
+        Self::encrypt_decrypt_message(buffer.get_out(), &mut tweak, subkeys, &tag.into(), nonce);
 
         tag
     }
@@ -402,7 +403,7 @@ where
     fn decrypt_in_place(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Array<u8, U16>,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
@@ -418,12 +419,12 @@ where
         );
 
         // Message decryption
-        Self::encrypt_decrypt_message(buffer, &mut tweak, subkeys, tag, nonce);
+        Self::encrypt_decrypt_message(buffer.get_out(), &mut tweak, subkeys, tag, nonce);
 
         tweak.fill(0);
 
         // Message authentication
-        Self::authenticate_message(buffer, &mut tweak, subkeys, &mut computed_tag);
+        Self::authenticate_message(buffer.get_in(), &mut tweak, subkeys, &mut computed_tag);
 
         tweak[0] = TWEAK_TAG;
         tweak[1..].copy_from_slice(nonce);

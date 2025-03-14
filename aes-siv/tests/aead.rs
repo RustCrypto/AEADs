@@ -40,7 +40,7 @@ macro_rules! tests {
 
                 let cipher = <$aead>::new(&key);
                 let tag = cipher
-                    .encrypt_inout_detached(&nonce, vector.aad, &mut buffer)
+                    .encrypt_inout_detached(&nonce, vector.aad, buffer.as_mut_slice().into())
                     .unwrap();
                 let (expected_tag, expected_ciphertext) = vector.ciphertext.split_at(16);
                 assert_eq!(expected_tag, &tag[..]);
@@ -75,7 +75,7 @@ macro_rules! tests {
                 let mut buffer = vector.ciphertext[16..].to_vec();
 
                 <$aead>::new(&key)
-                    .decrypt_inout_detached(&nonce, vector.aad, &mut buffer, &tag)
+                    .decrypt_inout_detached(&nonce, vector.aad, buffer.as_mut_slice().into(), &tag)
                     .unwrap();
 
                 assert_eq!(vector.plaintext, buffer.as_slice());

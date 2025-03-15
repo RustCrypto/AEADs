@@ -163,6 +163,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "chacha20"
+version = "0.10.0-pre.3"
+source = "git+https://github.com/RustCrypto/stream-ciphers.git#596cdebf250d7fe8921e18c7288964f50448ae1c"
+dependencies = [
+ "cfg-if",
+ "cipher",
+ "cpufeatures",
+ "zeroize",
+]
+
+[[package]]
+name = "chacha20poly1305"
+version = "0.11.0-pre.2"
+dependencies = [
+ "aead",
+ "chacha20",
+ "cipher",
+ "poly1305",
+ "zeroize",
+]
+
+[[package]]
 name = "cipher"
 version = "0.5.0-pre.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -313,6 +335,17 @@ dependencies = [
  "cipher",
  "dbl",
  "digest",
+]
+
+[[package]]
+name = "poly1305"
+version = "0.9.0-rc.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72844372b6c796d771899186be2c255818fdc21c68d6e2be2c7ffa509ade9df4"
+dependencies = [
+ "cpufeatures",
+ "opaque-debug",
+ "universal-hash",
 ]
 
 [[package]]
@@ -523,8 +556,3 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[patch.unused]]
-name = "chacha20"
-version = "0.10.0-pre.3"
-source = "git+https://github.com/RustCrypto/stream-ciphers.git#596cdebf250d7fe8921e18c7288964f50448ae1c"

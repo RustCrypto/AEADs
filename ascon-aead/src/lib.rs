@@ -106,14 +106,14 @@ pub use zeroize;
 
 pub use aead::{self, Error, Key, Nonce, Tag};
 use aead::{
-    AeadCore, AeadInOut, KeyInit, KeySizeUser, PostfixTagged,
     consts::{U16, U20},
     inout::InOutBuf,
+    AeadCore, AeadInOut, KeyInit, KeySizeUser, PostfixTagged,
 };
 
 mod asconcore;
 
-use asconcore::{AsconCore, Parameters, Parameters80pq, Parameters128, Parameters128a};
+use asconcore::{AsconCore, Parameters, Parameters128, Parameters128a, Parameters80pq};
 
 /// Ascon generic over some Parameters
 ///
@@ -158,7 +158,7 @@ impl<P: Parameters> AeadInOut for Ascon<P> {
         }
 
         let mut core = AsconCore::<P>::new(&self.key, nonce);
-        Ok(core.encrypt_inplace(buffer, associated_data))
+        Ok(core.encrypt_inout(buffer, associated_data))
     }
 
     fn decrypt_inout_detached(
@@ -176,7 +176,7 @@ impl<P: Parameters> AeadInOut for Ascon<P> {
         }
 
         let mut core = AsconCore::<P>::new(&self.key, nonce);
-        core.decrypt_inplace(buffer, associated_data, tag)
+        core.decrypt_inout(buffer, associated_data, tag)
     }
 }
 

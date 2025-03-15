@@ -46,7 +46,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -60,7 +60,7 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     ChaCha20Poly1305, Nonce,
 //! };
 //!
@@ -144,7 +144,7 @@ pub use aead::{self, AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, consts};
 use self::cipher::Cipher;
 use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
 use aead::{
-    PostfixTagged,
+    TagPosition,
     array::{Array, ArraySize},
     consts::{U12, U16, U24, U32},
     inout::InOutBuf,
@@ -246,13 +246,7 @@ where
 {
     type NonceSize = N;
     type TagSize = U16;
-}
-
-impl<C, N> PostfixTagged for ChaChaPoly1305<C, N>
-where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
-    N: ArraySize,
-{
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl<C, N> AeadInOut for ChaChaPoly1305<C, N>

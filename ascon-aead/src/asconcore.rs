@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use aead::{
-    Error,
-    array::{Array, ArraySize, typenum::Unsigned},
+    array::{typenum::Unsigned, Array, ArraySize},
     consts::{U16, U20},
+    inout::InOutBuf,
+    Error,
 };
-use ascon::{State, pad};
+use ascon::{pad, State};
 use subtle::ConstantTimeEq;
 
 /// Clear bytes from a 64 bit word.
@@ -337,30 +338,32 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         tag
     }
 
-    pub(crate) fn encrypt_inplace(
+    pub(crate) fn encrypt_inout(
         &mut self,
-        message: &mut [u8],
+        mut message: InOutBuf<'_, '_, u8>,
         associated_data: &[u8],
     ) -> Array<u8, U16> {
         self.process_associated_data(associated_data);
-        self.process_encrypt_inplace(message);
+        // TODO: change that to process_encrypt_inout
+        self.process_encrypt_inplace(message.get_out());
         Array::from(self.process_final())
     }
 
-    pub(crate) fn decrypt_inplace(
+    pub(crate) fn decrypt_inout(
         &mut self,
-        ciphertext: &mut [u8],
+        mut ciphertext: InOutBuf<'_, '_, u8>,
         associated_data: &[u8],
         expected_tag: &Array<u8, U16>,
     ) -> Result<(), Error> {
         self.process_associated_data(associated_data);
-        self.process_decrypt_inplace(ciphertext);
+        // TODO: change that to process_decrypt_inout
+        self.process_decrypt_inplace(ciphertext.get_out());
 
         let tag = self.process_final();
         if bool::from(tag.ct_eq(expected_tag)) {
             Ok(())
         } else {
-            ciphertext.fill(0);
+            ciphertext.get_out().fill(0);
             Err(Error)
         }
     }

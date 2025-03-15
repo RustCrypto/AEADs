@@ -1,10 +1,10 @@
 #![cfg(feature = "alloc")]
 
-use aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, array::Array};
+use aead::{array::Array, Aead, AeadInOut, KeyInit, Payload};
 use aes::{Aes128, Aes192, Aes256};
 use ccm::{
+    consts::{U10, U11, U12, U13, U14, U16, U4, U6, U7, U8, U9},
     Ccm,
-    consts::{U4, U6, U7, U8, U9, U10, U11, U12, U13, U14, U16},
 };
 use hex_literal::hex;
 
@@ -19,11 +19,11 @@ fn test_data_len_check() {
     let c = Cipher::new(&key);
 
     let mut buf1 = [1; u16::MAX as usize];
-    let res = c.encrypt_in_place_detached(&nonce, &[], &mut buf1);
+    let res = c.encrypt_inout_detached(&nonce, &[], buf1.as_mut_slice().into());
     assert!(res.is_ok());
 
     let mut buf2 = [1; u16::MAX as usize + 1];
-    let res = c.encrypt_in_place_detached(&nonce, &[], &mut buf2);
+    let res = c.encrypt_inout_detached(&nonce, &[], buf2.as_mut_slice().into());
     assert!(res.is_err());
 }
 

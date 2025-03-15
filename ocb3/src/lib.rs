@@ -14,11 +14,11 @@ pub mod consts {
 }
 
 pub use aead::{
-    self, AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser,
+    self, AeadCore, AeadInOut, Error, KeyInit, KeySizeUser,
     array::{Array, AssocArraySize},
 };
 
-use aead::{PostfixTagged, array::ArraySize};
+use aead::{PostfixTagged, array::ArraySize, inout::InOutBuf};
 use cipher::{
     BlockCipherDecrypt, BlockCipherEncrypt, BlockSizeUser,
     consts::{U12, U16},
@@ -198,17 +198,17 @@ where
 {
 }
 
-impl<Cipher, NonceSize, TagSize> AeadInPlaceDetached for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> AeadInOut for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Result<aead::Tag<Self>> {
         if (buffer.len() > P_MAX) || (associated_data.len() > A_MAX) {
             unimplemented!()
@@ -263,11 +263,11 @@ where
         Ok(tag)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &aead::Tag<Self>,
     ) -> aead::Result<()> {
         let expected_tag = self.decrypt_in_place_return_tag(nonce, associated_data, buffer);

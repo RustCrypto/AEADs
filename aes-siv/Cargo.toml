@@ -32,6 +32,7 @@ pmac = { version = "0.8.0-pre.2", optional = true }
 [dev-dependencies]
 blobby = "0.3"
 hex-literal = "0.4"
+aead = { version = "0.6.0-rc.0", features = ["alloc", "dev"], default-features = false }
 
 [features]
 default = ["alloc", "os_rng"]

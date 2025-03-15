@@ -110,12 +110,13 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser, consts};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, consts};
 
 use aead::{
     PostfixTagged,
     array::{Array, ArraySize},
     consts::U16,
+    inout::InOutBuf,
 };
 use core::marker::PhantomData;
 
@@ -274,16 +275,16 @@ where
 {
 }
 
-impl<M, B> AeadInPlaceDetached for Deoxys<M, B>
+impl<M, B> AeadInOut for Deoxys<M, B>
 where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<M::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
         Ok(Tag::from(M::encrypt_in_place(
             nonce,
@@ -293,11 +294,11 @@ where
         )))
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<M::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
         M::decrypt_in_place(nonce, associated_data, buffer, tag, &self.subkeys)

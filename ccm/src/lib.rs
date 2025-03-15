@@ -42,12 +42,13 @@
 //! [aead]: https://docs.rs/aead
 //! [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser, consts};
+pub use aead::{self, consts, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 
 use aead::{
-    PostfixTagged,
-    array::{Array, ArraySize, typenum::Unsigned},
+    array::{typenum::Unsigned, Array, ArraySize},
     consts::U16,
+    inout::InOutBuf,
+    PostfixTagged,
 };
 use cipher::{
     Block, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
@@ -221,17 +222,17 @@ where
 {
 }
 
-impl<C, M, N> AeadInPlaceDetached for Ccm<C, M, N>
+impl<C, M, N> AeadInOut for Ccm<C, M, N>
 where
     C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     M: ArraySize + TagSize,
     N: ArraySize + NonceSize,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<N>,
         adata: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<Self::TagSize>, Error> {
         let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
 
@@ -252,11 +253,11 @@ where
         Ok(Tag::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch"))
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<N>,
         adata: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
         let ext_nonce = Self::extend_nonce(nonce);

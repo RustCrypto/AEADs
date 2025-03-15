@@ -2,7 +2,7 @@
 
 use ::cipher::{StreamCipher, StreamCipherSeek};
 use aead::Error;
-use aead::array::Array;
+use aead::{array::Array, inout::InOutBuf};
 use poly1305::{
     Poly1305,
     universal_hash::{KeyInit, UniversalHash},
@@ -53,7 +53,7 @@ where
     pub(crate) fn encrypt_inout_detached(
         mut self,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
         if buffer.len() / BLOCK_SIZE >= MAX_BLOCKS {
             return Err(Error);
@@ -63,10 +63,10 @@ where
 
         // TODO(tarcieri): interleave encryption with Poly1305
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        self.cipher.apply_keystream(buffer);
-        self.mac.update_padded(buffer);
+        self.cipher.apply_keystream_inout(buffer.reborrow());
+        self.mac.update_padded(buffer.get_out());
 
-        self.authenticate_lengths(associated_data, buffer)?;
+        self.authenticate_lengths(associated_data, buffer.get_out())?;
         Ok(self.mac.finalize())
     }
 
@@ -75,7 +75,7 @@ where
     pub(crate) fn decrypt_inout_detached(
         mut self,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
         if buffer.len() / BLOCK_SIZE >= MAX_BLOCKS {
@@ -83,14 +83,14 @@ where
         }
 
         self.mac.update_padded(associated_data);
-        self.mac.update_padded(buffer);
-        self.authenticate_lengths(associated_data, buffer)?;
+        self.mac.update_padded(buffer.get_in());
+        self.authenticate_lengths(associated_data, buffer.get_in())?;
 
         // This performs a constant-time comparison using the `subtle` crate
         if self.mac.verify(tag).is_ok() {
             // TODO(tarcieri): interleave decryption with Poly1305
             // See: <https://github.com/RustCrypto/AEADs/issues/74>
-            self.cipher.apply_keystream(buffer);
+            self.cipher.apply_keystream_inout(buffer);
             Ok(())
         } else {
             Err(Error)

@@ -7,7 +7,7 @@ members = [
     #"ascon-aead128",
     #"belt-dwp",
     "ccm",
-    #"chacha20poly1305",
+    "chacha20poly1305",
     #"deoxys",
     #"eax",
     #"ocb3",
@@ -25,6 +25,8 @@ crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
 chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
 
 ctr = { git = "https://github.com/RustCrypto/block-modes.git" }
+
+chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
 
 ghash = { git = "https://github.com/RustCrypto/universal-hashes.git" }
 

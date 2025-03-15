@@ -252,6 +252,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "eax"
+version = "0.5.0"
+dependencies = [
+ "aead",
+ "aes",
+ "cipher",
+ "cmac",
+ "ctr",
+ "subtle",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

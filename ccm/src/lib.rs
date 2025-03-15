@@ -234,7 +234,7 @@ where
         adata: &[u8],
         buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<Self::TagSize>, Error> {
-        let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
+        let mut full_tag = self.calc_mac(nonce, adata, buffer.get_in())?;
 
         let ext_nonce = Self::extend_nonce(nonce);
         // number of bytes left for counter (max 8)
@@ -243,11 +243,11 @@ where
         if cb > 4 {
             let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream_inout(buffer);
         } else {
             let mut ctr = Ctr32BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.apply_keystream(&mut full_tag);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream_inout(buffer);
         }
 
         Ok(Tag::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch"))
@@ -257,7 +257,7 @@ where
         &self,
         nonce: &Nonce<N>,
         adata: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
         let ext_nonce = Self::extend_nonce(nonce);
@@ -267,14 +267,14 @@ where
         if cb > 4 {
             let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.seek(C::BlockSize::USIZE);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream_inout(buffer.reborrow());
         } else {
             let mut ctr = Ctr32BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
             ctr.seek(C::BlockSize::USIZE);
-            ctr.apply_keystream(buffer);
+            ctr.apply_keystream_inout(buffer.reborrow());
         }
 
-        let mut full_tag = self.calc_mac(nonce, adata, buffer)?;
+        let mut full_tag = self.calc_mac(nonce, adata, buffer.get_out())?;
 
         if cb > 4 {
             let mut ctr = Ctr64BE::from_core(CtrCore::inner_iv_init(&self.cipher, &ext_nonce));
@@ -287,7 +287,7 @@ where
         if full_tag[..tag.len()].ct_eq(tag).into() {
             Ok(())
         } else {
-            buffer.iter_mut().for_each(|v| *v = 0);
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

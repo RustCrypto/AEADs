@@ -324,3 +324,114 @@ where
     B: DeoxysBcType,
 {
 }
+
+#[cfg(test)]
+mod tests {
+    //! this module is here to test the inout behavior which is not currently exposed.
+    //! it will be once we port over to the API made in RustCrypto/traits#1793.
+    //!
+    //! This is to drop once https://github.com/RustCrypto/traits/pull/1797 is made available.
+    //!
+    //! It duplicates test vectors from `tests/deoxys_i_128.rs` and provides a mock buffer backing
+    //! for InOut.
+
+    use hex_literal::hex;
+
+    use super::*;
+
+    struct MockBuffer {
+        in_buf: [u8; 33],
+        out_buf: [u8; 33],
+    }
+
+    impl From<&[u8]> for MockBuffer {
+        fn from(buf: &[u8]) -> Self {
+            let mut in_buf = [0u8; 33];
+            in_buf.copy_from_slice(buf);
+            Self {
+                in_buf,
+                out_buf: [0u8; 33],
+            }
+        }
+    }
+
+    impl MockBuffer {
+        /// Get an [`InOutBuf`] from a [`MockBuffer`]
+        pub fn to_in_out_buf(&mut self) -> InOutBuf<'_, '_, u8> {
+            InOutBuf::new(self.in_buf.as_slice(), self.out_buf.as_mut_slice())
+                .expect("Invariant violation")
+        }
+    }
+
+    impl AsRef<[u8]> for MockBuffer {
+        fn as_ref(&self) -> &[u8] {
+            &self.out_buf
+        }
+    }
+
+    #[test]
+    fn test_deoxys_i_128_5() {
+        let plaintext = hex!("5a4c652cb880808707230679224b11799b5883431292973215e9bd03cf3bc32fe4");
+        let mut buffer = MockBuffer::from(&plaintext[..]);
+
+        let aad = [];
+
+        let key = hex!("101112131415161718191a1b1c1d1e1f");
+        let key = Array(key);
+
+        let nonce = hex!("202122232425262728292a2b2c2d2e2f");
+        let nonce = Array::try_from(&nonce[..8]).unwrap();
+
+        let ciphertext_expected =
+            hex!("cded5a43d3c76e942277c2a1517530ad66037897c985305ede345903ed7585a626");
+
+        let tag_expected: [u8; 16] = hex!("cbf5faa6b8398c47f4278d2019161776");
+
+        type M = modes::DeoxysI<deoxys_bc::DeoxysBc256>;
+        let cipher = DeoxysI128::new(&key);
+        let tag: Tag = M::encrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &cipher.subkeys);
+
+        let ciphertext = buffer.as_ref();
+        assert_eq!(ciphertext, ciphertext_expected);
+        assert_eq!(tag, tag_expected);
+
+        let mut buffer = MockBuffer::from(buffer.as_ref());
+        M::decrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &tag, &cipher.subkeys)
+            .expect("decryption failed");
+
+        assert_eq!(&plaintext[..], buffer.as_ref());
+    }
+
+    #[test]
+    fn test_deoxys_ii_128_5() {
+        let plaintext = hex!("06ac1756eccece62bd743fa80c299f7baa3872b556130f52265919494bdc136db3");
+        let mut buffer = MockBuffer::from(&plaintext[..]);
+
+        let aad = [];
+
+        let key = hex!("101112131415161718191a1b1c1d1e1f");
+        let key = Array(key);
+
+        let nonce = hex!("202122232425262728292a2b2c2d2e2f");
+        let nonce = Array::try_from(&nonce[..15]).unwrap();
+
+        let ciphertext_expected =
+            hex!("82bf241958b324ed053555d23315d3cc20935527fc970ff34a9f521a95e302136d");
+
+        let tag_expected: [u8; 16] = hex!("0eadc8612d5208c491e93005195e9769");
+
+        type M = modes::DeoxysII<deoxys_bc::DeoxysBc256>;
+        let cipher = DeoxysII128::new(&key);
+        let tag: Tag = M::encrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &cipher.subkeys);
+
+        let ciphertext = buffer.as_ref();
+        assert_eq!(ciphertext, ciphertext_expected);
+        assert_eq!(tag, tag_expected);
+
+        let mut buffer = MockBuffer::from(buffer.as_ref());
+        M::decrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &tag, &cipher.subkeys)
+            .expect("decryption failed");
+
+        assert_eq!(&plaintext[..], buffer.as_ref());
+    }
+}

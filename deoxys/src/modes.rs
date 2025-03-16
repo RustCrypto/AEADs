@@ -48,7 +48,7 @@ where
                     let mut block = Block::default();
                     block.copy_from_slice(ad);
 
-                    B::encrypt_in_place(&mut block, tweak, subkeys);
+                    B::encrypt_in_place((&mut block).into(), tweak, subkeys);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
                         *t ^= b;
@@ -62,7 +62,7 @@ where
 
                     block[ad.len()] = 0x80;
 
-                    B::encrypt_in_place(&mut block, tweak, subkeys);
+                    B::encrypt_in_place((&mut block).into(), tweak, subkeys);
 
                     for (t, b) in tag.iter_mut().zip(block.iter()) {
                         *t ^= b;
@@ -125,7 +125,7 @@ where
                     }
 
                     let data: &mut Block = data.try_into().unwrap();
-                    B::encrypt_in_place(data, tweak.as_ref(), subkeys);
+                    B::encrypt_in_place(data.into(), tweak.as_ref(), subkeys);
                 } else {
                     // Last block checksum
                     tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
@@ -142,7 +142,7 @@ where
                     block.fill(0);
 
                     // Last block encryption
-                    B::encrypt_in_place(&mut block, tweak.as_ref(), subkeys);
+                    B::encrypt_in_place((&mut block).into(), tweak.as_ref(), subkeys);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
                         *d ^= b;
@@ -155,7 +155,7 @@ where
                     tweak[8..].copy_from_slice(&((index + 1) as u64).to_be_bytes());
                     tweak[8] = (tweak[8] & 0xf) | tmp;
 
-                    B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
+                    B::encrypt_in_place((&mut checksum).into(), tweak.as_ref(), subkeys);
 
                     for (t, c) in tag.iter_mut().zip(checksum.iter()) {
                         *t ^= c;
@@ -172,7 +172,7 @@ where
             tweak[8..].copy_from_slice(&((buffer.len() / 16) as u64).to_be_bytes());
             tweak[8] = (tweak[8] & 0xf) | tmp;
 
-            B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
+            B::encrypt_in_place((&mut checksum).into(), tweak.as_ref(), subkeys);
 
             for (t, c) in tag.iter_mut().zip(checksum.iter()) {
                 *t ^= c;
@@ -221,7 +221,7 @@ where
 
                 if data.len() == 16 {
                     let data: &mut Block = data.try_into().unwrap();
-                    B::decrypt_in_place(data, tweak.as_ref(), subkeys);
+                    B::decrypt_in_place(data.into(), tweak.as_ref(), subkeys);
 
                     for (c, d) in checksum.iter_mut().zip(data.iter()) {
                         *c ^= d;
@@ -231,7 +231,7 @@ where
                     tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
 
                     let mut block = Block::default();
-                    B::encrypt_in_place(&mut block, tweak.as_ref(), subkeys);
+                    B::encrypt_in_place((&mut block).into(), tweak.as_ref(), subkeys);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
                         *d ^= b;
@@ -253,7 +253,7 @@ where
                     tweak[8..].copy_from_slice(&((index + 1) as u64).to_be_bytes());
                     tweak[8] = (tweak[8] & 0xf) | tmp;
 
-                    B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
+                    B::encrypt_in_place((&mut checksum).into(), tweak.as_ref(), subkeys);
 
                     for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
                         *t ^= c;
@@ -270,7 +270,7 @@ where
             tweak[8..].copy_from_slice(&((buffer.len() / 16) as u64).to_be_bytes());
             tweak[8] = (tweak[8] & 0xf) | tmp;
 
-            B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
+            B::encrypt_in_place((&mut checksum).into(), tweak.as_ref(), subkeys);
 
             for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
                 *t ^= c;
@@ -307,7 +307,8 @@ where
             tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
 
             let mut block = *data;
-            B::encrypt_in_place(&mut block, tweak, subkeys);
+
+            B::encrypt_in_place((&mut block).into(), tweak, subkeys);
 
             for (t, b) in tag.iter_mut().zip(block.iter()) {
                 *t ^= b;
@@ -331,7 +332,7 @@ where
 
         block[data.len()] = 0x80;
 
-        B::encrypt_in_place(&mut block, tweak, subkeys);
+        B::encrypt_in_place((&mut block).into(), tweak, subkeys);
 
         for (t, b) in tag.iter_mut().zip(block.iter()) {
             *t ^= b;
@@ -363,7 +364,7 @@ where
             let mut block = Block::default();
             block[1..].copy_from_slice(nonce);
 
-            B::encrypt_in_place(&mut block, tweak, subkeys);
+            B::encrypt_in_place((&mut block).into(), tweak, subkeys);
 
             xor(&block);
 
@@ -424,7 +425,7 @@ where
 
         tweak[0] = TWEAK_TAG;
         tweak[1..].copy_from_slice(nonce);
-        B::encrypt_in_place(&mut tag, &tweak, subkeys);
+        B::encrypt_in_place((&mut tag).into(), &tweak, subkeys);
 
         // Message encryption
         Self::encrypt_decrypt_message(buffer.into(), &mut tweak, subkeys, &tag, nonce);
@@ -460,7 +461,7 @@ where
 
         tweak[0] = TWEAK_TAG;
         tweak[1..].copy_from_slice(nonce);
-        B::encrypt_in_place(&mut computed_tag, &tweak, subkeys);
+        B::encrypt_in_place((&mut computed_tag).into(), &tweak, subkeys);
 
         if tag.ct_eq(&computed_tag).into() {
             Ok(())

@@ -118,6 +118,7 @@ use aead::{
     consts::U16,
 };
 use core::marker::PhantomData;
+use inout::InOut;
 
 /// Deoxys-I with 128-bit keys
 pub type DeoxysI128 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
@@ -185,24 +186,22 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
-        block: &mut Block,
+        mut block: InOut<'_, '_, Block>,
         tweak: &Tweak,
         subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
     ) {
         let keys = Self::key_schedule(tweak, subkeys);
 
-        for (b, k) in block.iter_mut().zip(keys[0].iter()) {
-            *b ^= k;
-        }
+        block.xor_in2out(&keys[0]);
 
         for k in &keys[1..] {
-            aes::hazmat::cipher_round(block, k);
+            aes::hazmat::cipher_round(block.get_out(), k);
         }
     }
 
     /// Decrypts a block of data in place.
     fn decrypt_in_place(
-        block: &mut Block,
+        mut block: InOut<'_, '_, Block>,
         tweak: &Tweak,
         subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
     ) {
@@ -210,18 +209,16 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
         let r = keys.len();
 
-        for (b, k) in block.iter_mut().zip(keys[r - 1].iter()) {
-            *b ^= k;
-        }
+        block.xor_in2out(&keys[r - 1]);
 
-        aes::hazmat::inv_mix_columns(block);
+        aes::hazmat::inv_mix_columns(block.get_out());
 
         for k in keys[..r - 1].iter_mut().rev() {
             aes::hazmat::inv_mix_columns(k);
-            aes::hazmat::equiv_inv_cipher_round(block, k);
+            aes::hazmat::equiv_inv_cipher_round(block.get_out(), k);
         }
 
-        aes::hazmat::mix_columns(block);
+        aes::hazmat::mix_columns(block.get_out());
     }
 }
 

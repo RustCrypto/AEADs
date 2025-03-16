@@ -353,6 +353,7 @@ dependencies = [
  "ctr",
  "dbl",
  "hex-literal",
+ "inout",
  "subtle",
  "zeroize",
 ]

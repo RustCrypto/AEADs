@@ -4,6 +4,7 @@ use aead::{
     consts::{U8, U15, U16},
 };
 use core::marker::PhantomData;
+use inout::InOutBuf;
 use subtle::ConstantTimeEq;
 
 const TWEAK_AD: u8 = 0x20;
@@ -338,39 +339,60 @@ where
     }
 
     fn encrypt_decrypt_message(
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tweak: &mut Tweak,
         subkeys: &Array<DeoxysKey, B::SubkeysSize>,
         tag: &Tag,
         nonce: &Array<u8, U15>,
     ) {
-        if !buffer.is_empty() {
-            tweak.copy_from_slice(tag);
-            tweak[0] |= 0x80;
+        #[inline]
+        fn encrypt_decrypt_block<B: DeoxysBcType, F: FnOnce(&Block)>(
+            index: usize,
+            tweak: &mut Tweak,
+            subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+            nonce: &Array<u8, U15>,
+            xor: F,
+        ) {
+            let index_array = (index as u64).to_be_bytes();
 
-            for (index, data) in buffer.chunks_mut(16).enumerate() {
-                let index_array = (index as u64).to_be_bytes();
+            // XOR in block numbers
+            for (t, i) in tweak[8..].iter_mut().zip(&index_array) {
+                *t ^= i
+            }
 
-                // XOR in block numbers
-                for (t, i) in tweak[8..].iter_mut().zip(&index_array) {
-                    *t ^= i
-                }
+            let mut block = Block::default();
+            block[1..].copy_from_slice(nonce);
 
-                let mut block = Block::default();
-                block[1..].copy_from_slice(nonce);
+            B::encrypt_in_place(&mut block, tweak, subkeys);
 
-                B::encrypt_in_place(&mut block, tweak, subkeys);
+            xor(&block);
 
-                for (t, b) in data.iter_mut().zip(block.iter()) {
-                    *t ^= b;
-                }
-
-                // XOR out block numbers
-                for (t, i) in tweak[8..].iter_mut().zip(&index_array) {
-                    *t ^= i
-                }
+            // XOR out block numbers
+            for (t, i) in tweak[8..].iter_mut().zip(&index_array) {
+                *t ^= i
             }
         }
+
+        if buffer.is_empty() {
+            return;
+        }
+
+        tweak.copy_from_slice(tag);
+        tweak[0] |= 0x80;
+
+        let (blocks, tail) = buffer.into_chunks::<U16>();
+        let blocks_len = blocks.len();
+        for (index, mut data) in blocks.into_iter().enumerate() {
+            encrypt_decrypt_block::<B, _>(index, tweak, subkeys, nonce, |block| {
+                data.xor_in2out(block)
+            });
+        }
+        let mut data = tail;
+        let index = blocks_len;
+
+        encrypt_decrypt_block::<B, _>(index, tweak, subkeys, nonce, |block| {
+            data.xor_in2out((block[..data.len()]).into())
+        });
     }
 }
 
@@ -405,7 +427,7 @@ where
         B::encrypt_in_place(&mut tag, &tweak, subkeys);
 
         // Message encryption
-        Self::encrypt_decrypt_message(buffer, &mut tweak, subkeys, &tag, nonce);
+        Self::encrypt_decrypt_message(buffer.into(), &mut tweak, subkeys, &tag, nonce);
 
         tag
     }
@@ -429,7 +451,7 @@ where
         );
 
         // Message decryption
-        Self::encrypt_decrypt_message(buffer, &mut tweak, subkeys, tag, nonce);
+        Self::encrypt_decrypt_message(buffer.into(), &mut tweak, subkeys, tag, nonce);
 
         tweak.fill(0);
 

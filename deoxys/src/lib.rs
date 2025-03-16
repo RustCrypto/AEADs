@@ -139,6 +139,8 @@ pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 /// Deoxys tags
 pub type Tag = Array<u8, U16>;
 
+type Block = Array<u8, U16>;
+
 /// Deoxys encryption modes.
 /// This type contains the public API for a Deoxys mode, like Deoxys-I and Deoxys-II.
 pub trait DeoxysMode<B>: modes::DeoxysModeInternal<B>
@@ -179,7 +181,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
 
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
-        block: &mut [u8; 16],
+        block: &mut Block,
         tweak: &[u8; 16],
         subkeys: &Array<[u8; 16], Self::SubkeysSize>,
     ) {
@@ -190,13 +192,13 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
         }
 
         for k in &keys[1..] {
-            aes::hazmat::cipher_round(block.into(), k.into());
+            aes::hazmat::cipher_round(block, k.into());
         }
     }
 
     /// Decrypts a block of data in place.
     fn decrypt_in_place(
-        block: &mut [u8; 16],
+        block: &mut Block,
         tweak: &[u8; 16],
         subkeys: &Array<[u8; 16], Self::SubkeysSize>,
     ) {
@@ -208,14 +210,14 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
             *b ^= k;
         }
 
-        aes::hazmat::inv_mix_columns(block.into());
+        aes::hazmat::inv_mix_columns(block);
 
         for k in keys[..r - 1].iter_mut().rev() {
             aes::hazmat::inv_mix_columns(k.into());
-            aes::hazmat::equiv_inv_cipher_round(block.into(), (&*k).into());
+            aes::hazmat::equiv_inv_cipher_round(block, (&*k).into());
         }
 
-        aes::hazmat::mix_columns(block.into());
+        aes::hazmat::mix_columns(block);
     }
 }
 

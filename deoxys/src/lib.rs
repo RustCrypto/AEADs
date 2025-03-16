@@ -143,6 +143,8 @@ type Block = Array<u8, U16>;
 
 type Tweak = Array<u8, U16>;
 
+type DeoxysKey = Array<u8, U16>;
+
 /// Deoxys encryption modes.
 /// This type contains the public API for a Deoxys mode, like Deoxys-I and Deoxys-II.
 pub trait DeoxysMode<B>: modes::DeoxysModeInternal<B>
@@ -158,7 +160,7 @@ where
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        subkeys: &Array<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
     ) -> Tag;
 
     /// Decrypts the data in place with the specified parameters
@@ -168,7 +170,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
-        subkeys: &Array<[u8; 16], B::SubkeysSize>,
+        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
     ) -> Result<(), aead::Error>;
 }
 
@@ -179,13 +181,13 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     type KeySize: ArraySize;
 
     /// Precompute the subkeys
-    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<[u8; 16], Self::SubkeysSize>;
+    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<DeoxysKey, Self::SubkeysSize>;
 
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
         block: &mut Block,
         tweak: &Tweak,
-        subkeys: &Array<[u8; 16], Self::SubkeysSize>,
+        subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
     ) {
         let keys = Self::key_schedule(tweak, subkeys);
 
@@ -194,7 +196,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
         }
 
         for k in &keys[1..] {
-            aes::hazmat::cipher_round(block, k.into());
+            aes::hazmat::cipher_round(block, k);
         }
     }
 
@@ -202,7 +204,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     fn decrypt_in_place(
         block: &mut Block,
         tweak: &Tweak,
-        subkeys: &Array<[u8; 16], Self::SubkeysSize>,
+        subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
     ) {
         let mut keys = Self::key_schedule(tweak, subkeys);
 
@@ -215,8 +217,8 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
         aes::hazmat::inv_mix_columns(block);
 
         for k in keys[..r - 1].iter_mut().rev() {
-            aes::hazmat::inv_mix_columns(k.into());
-            aes::hazmat::equiv_inv_cipher_round(block, (&*k).into());
+            aes::hazmat::inv_mix_columns(k);
+            aes::hazmat::equiv_inv_cipher_round(block, k);
         }
 
         aes::hazmat::mix_columns(block);
@@ -231,7 +233,7 @@ where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
-    subkeys: Array<[u8; 16], B::SubkeysSize>,
+    subkeys: Array<DeoxysKey, B::SubkeysSize>,
     mode: PhantomData<M>,
 }
 

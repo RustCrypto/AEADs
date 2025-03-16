@@ -118,7 +118,7 @@ use aead::{
     consts::U16,
 };
 use core::marker::PhantomData;
-use inout::InOut;
+use inout::{InOut, InOutBuf};
 
 /// Deoxys-I with 128-bit keys
 pub type DeoxysI128 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
@@ -157,19 +157,19 @@ where
 
     /// Encrypts the data in place with the specified parameters
     /// Returns the tag
-    fn encrypt_in_place(
+    fn encrypt_inout(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         subkeys: &Array<DeoxysKey, B::SubkeysSize>,
     ) -> Tag;
 
     /// Decrypts the data in place with the specified parameters
     /// Returns an error if the tag verification fails
-    fn decrypt_in_place(
+    fn decrypt_inout(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
         subkeys: &Array<DeoxysKey, B::SubkeysSize>,
     ) -> Result<(), aead::Error>;
@@ -185,7 +185,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<DeoxysKey, Self::SubkeysSize>;
 
     /// Encrypts a block of data in place.
-    fn encrypt_in_place(
+    fn encrypt_inout(
         mut block: InOut<'_, '_, Block>,
         tweak: &Tweak,
         subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
@@ -200,7 +200,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     }
 
     /// Decrypts a block of data in place.
-    fn decrypt_in_place(
+    fn decrypt_inout(
         mut block: InOut<'_, '_, Block>,
         tweak: &Tweak,
         subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
@@ -282,10 +282,10 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> Result<Tag, Error> {
-        Ok(Tag::from(M::encrypt_in_place(
+        Ok(Tag::from(M::encrypt_inout(
             nonce,
             associated_data,
-            buffer,
+            buffer.into(),
             &self.subkeys,
         )))
     }
@@ -297,7 +297,7 @@ where
         buffer: &mut [u8],
         tag: &Tag,
     ) -> Result<(), Error> {
-        M::decrypt_in_place(nonce, associated_data, buffer, tag, &self.subkeys)
+        M::decrypt_inout(nonce, associated_data, buffer.into(), tag, &self.subkeys)
     }
 }
 

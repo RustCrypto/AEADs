@@ -1,4 +1,4 @@
-use super::{Block, DeoxysBcType, DeoxysMode, Tag};
+use super::{Block, DeoxysBcType, DeoxysMode, Tag, Tweak};
 use aead::{
     array::Array,
     consts::{U8, U15, U16},
@@ -32,7 +32,7 @@ where
 {
     fn compute_ad_tag(
         associated_data: &[u8],
-        tweak: &mut [u8; 16],
+        tweak: &mut Tweak,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
         tag: &mut Tag,
     ) {
@@ -90,7 +90,7 @@ where
     ) -> Tag {
         let mut tag = Tag::default();
         let mut checksum = Checksum::default();
-        let mut tweak = [0u8; 16];
+        let mut tweak = Tweak::default();
 
         // Associated Data
         <Self as DeoxysModeInternal<B>>::compute_ad_tag(
@@ -124,7 +124,7 @@ where
                     }
 
                     let data: &mut Block = data.try_into().unwrap();
-                    B::encrypt_in_place(data, &tweak, subkeys);
+                    B::encrypt_in_place(data, tweak.as_ref(), subkeys);
                 } else {
                     // Last block checksum
                     tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
@@ -141,7 +141,7 @@ where
                     block.fill(0);
 
                     // Last block encryption
-                    B::encrypt_in_place(&mut block, &tweak, subkeys);
+                    B::encrypt_in_place(&mut block, tweak.as_ref(), subkeys);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
                         *d ^= b;
@@ -154,7 +154,7 @@ where
                     tweak[8..].copy_from_slice(&((index + 1) as u64).to_be_bytes());
                     tweak[8] = (tweak[8] & 0xf) | tmp;
 
-                    B::encrypt_in_place(&mut checksum, &tweak, subkeys);
+                    B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
 
                     for (t, c) in tag.iter_mut().zip(checksum.iter()) {
                         *t ^= c;
@@ -171,7 +171,7 @@ where
             tweak[8..].copy_from_slice(&((buffer.len() / 16) as u64).to_be_bytes());
             tweak[8] = (tweak[8] & 0xf) | tmp;
 
-            B::encrypt_in_place(&mut checksum, &tweak, subkeys);
+            B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
 
             for (t, c) in tag.iter_mut().zip(checksum.iter()) {
                 *t ^= c;
@@ -190,7 +190,7 @@ where
     ) -> Result<(), aead::Error> {
         let mut computed_tag = Tag::default();
         let mut checksum = Checksum::default();
-        let mut tweak = [0u8; 16];
+        let mut tweak = Tweak::default();
 
         // Associated Data
         <Self as DeoxysModeInternal<B>>::compute_ad_tag(
@@ -220,7 +220,7 @@ where
 
                 if data.len() == 16 {
                     let data: &mut Block = data.try_into().unwrap();
-                    B::decrypt_in_place(data, &tweak, subkeys);
+                    B::decrypt_in_place(data, tweak.as_ref(), subkeys);
 
                     for (c, d) in checksum.iter_mut().zip(data.iter()) {
                         *c ^= d;
@@ -230,7 +230,7 @@ where
                     tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
 
                     let mut block = Block::default();
-                    B::encrypt_in_place(&mut block, &tweak, subkeys);
+                    B::encrypt_in_place(&mut block, tweak.as_ref(), subkeys);
 
                     for (d, b) in data.iter_mut().zip(block.iter()) {
                         *d ^= b;
@@ -252,7 +252,7 @@ where
                     tweak[8..].copy_from_slice(&((index + 1) as u64).to_be_bytes());
                     tweak[8] = (tweak[8] & 0xf) | tmp;
 
-                    B::encrypt_in_place(&mut checksum, &tweak, subkeys);
+                    B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
 
                     for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
                         *t ^= c;
@@ -269,7 +269,7 @@ where
             tweak[8..].copy_from_slice(&((buffer.len() / 16) as u64).to_be_bytes());
             tweak[8] = (tweak[8] & 0xf) | tmp;
 
-            B::encrypt_in_place(&mut checksum, &tweak, subkeys);
+            B::encrypt_in_place(&mut checksum, tweak.as_ref(), subkeys);
 
             for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
                 *t ^= c;
@@ -290,7 +290,7 @@ where
 {
     fn authenticate_message(
         buffer: &[u8],
-        tweak: &mut [u8; 16],
+        tweak: &mut Tweak,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
         tag: &mut Tag,
     ) {
@@ -331,7 +331,7 @@ where
 
     fn encrypt_decrypt_message(
         buffer: &mut [u8],
-        tweak: &mut [u8; 16],
+        tweak: &mut Tweak,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
         tag: &Tag,
         nonce: &Array<u8, U15>,
@@ -379,7 +379,7 @@ where
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Tag {
         let mut tag = Tag::default();
-        let mut tweak = [0u8; 16];
+        let mut tweak = Tweak::default();
 
         // Associated Data
         <Self as DeoxysModeInternal<B>>::compute_ad_tag(
@@ -410,7 +410,7 @@ where
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
         let mut computed_tag = Tag::default();
-        let mut tweak = [0u8; 16];
+        let mut tweak = Tweak::default();
 
         // Associated Data
         <Self as DeoxysModeInternal<B>>::compute_ad_tag(

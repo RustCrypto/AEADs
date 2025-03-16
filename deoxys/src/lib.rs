@@ -141,6 +141,8 @@ pub type Tag = Array<u8, U16>;
 
 type Block = Array<u8, U16>;
 
+type Tweak = Array<u8, U16>;
+
 /// Deoxys encryption modes.
 /// This type contains the public API for a Deoxys mode, like Deoxys-I and Deoxys-II.
 pub trait DeoxysMode<B>: modes::DeoxysModeInternal<B>
@@ -182,7 +184,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     /// Encrypts a block of data in place.
     fn encrypt_in_place(
         block: &mut Block,
-        tweak: &[u8; 16],
+        tweak: &Tweak,
         subkeys: &Array<[u8; 16], Self::SubkeysSize>,
     ) {
         let keys = Self::key_schedule(tweak, subkeys);
@@ -199,7 +201,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     /// Decrypts a block of data in place.
     fn decrypt_in_place(
         block: &mut Block,
-        tweak: &[u8; 16],
+        tweak: &Tweak,
         subkeys: &Array<[u8; 16], Self::SubkeysSize>,
     ) {
         let mut keys = Self::key_schedule(tweak, subkeys);

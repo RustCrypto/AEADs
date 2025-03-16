@@ -155,7 +155,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
-    ) -> [u8; 16];
+    ) -> Tag;
 
     /// Decrypts the data in place with the specified parameters
     /// Returns an error if the tag verification fails

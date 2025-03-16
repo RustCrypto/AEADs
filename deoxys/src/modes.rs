@@ -1,7 +1,7 @@
-use super::{DeoxysBcType, DeoxysMode};
+use super::{DeoxysBcType, DeoxysMode, Tag};
 use aead::{
     array::Array,
-    consts::{U8, U15, U16},
+    consts::{U8, U15},
 };
 use core::marker::PhantomData;
 use subtle::ConstantTimeEq;
@@ -32,7 +32,7 @@ where
         associated_data: &[u8],
         tweak: &mut [u8; 16],
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
-        tag: &mut [u8; 16],
+        tag: &mut Tag,
     ) {
         if !associated_data.is_empty() {
             tweak[0] = TWEAK_AD;
@@ -85,8 +85,8 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
-    ) -> [u8; 16] {
-        let mut tag = [0u8; 16];
+    ) -> Tag {
+        let mut tag = Tag::default();
         let mut checksum = [0u8; 16];
         let mut tweak = [0u8; 16];
 
@@ -182,10 +182,10 @@ where
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &Array<u8, U16>,
+        tag: &Tag,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
-        let mut computed_tag = [0u8; 16];
+        let mut computed_tag = Tag::default();
         let mut checksum = [0u8; 16];
         let mut tweak = [0u8; 16];
 
@@ -289,7 +289,7 @@ where
         buffer: &[u8],
         tweak: &mut [u8; 16],
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
-        tag: &mut [u8; 16],
+        tag: &mut Tag,
     ) {
         if !buffer.is_empty() {
             tweak[0] = TWEAK_M;
@@ -330,7 +330,7 @@ where
         buffer: &mut [u8],
         tweak: &mut [u8; 16],
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
-        tag: &Array<u8, U16>,
+        tag: &Tag,
         nonce: &Array<u8, U15>,
     ) {
         if !buffer.is_empty() {
@@ -374,8 +374,8 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
-    ) -> [u8; 16] {
-        let mut tag = [0u8; 16];
+    ) -> Tag {
+        let mut tag = Tag::default();
         let mut tweak = [0u8; 16];
 
         // Associated Data
@@ -391,10 +391,10 @@ where
 
         tweak[0] = TWEAK_TAG;
         tweak[1..].copy_from_slice(nonce);
-        B::encrypt_in_place(&mut tag, &tweak, subkeys);
+        B::encrypt_in_place((&mut tag).into(), &tweak, subkeys);
 
         // Message encryption
-        Self::encrypt_decrypt_message(buffer, &mut tweak, subkeys, &tag.into(), nonce);
+        Self::encrypt_decrypt_message(buffer, &mut tweak, subkeys, &tag, nonce);
 
         tag
     }
@@ -403,10 +403,10 @@ where
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        tag: &Array<u8, U16>,
+        tag: &Tag,
         subkeys: &Array<[u8; 16], B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
-        let mut computed_tag = [0u8; 16];
+        let mut computed_tag = Tag::default();
         let mut tweak = [0u8; 16];
 
         // Associated Data
@@ -427,7 +427,7 @@ where
 
         tweak[0] = TWEAK_TAG;
         tweak[1..].copy_from_slice(nonce);
-        B::encrypt_in_place(&mut computed_tag, &tweak, subkeys);
+        B::encrypt_in_place((&mut computed_tag).into(), &tweak, subkeys);
 
         if tag.ct_eq(&computed_tag).into() {
             Ok(())

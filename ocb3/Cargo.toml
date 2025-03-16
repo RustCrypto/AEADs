@@ -23,6 +23,7 @@ dbl = "0.4.0-rc.2"
 subtle = { version = "2", default-features = false }
 aead-stream = { version = "=0.6.0-pre", optional = true, default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
+inout = { version = "0.2.0-rc.4", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }

@@ -46,7 +46,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -60,7 +60,7 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     ChaCha20Poly1305, Nonce,
 //! };
 //!
@@ -139,14 +139,15 @@
 
 mod cipher;
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser, consts};
+pub use aead::{self, AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, consts};
 
 use self::cipher::Cipher;
 use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
 use aead::{
-    PostfixTagged,
+    TagPosition,
     array::{Array, ArraySize},
     consts::{U12, U16, U24, U32},
+    inout::InOutBuf,
 };
 use core::marker::PhantomData;
 
@@ -245,41 +246,31 @@ where
 {
     type NonceSize = N;
     type TagSize = U16;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl<C, N> PostfixTagged for ChaChaPoly1305<C, N>
+impl<C, N> AeadInOut for ChaChaPoly1305<C, N>
 where
     C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
     N: ArraySize,
 {
-}
-
-impl<C, N> AeadInPlaceDetached for ChaChaPoly1305<C, N>
-where
-    C: KeyIvInit<KeySize = U32, IvSize = N> + StreamCipher + StreamCipherSeek,
-    N: ArraySize,
-{
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &aead::Nonce<Self>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
-        Cipher::new(C::new(&self.key, nonce)).encrypt_in_place_detached(associated_data, buffer)
+        Cipher::new(C::new(&self.key, nonce)).encrypt_inout_detached(associated_data, buffer)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &aead::Nonce<Self>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::new(C::new(&self.key, nonce)).decrypt_in_place_detached(
-            associated_data,
-            buffer,
-            tag,
-        )
+        Cipher::new(C::new(&self.key, nonce)).decrypt_inout_detached(associated_data, buffer, tag)
     }
 }
 

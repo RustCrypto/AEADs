@@ -3,11 +3,11 @@
 
 use ascon_aead::{
     AsconAead128,
-    aead::{Aead, AeadInPlaceDetached, KeyInit, Payload, Tag},
+    aead::{Aead, AeadInOut, KeyInit, Payload, Tag},
 };
 use hex_literal::hex;
 
-fn run_tv<A: KeyInit + Aead + AeadInPlaceDetached>(
+fn run_tv<A: KeyInit + Aead + AeadInOut>(
     key: &[u8],
     nonce: &[u8],
     plaintext: &[u8],
@@ -40,7 +40,8 @@ fn run_tv<A: KeyInit + Aead + AeadInPlaceDetached>(
 
     let bad_tag = Tag::<A>::default();
     let mut buf = ciphertext[..ciphertext.len() - bad_tag.len()].to_vec();
-    let res = core.decrypt_in_place_detached(nonce, associated_data, &mut buf, &bad_tag);
+    let res =
+        core.decrypt_inout_detached(nonce, associated_data, buf.as_mut_slice().into(), &bad_tag);
     assert!(res.is_err());
     assert!(buf.iter().all(|b| *b == 0));
 }

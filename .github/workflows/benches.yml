@@ -19,6 +19,7 @@ env:
 
 jobs:
   build:
+    if: false # benches are broken until https://github.com/RustCrypto/AEADs/pull/665 merges
     runs-on: ubuntu-latest
     strategy:
       matrix:

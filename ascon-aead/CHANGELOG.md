@@ -10,12 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Edition changed to 2024 and MSRV bumped to 1.85 ([#662])
 - Relax MSRV policy and allow MSRV bumps in patch releases
 - `getrandom` feature renamed as `os_rng` ([#662])
+- Update for compliance with NIST [draft]
+  - Rename `Ascon128` to `AsconAead128`
 
 ## Removed
 - `std` and `stream` features ([#662])
+- `Ascon80pq` and `Ascon128a`
 
 [#583]: https://github.com/RustCrypto/AEADs/pull/583
 [#662]: https://github.com/RustCrypto/AEADs/pull/662
+[draft]: https://doi.org/10.6028/NIST.SP.800-232.ipd
 
 ## 0.4.3 (2025-03-03)
 ### Fixed

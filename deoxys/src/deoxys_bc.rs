@@ -3,7 +3,7 @@ use aead::{
     consts::{U15, U16, U17, U32, U48},
 };
 
-use crate::DeoxysBcType;
+use crate::{DeoxysBcType, DeoxysKey, Tweak};
 
 const H_PERM: [u8; 16] = [1, 6, 11, 12, 5, 10, 15, 0, 9, 14, 3, 4, 13, 2, 7, 8];
 
@@ -46,10 +46,10 @@ pub trait DeoxysBcInternal {
     type TweakKeySize: ArraySize;
 
     fn key_schedule(
-        tweak: &[u8; 16],
-        subkeys: &Array<[u8; 16], Self::SubkeysSize>,
-    ) -> Array<[u8; 16], Self::SubkeysSize> {
-        let mut subtweakeys: Array<[u8; 16], Self::SubkeysSize> = Default::default();
+        tweak: &Tweak,
+        subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
+    ) -> Array<DeoxysKey, Self::SubkeysSize> {
+        let mut subtweakeys: Array<DeoxysKey, Self::SubkeysSize> = Default::default();
         let mut tweak = *tweak;
 
         // First key
@@ -59,7 +59,7 @@ pub trait DeoxysBcInternal {
 
         // Other keys
         for (stk, sk) in subtweakeys[1..].iter_mut().zip(subkeys[1..].iter()) {
-            h_substitution(&mut tweak);
+            h_substitution((&mut tweak).into());
 
             for i in 0..16 {
                 stk[i] = sk[i] ^ tweak[i];
@@ -78,8 +78,8 @@ impl DeoxysBcInternal for DeoxysBc256 {
 impl DeoxysBcType for DeoxysBc256 {
     type KeySize = U16;
 
-    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<[u8; 16], Self::SubkeysSize> {
-        let mut subkeys: Array<[u8; 16], Self::SubkeysSize> = Default::default();
+    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<DeoxysKey, Self::SubkeysSize> {
+        let mut subkeys: Array<DeoxysKey, Self::SubkeysSize> = Default::default();
 
         let mut tk2 = [0u8; 16];
 
@@ -116,8 +116,8 @@ impl DeoxysBcInternal for DeoxysBc384 {
 impl DeoxysBcType for DeoxysBc384 {
     type KeySize = U32;
 
-    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<[u8; 16], Self::SubkeysSize> {
-        let mut subkeys: Array<[u8; 16], Self::SubkeysSize> = Default::default();
+    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<DeoxysKey, Self::SubkeysSize> {
+        let mut subkeys: Array<DeoxysKey, Self::SubkeysSize> = Default::default();
 
         let mut tk3 = [0u8; 16];
         let mut tk2 = [0u8; 16];

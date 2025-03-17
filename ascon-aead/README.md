@@ -8,8 +8,8 @@
 [![Build Status][build-image]][build-link]
 
 Pure Rust implementation of the lightweight
-[Authenticated Encryption with Associated Data (AEAD)][1] algorithms
-[Ascon-128, Ascon-128a, and Ascon-80pq][2].
+[Authenticated Encryption with Associated Data (AEAD)][1] algorithm
+[Ascon-AEAD128][2].
 
 ## Security Notes
 
@@ -48,4 +48,4 @@ dual licensed as above, without any additional terms or conditions.
 [//]: # (general links)
 
 [1]: https://en.wikipedia.org/wiki/Authenticated_encryption
-[2]: https://ascon.iaik.tugraz.at
+[2]: https://doi.org/10.6028/NIST.SP.800-232.ipd

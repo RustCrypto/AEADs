@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 
 use ascon_aead::aead::{AeadInPlaceDetached, KeyInit};
-use ascon_aead::{Ascon128, Ascon128a, Ascon80pq};
+use ascon_aead::AsconAead128;
 
 const KB: usize = 1024;
 
@@ -34,29 +34,21 @@ fn bench<A: AeadInPlaceDetached + KeyInit>(name: &str, c: &mut Benchmarker) {
 }
 
 fn bench_ascon128(c: &mut Benchmarker) {
-    bench::<Ascon128>("ascon128", c);
-}
-
-fn bench_ascon128a(c: &mut Benchmarker) {
-    bench::<Ascon128a>("ascon128a", c);
-}
-
-fn bench_ascon80pq(c: &mut Benchmarker) {
-    bench::<Ascon80pq>("ascon80pq", c);
+    bench::<AsconAead128>("Ascon-AEAD128", c);
 }
 
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
 criterion_group!(
     name = benches;
     config = Criterion::default();
-    targets = bench_ascon128, bench_ascon128a, bench_ascon80pq,
+    targets = bench_ascon128,
 );
 
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 criterion_group!(
     name = benches;
     config = Criterion::default().with_measurement(criterion_cycles_per_byte::CyclesPerByte);
-    targets = bench_ascon128, bench_ascon128a, bench_ascon80pq,
+    targets = bench_ascon128,
 );
 
 criterion_main!(benches);

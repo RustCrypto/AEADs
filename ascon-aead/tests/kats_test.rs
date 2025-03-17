@@ -3,7 +3,7 @@
 
 use ascon_aead::{
     AsconAead128,
-    aead::{Aead, AeadInOut, KeyInit, Payload, Tag},
+    aead::{Aead, AeadInOut, KeyInit, Payload, Tag, dev::MockBuffer},
 };
 use hex_literal::hex;
 
@@ -44,6 +44,24 @@ fn run_tv<A: KeyInit + Aead + AeadInOut>(
         core.decrypt_inout_detached(nonce, associated_data, buf.as_mut_slice().into(), &bad_tag);
     assert!(res.is_err());
     assert!(buf.iter().all(|b| *b == 0));
+
+    let mut buf = MockBuffer::from(&plaintext[..ciphertext.len() - bad_tag.len()]);
+    let tag_encryption = core
+        .encrypt_inout_detached(nonce, associated_data, buf.to_in_out_buf())
+        .expect("encryption failed");
+    assert_eq!(
+        tag_encryption.as_slice(),
+        &ciphertext[ciphertext.len() - bad_tag.len()..]
+    );
+    assert_eq!(
+        buf.as_ref(),
+        &ciphertext[..ciphertext.len() - bad_tag.len()]
+    );
+
+    let mut buf = MockBuffer::from(&ciphertext[..ciphertext.len() - bad_tag.len()]);
+    core.decrypt_inout_detached(nonce, associated_data, buf.to_in_out_buf(), &tag_encryption)
+        .expect("decryption failed");
+    assert_eq!(buf.as_ref(), plaintext);
 }
 
 #[test]

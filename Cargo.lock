@@ -99,6 +99,7 @@ dependencies = [
  "aead",
  "ascon",
  "hex-literal",
+ "inout",
  "subtle",
  "zeroize",
 ]

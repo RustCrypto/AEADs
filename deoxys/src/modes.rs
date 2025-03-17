@@ -1,4 +1,4 @@
-use super::{Block, DeoxysBcType, DeoxysKey, DeoxysMode, Tag, Tweak};
+use super::{Block, DeoxysBcType, DeoxysMode, Key, Tag, Tweak};
 use aead::{
     array::Array,
     consts::{U8, U15, U16},
@@ -33,7 +33,7 @@ where
     fn compute_ad_tag(
         associated_data: &[u8],
         tweak: &mut Tweak,
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
         tag: &mut Tag,
     ) {
         if !associated_data.is_empty() {
@@ -86,7 +86,7 @@ where
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
     ) -> Tag {
         let mut tag = Tag::default();
         let mut checksum = Checksum::default();
@@ -186,7 +186,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
         let mut computed_tag = Tag::default();
         let mut checksum = Checksum::default();
@@ -291,7 +291,7 @@ where
     fn authenticate_message(
         buffer: &[u8],
         tweak: &mut Tweak,
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
         tag: &mut Tag,
     ) {
         if !buffer.is_empty() {
@@ -332,7 +332,7 @@ where
     fn encrypt_decrypt_message(
         buffer: &mut [u8],
         tweak: &mut Tweak,
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
         tag: &Tag,
         nonce: &Array<u8, U15>,
     ) {
@@ -376,7 +376,7 @@ where
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
     ) -> Tag {
         let mut tag = Tag::default();
         let mut tweak = Tweak::default();
@@ -407,7 +407,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
         let mut computed_tag = Tag::default();
         let mut tweak = Tweak::default();

@@ -110,7 +110,7 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser, consts};
+pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser, consts};
 
 use aead::{
     PostfixTagged,
@@ -143,7 +143,8 @@ type Block = Array<u8, U16>;
 
 type Tweak = Array<u8, U16>;
 
-type DeoxysKey = Array<u8, U16>;
+/// Deoxys key
+pub type Key = Array<u8, U16>;
 
 /// Deoxys encryption modes.
 /// This type contains the public API for a Deoxys mode, like Deoxys-I and Deoxys-II.
@@ -160,7 +161,7 @@ where
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: &mut [u8],
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
     ) -> Tag;
 
     /// Decrypts the data in place with the specified parameters
@@ -170,7 +171,7 @@ where
         associated_data: &[u8],
         buffer: &mut [u8],
         tag: &Tag,
-        subkeys: &Array<DeoxysKey, B::SubkeysSize>,
+        subkeys: &Array<Key, B::SubkeysSize>,
     ) -> Result<(), aead::Error>;
 }
 
@@ -181,14 +182,10 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     type KeySize: ArraySize;
 
     /// Precompute the subkeys
-    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<DeoxysKey, Self::SubkeysSize>;
+    fn precompute_subkeys(key: &Array<u8, Self::KeySize>) -> Array<Key, Self::SubkeysSize>;
 
     /// Encrypts a block of data in place.
-    fn encrypt_in_place(
-        block: &mut Block,
-        tweak: &Tweak,
-        subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
-    ) {
+    fn encrypt_in_place(block: &mut Block, tweak: &Tweak, subkeys: &Array<Key, Self::SubkeysSize>) {
         let keys = Self::key_schedule(tweak, subkeys);
 
         for (b, k) in block.iter_mut().zip(keys[0].iter()) {
@@ -201,11 +198,7 @@ pub trait DeoxysBcType: deoxys_bc::DeoxysBcInternal {
     }
 
     /// Decrypts a block of data in place.
-    fn decrypt_in_place(
-        block: &mut Block,
-        tweak: &Tweak,
-        subkeys: &Array<DeoxysKey, Self::SubkeysSize>,
-    ) {
+    fn decrypt_in_place(block: &mut Block, tweak: &Tweak, subkeys: &Array<Key, Self::SubkeysSize>) {
         let mut keys = Self::key_schedule(tweak, subkeys);
 
         let r = keys.len();
@@ -233,7 +226,7 @@ where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
-    subkeys: Array<DeoxysKey, B::SubkeysSize>,
+    subkeys: Array<Key, B::SubkeysSize>,
     mode: PhantomData<M>,
 }
 
@@ -250,7 +243,7 @@ where
     M: DeoxysMode<B>,
     B: DeoxysBcType,
 {
-    fn new(key: &Key<Self>) -> Self {
+    fn new(key: &aead::Key<Self>) -> Self {
         Self {
             subkeys: B::precompute_subkeys(key),
             mode: PhantomData,

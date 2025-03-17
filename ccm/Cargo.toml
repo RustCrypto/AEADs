@@ -14,7 +14,7 @@ keywords = ["encryption", "aead"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.0", default-features = false }
+aead = { version = "0.6.0-rc.0", default-features = false, features = ["inout"] }
 cipher = { version = "=0.5.0-pre.8", default-features = false }
 ctr = { version = "0.10.0-pre.2", default-features = false }
 subtle = { version = "2", default-features = false }

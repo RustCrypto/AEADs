@@ -18,8 +18,8 @@ resolver = "2"
 aead-stream = { path = "./aead-stream" }
 aes-gcm     = { path = "./aes-gcm" }
 
-aead          = { git = "https://github.com/RustCrypto/traits.git" }
-crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
+aead          = { git = "https://github.com/baloo/traits.git", branch = "baloo/aead/bicephalbuffer" }
+crypto-common = { git = "https://github.com/baloo/traits.git", branch = "baloo/aead/bicephalbuffer" }
 
 chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
 

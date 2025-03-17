@@ -105,7 +105,9 @@
 pub use zeroize;
 
 pub use aead::{self, Error, Key, Nonce, Tag};
-use aead::{AeadCore, AeadInPlaceDetached, KeyInit, KeySizeUser, PostfixTagged, consts::U16};
+use aead::{
+    AeadCore, AeadInOut, KeyInit, KeySizeUser, PostfixTagged, consts::U16, inout::InOutBuf,
+};
 
 mod asconcore;
 
@@ -139,12 +141,12 @@ impl<P: Parameters> AeadCore for Ascon<P> {
 
 impl<P: Parameters> PostfixTagged for Ascon<P> {}
 
-impl<P: Parameters> AeadInPlaceDetached for Ascon<P> {
-    fn encrypt_in_place_detached(
+impl<P: Parameters> AeadInOut for Ascon<P> {
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<Self>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<Self>, Error> {
         if (buffer.len() as u64)
             .checked_add(associated_data.len() as u64)
@@ -154,14 +156,14 @@ impl<P: Parameters> AeadInPlaceDetached for Ascon<P> {
         }
 
         let mut core = AsconCore::<P>::new(&self.key, nonce);
-        Ok(core.encrypt_inplace(buffer, associated_data))
+        Ok(core.encrypt_inout(buffer, associated_data))
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<Self>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self>,
     ) -> Result<(), Error> {
         if (buffer.len() as u64)
@@ -172,7 +174,7 @@ impl<P: Parameters> AeadInPlaceDetached for Ascon<P> {
         }
 
         let mut core = AsconCore::<P>::new(&self.key, nonce);
-        core.decrypt_inplace(buffer, associated_data, tag)
+        core.decrypt_inout(buffer, associated_data, tag)
     }
 }
 
@@ -202,27 +204,27 @@ impl AeadCore for AsconAead128 {
 
 impl PostfixTagged for AsconAead128 {}
 
-impl AeadInPlaceDetached for AsconAead128 {
+impl AeadInOut for AsconAead128 {
     #[inline(always)]
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<Self>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<Self>, Error> {
         self.0
-            .encrypt_in_place_detached(nonce, associated_data, buffer)
+            .encrypt_inout_detached(nonce, associated_data, buffer)
     }
 
     #[inline(always)]
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<Self>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self>,
     ) -> Result<(), Error> {
         self.0
-            .decrypt_in_place_detached(nonce, associated_data, buffer, tag)
+            .decrypt_inout_detached(nonce, associated_data, buffer, tag)
     }
 }

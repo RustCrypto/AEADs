@@ -2,9 +2,9 @@ use super::{Block, DeoxysBcType, DeoxysKey, DeoxysMode, Tag, Tweak};
 use aead::{
     array::Array,
     consts::{U8, U15, U16},
+    inout::InOutBuf,
 };
 use core::marker::PhantomData;
-use inout::InOutBuf;
 use subtle::ConstantTimeEq;
 
 const TWEAK_AD: u8 = 0x20;

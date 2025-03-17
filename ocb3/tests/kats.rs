@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use aead::{
-    AeadInPlaceDetached, KeyInit,
+    AeadInOut, KeyInit,
     consts::{U8, U12},
 };
 use aes::{Aes128, Aes192, Aes256};
@@ -38,7 +38,11 @@ macro_rules! rfc7253_wider_variety {
             let N = num2str96(3 * i + 1);
             let mut buffer = S.clone();
             let tag = ocb
-                .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &S, &mut buffer)
+                .encrypt_inout_detached(
+                    N.as_slice().try_into().unwrap(),
+                    &S,
+                    buffer.as_mut_slice().into(),
+                )
                 .unwrap();
             ciphertext.append(&mut buffer);
             ciphertext.append(&mut tag.as_slice().to_vec());
@@ -48,7 +52,11 @@ macro_rules! rfc7253_wider_variety {
             let N = num2str96(3 * i + 2);
             let mut buffer = S.clone();
             let tag = ocb
-                .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &[], &mut buffer)
+                .encrypt_inout_detached(
+                    N.as_slice().try_into().unwrap(),
+                    &[],
+                    buffer.as_mut_slice().into(),
+                )
                 .unwrap();
             ciphertext.append(&mut buffer);
             ciphertext.append(&mut tag.as_slice().to_vec());
@@ -57,7 +65,7 @@ macro_rules! rfc7253_wider_variety {
             // C = C || OCB-ENCRYPT(K,N,S,<empty string>)
             let N = num2str96(3 * i + 3);
             let tag = ocb
-                .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &S, &mut [])
+                .encrypt_inout_detached(N.as_slice().try_into().unwrap(), &S, (&mut [][..]).into())
                 .unwrap();
             ciphertext.append(&mut tag.as_slice().to_vec());
         }
@@ -75,7 +83,11 @@ macro_rules! rfc7253_wider_variety {
         // Output : OCB-ENCRYPT(K,N,C,<empty string>)
         let N = num2str96(385);
         let tag = ocb
-            .encrypt_in_place_detached(N.as_slice().try_into().unwrap(), &ciphertext, &mut [])
+            .encrypt_inout_detached(
+                N.as_slice().try_into().unwrap(),
+                &ciphertext,
+                (&mut [][..]).into(),
+            )
             .unwrap();
 
         assert_eq!(tag.as_slice(), hex!($expected))

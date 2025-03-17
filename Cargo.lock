@@ -98,6 +98,7 @@ version = "0.4.2"
 dependencies = [
  "aead",
  "ascon",
+ "inout",
  "subtle",
  "zeroize",
 ]

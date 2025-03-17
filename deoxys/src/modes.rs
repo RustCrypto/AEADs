@@ -294,38 +294,46 @@ where
         subkeys: &Array<DeoxysKey, B::SubkeysSize>,
         tag: &mut Tag,
     ) {
-        if !buffer.is_empty() {
-            tweak[0] = TWEAK_M;
+        if buffer.is_empty() {
+            return;
+        }
+        tweak[0] = TWEAK_M;
 
-            for (index, data) in buffer.chunks(16).enumerate() {
-                // Copy block number
-                tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
+        let (chunks, tail) = Block::slice_as_chunks(buffer);
 
-                if data.len() == 16 {
-                    let mut block = Block::default();
-                    block.copy_from_slice(data);
+        for (index, data) in chunks.iter().enumerate() {
+            // Copy block number
+            tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
 
-                    B::encrypt_in_place(&mut block, tweak, subkeys);
+            let mut block = *data;
+            B::encrypt_in_place(&mut block, tweak, subkeys);
 
-                    for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t ^= b;
-                    }
-                } else {
-                    // Last block
-                    tweak[0] = TWEAK_M_LAST;
-
-                    let mut block = Block::default();
-                    block[0..data.len()].copy_from_slice(data);
-
-                    block[data.len()] = 0x80;
-
-                    B::encrypt_in_place(&mut block, tweak, subkeys);
-
-                    for (t, b) in tag.iter_mut().zip(block.iter()) {
-                        *t ^= b;
-                    }
-                }
+            for (t, b) in tag.iter_mut().zip(block.iter()) {
+                *t ^= b;
             }
+        }
+
+        let index = chunks.len();
+        let data = tail;
+        if data.is_empty() {
+            return;
+        }
+
+        // Copy block number
+        tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
+
+        // Last block
+        tweak[0] = TWEAK_M_LAST;
+
+        let mut block = Block::default();
+        block[0..data.len()].copy_from_slice(data);
+
+        block[data.len()] = 0x80;
+
+        B::encrypt_in_place(&mut block, tweak, subkeys);
+
+        for (t, b) in tag.iter_mut().zip(block.iter()) {
+            *t ^= b;
         }
     }
 

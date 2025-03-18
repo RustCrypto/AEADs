@@ -358,7 +358,7 @@ where
         let mut i = 1;
 
         let mut offset_i = [Block::default(); WIDTH];
-        offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
+        offset_i[1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
         let mut checksum_i = Block::default();
 
         let (wide_blocks, tail): (InOutBuf<'_, '_, DoubleBlock>, _) = buffer.into_chunks();
@@ -370,12 +370,10 @@ where
             }
 
             // offset_i = offset_{i-1} xor L_{ntz(i)}
-            offset_i[0] = offset_i[offset_i.len() - 1];
+            offset_i[0] = offset_i[1];
             inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
-            for j in 1..p_i.len() {
-                offset_i[j] = offset_i[j - 1];
-                inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
-            }
+            offset_i[1] = offset_i[0];
+            inplace_xor(&mut offset_i[1], &self.ll[ntz(i + 1)]);
 
             // c_i = offset_i xor ENCIPHER(K, p_i xor offset_i)
             for j in 0..p_i.len() {
@@ -403,7 +401,7 @@ where
         let mut i = 1;
 
         let mut offset_i = [Block::default(); WIDTH];
-        offset_i[offset_i.len() - 1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
+        offset_i[1] = initial_offset(&self.cipher, nonce, TagSize::to_u32());
         let mut checksum_i = Block::default();
 
         let (wide_blocks, tail): (InOutBuf<'_, '_, DoubleBlock>, _) = buffer.into_chunks();
@@ -411,12 +409,10 @@ where
             let mut c_i = split_into_two_blocks(wide_block);
 
             // offset_i = offset_{i-1} xor L_{ntz(i)}
-            offset_i[0] = offset_i[offset_i.len() - 1];
+            offset_i[0] = offset_i[1];
             inplace_xor(&mut offset_i[0], &self.ll[ntz(i)]);
-            for j in 1..c_i.len() {
-                offset_i[j] = offset_i[j - 1];
-                inplace_xor(&mut offset_i[j], &self.ll[ntz(i + j)]);
-            }
+            offset_i[1] = offset_i[0];
+            inplace_xor(&mut offset_i[1], &self.ll[ntz(i + 1)]);
 
             // p_i = offset_i xor DECIPHER(K, c_i xor offset_i)
             // checksum_i = checksum_{i-1} xor p_i

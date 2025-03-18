@@ -34,7 +34,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -48,7 +48,7 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_gcm_siv::{
-//!     aead::{AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
+//!     aead::{AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
 //! };
 //!
@@ -83,7 +83,7 @@ pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 #[cfg(feature = "aes")]
 pub use aes;
 
-use aead::{PostfixTagged, inout::InOutBuf};
+use aead::{TagPosition, inout::InOutBuf};
 use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
     array::Array,
@@ -161,9 +161,8 @@ where
 {
     type NonceSize = U12;
     type TagSize = U16;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
-
-impl<Aes> PostfixTagged for AesGcmSiv<Aes> {}
 
 impl<Aes> AeadInOut for AesGcmSiv<Aes>
 where

@@ -45,7 +45,7 @@
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, consts};
 
 use aead::{
-    PostfixTagged,
+    TagPosition,
     array::{Array, ArraySize, typenum::Unsigned},
     consts::U16,
     inout::InOutBuf,
@@ -212,14 +212,7 @@ where
 {
     type NonceSize = N;
     type TagSize = M;
-}
-
-impl<C, M, N> PostfixTagged for Ccm<C, M, N>
-where
-    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
-    M: ArraySize + TagSize,
-    N: ArraySize + NonceSize,
-{
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl<C, M, N> AeadInOut for Ccm<C, M, N>

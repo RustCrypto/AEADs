@@ -19,7 +19,7 @@ pub use aead::{
 };
 
 use aead::{
-    PostfixTagged,
+    TagPosition,
     array::ArraySize,
     inout::{InOut, InOutBuf},
 };
@@ -174,6 +174,7 @@ where
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
@@ -194,14 +195,6 @@ where
             ll,
         }
     }
-}
-
-impl<Cipher, NonceSize, TagSize> PostfixTagged for Ocb3<Cipher, NonceSize, TagSize>
-where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
-    NonceSize: sealed::NonceSizes,
-    TagSize: sealed::TagSizes,
-{
 }
 
 impl<Cipher, NonceSize, TagSize> AeadInOut for Ocb3<Cipher, NonceSize, TagSize>

@@ -56,7 +56,7 @@ pub use aes_gcm;
 use core::ops::{Div, Mul};
 
 use aead::{
-    AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, PostfixTagged, array::Array, inout::InOutBuf,
+    AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, TagPosition, array::Array, inout::InOutBuf,
 };
 use aes::Aes256;
 use aes_gcm::Aes256Gcm;
@@ -96,6 +96,7 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 impl AeadCore for Xaes256Gcm {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl KeySizeUser for Xaes256Gcm {
@@ -125,8 +126,6 @@ impl KeyInit for Xaes256Gcm {
         Self { aes, k1 }
     }
 }
-
-impl PostfixTagged for Xaes256Gcm {}
 
 impl AeadInOut for Xaes256Gcm {
     fn encrypt_inout_detached(

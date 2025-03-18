@@ -20,7 +20,7 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.0", default-features = false, features = ["inout"] }
+aead = { version = "0.6.0-rc.0", default-features = false }
 cipher = "=0.5.0-pre.8"
 cmac = "0.8.0-pre.2"
 ctr = "0.10.0-pre.2"

@@ -38,7 +38,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -56,7 +56,7 @@
 //! use eax::aead::{
 //!     array::Array,
 //!     heapless::Vec,
-//!     AeadCore, AeadInPlace, KeyInit, rand_core::OsRng
+//!     AeadCore, AeadInOut, KeyInit, rand_core::OsRng
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
@@ -127,7 +127,7 @@
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 pub use cipher;
 
-use aead::{PostfixTagged, inout::InOutBuf};
+use aead::{TagPosition, inout::InOutBuf};
 use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array, consts::U16,
     crypto_common::OutputSizeUser, typenum::Unsigned,
@@ -210,13 +210,7 @@ where
 {
     type NonceSize = Cipher::BlockSize;
     type TagSize = M;
-}
-
-impl<Cipher, M> PostfixTagged for Eax<Cipher, M>
-where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
-    M: TagSize,
-{
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl<Cipher, M> AeadInOut for Eax<Cipher, M>

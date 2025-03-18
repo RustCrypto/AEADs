@@ -6,7 +6,7 @@ version = 4
 [[package]]
 name = "aead"
 version = "0.6.0-rc.0"
-source = "git+https://github.com/baloo/traits.git?branch=baloo%2Faead%2Fbicephalbuffer#a35c5da6b6ea4317c4b8d0a7b49895fc32850021"
+source = "git+https://github.com/baloo/traits.git?branch=baloo%2Faead%2Fmockbuffer-merge#38a7ef2feea0a0bdf8f27d496c945968c272d934"
 dependencies = [
  "arrayvec",
  "blobby 0.4.0-pre.0",
@@ -217,7 +217,7 @@ dependencies = [
 [[package]]
 name = "crypto-common"
 version = "0.2.0-rc.2"
-source = "git+https://github.com/baloo/traits.git?branch=baloo%2Faead%2Fbicephalbuffer#a35c5da6b6ea4317c4b8d0a7b49895fc32850021"
+source = "git+https://github.com/baloo/traits.git?branch=baloo%2Faead%2Fmockbuffer-merge#38a7ef2feea0a0bdf8f27d496c945968c272d934"
 dependencies = [
  "hybrid-array",
  "rand_core",

@@ -59,7 +59,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -72,7 +72,7 @@
 //! ```
 //! # #[cfg(feature = "heapless")] {
 //! use ascon_aead::{AsconAead128, Key, Nonce};
-//! use ascon_aead::aead::{AeadInPlace, KeyInit};
+//! use ascon_aead::aead::{AeadInOut, KeyInit};
 //! use ascon_aead::aead::heapless::Vec;
 //!
 //! let key = Key::<AsconAead128>::from_slice(b"very secret key.");
@@ -105,9 +105,7 @@
 pub use zeroize;
 
 pub use aead::{self, Error, Key, Nonce, Tag};
-use aead::{
-    AeadCore, AeadInOut, KeyInit, KeySizeUser, PostfixTagged, consts::U16, inout::InOutBuf,
-};
+use aead::{AeadCore, AeadInOut, KeyInit, KeySizeUser, TagPosition, consts::U16, inout::InOutBuf};
 
 mod asconcore;
 
@@ -137,9 +135,8 @@ impl<P: Parameters> KeyInit for Ascon<P> {
 impl<P: Parameters> AeadCore for Ascon<P> {
     type NonceSize = U16;
     type TagSize = U16;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
-
-impl<P: Parameters> PostfixTagged for Ascon<P> {}
 
 impl<P: Parameters> AeadInOut for Ascon<P> {
     fn encrypt_inout_detached(
@@ -200,9 +197,8 @@ impl KeyInit for AsconAead128 {
 impl AeadCore for AsconAead128 {
     type NonceSize = U16;
     type TagSize = U16;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
-
-impl PostfixTagged for AsconAead128 {}
 
 impl AeadInOut for AsconAead128 {
     #[inline(always)]

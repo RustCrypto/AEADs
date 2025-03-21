@@ -34,7 +34,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -48,7 +48,7 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_gcm_siv::{
-//!     aead::{AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
+//!     aead::{AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
 //! };
 //!
@@ -78,12 +78,12 @@
 //! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
 //! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 
 #[cfg(feature = "aes")]
 pub use aes;
 
-use aead::PostfixTagged;
+use aead::{TagPosition, inout::InOutBuf};
 use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
     array::Array,
@@ -161,32 +161,31 @@ where
 {
     type NonceSize = U12;
     type TagSize = U16;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl<Aes> PostfixTagged for AesGcmSiv<Aes> {}
-
-impl<Aes> AeadInPlaceDetached for AesGcmSiv<Aes>
+impl<Aes> AeadInOut for AesGcmSiv<Aes>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
         Cipher::<Aes>::new(&self.key_generating_key, nonce)
-            .encrypt_in_place_detached(associated_data, buffer)
+            .encrypt_inout_detached(associated_data, buffer)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
-        Cipher::<Aes>::new(&self.key_generating_key, nonce).decrypt_in_place_detached(
+        Cipher::<Aes>::new(&self.key_generating_key, nonce).decrypt_inout_detached(
             associated_data,
             buffer,
             tag,
@@ -268,30 +267,30 @@ where
     }
 
     /// Encrypt the given message in-place, returning the authentication tag.
-    pub(crate) fn encrypt_in_place_detached(
+    pub(crate) fn encrypt_inout_detached(
         mut self,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 
         self.polyval.update_padded(associated_data);
-        self.polyval.update_padded(buffer);
+        self.polyval.update_padded(buffer.get_in());
 
         let tag = self.finish_tag(associated_data.len(), buffer.len());
-        init_ctr(&self.enc_cipher, &tag).apply_keystream_partial(buffer.into());
+        init_ctr(&self.enc_cipher, &tag).apply_keystream_partial(buffer);
 
         Ok(tag)
     }
 
     /// Decrypt the given message, first authenticating ciphertext integrity
     /// and returning an error if it's been tampered with.
-    pub(crate) fn decrypt_in_place_detached(
+    pub(crate) fn decrypt_inout_detached(
         mut self,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
@@ -301,8 +300,8 @@ where
         self.polyval.update_padded(associated_data);
 
         // TODO(tarcieri): interleave decryption and authentication
-        init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer.into());
-        self.polyval.update_padded(buffer);
+        init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer.reborrow());
+        self.polyval.update_padded(buffer.get_out());
 
         let expected_tag = self.finish_tag(associated_data.len(), buffer.len());
 
@@ -312,7 +311,7 @@ where
         } else {
             // On MAC verify failure, re-encrypt the plaintext buffer to
             // prevent accidental exposure.
-            init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer.into());
+            init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer);
             Err(Error)
         }
     }

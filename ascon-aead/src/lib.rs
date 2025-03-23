@@ -15,6 +15,7 @@
 //! Simple usage (allocating, no associated data):
 //!
 //! ```
+//! # #[cfg(feature = "alloc")] {
 //! use ascon_aead::{AsconAead128, Key, Nonce};
 //! use ascon_aead::aead::{Aead, KeyInit};
 //!
@@ -30,6 +31,7 @@
 //!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
 //!
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # }
 //! ```
 //!
 //! With randomly sampled keys and nonces (requires `getrandom` feature):

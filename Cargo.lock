@@ -93,8 +93,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "ascon-aead"
-version = "0.4.2"
+name = "ascon-aead128"
+version = "0.1.0"
 dependencies = [
  "aead",
  "ascon",

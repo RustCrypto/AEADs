@@ -1,5 +1,5 @@
 #![cfg(feature = "alloc")] // TODO: remove after migration to the new `aead` crate
-use ascon_aead::{
+use ascon_aead128::{
     AsconAead128,
     aead::{Aead, KeyInit, Nonce, Payload, dev::blobby},
 };

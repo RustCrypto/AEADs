@@ -13,8 +13,8 @@
 //!
 //! ```
 //! # #[cfg(feature = "alloc")] {
-//! use ascon_aead::{AsconAead128, Key, Nonce};
-//! use ascon_aead::aead::{Aead, KeyInit};
+//! use ascon_aead128::{AsconAead128, Key, Nonce};
+//! use ascon_aead128::aead::{Aead, KeyInit};
 //!
 //! let key = Key::<AsconAead128>::from_slice(b"very secret key.");
 //! let cipher = AsconAead128::new(key);

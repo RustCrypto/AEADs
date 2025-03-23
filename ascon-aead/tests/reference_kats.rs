@@ -62,4 +62,4 @@ macro_rules! new_pass_test {
 
 // Test vectors are taken from the reference Ascon implementation:
 // https://github.com/ascon/ascon-c/blob/fdfca408/crypto_aead/asconaead128/LWC_AEAD_KAT_128_128.txt
-new_pass_test!(ascon_aead_kats, "kats", AsconAead128);
+new_pass_test!(ascon_aead_reference_kats, "reference_kats", AsconAead128);

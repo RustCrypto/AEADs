@@ -35,8 +35,8 @@
 //!
 //! ```
 //! # #[cfg(feature = "getrandom")] {
-//! use ascon_aead::AsconAead128;
-//! use ascon_aead::aead::{Aead, AeadCore, KeyInit, OsRng};
+//! use ascon_aead128::AsconAead128;
+//! use ascon_aead128::aead::{Aead, AeadCore, KeyInit, OsRng};
 //!
 //! let key = AsconAead128::generate_key().expect("generate key");
 //! let cipher = AsconAead128::new(&key);
@@ -70,9 +70,9 @@
 //!
 //! ```
 //! # #[cfg(feature = "heapless")] {
-//! use ascon_aead::{AsconAead128, Key, Nonce};
-//! use ascon_aead::aead::{AeadInPlace, KeyInit};
-//! use ascon_aead::aead::heapless::Vec;
+//! use ascon_aead128::{AsconAead128, Key, Nonce};
+//! use ascon_aead128::aead::{AeadInPlace, KeyInit};
+//! use ascon_aead128::aead::heapless::Vec;
 //!
 //! let key = Key::<AsconAead128>::from_slice(b"very secret key.");
 //! let cipher = AsconAead128::new(key);

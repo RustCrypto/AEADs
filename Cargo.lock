@@ -244,6 +244,7 @@ dependencies = [
  "aead",
  "aes",
  "hex-literal",
+ "inout",
  "subtle",
  "zeroize",
 ]

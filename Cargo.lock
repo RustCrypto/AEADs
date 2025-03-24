@@ -220,6 +220,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "deoxys"
+version = "0.1.0"
+dependencies = [
+ "aead",
+ "aes",
+ "hex-literal",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
 name = "digest"
 version = "0.11.0-pre.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -62,7 +62,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -76,7 +76,7 @@
 //! # #[cfg(feature = "heapless")]
 //! # {
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec};
+//! use deoxys::aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec};
 //!
 //! let key = DeoxysII256::generate_key().expect("generate key");
 //! let cipher = DeoxysII256::new(&key);
@@ -113,13 +113,12 @@ mod modes;
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, consts};
 
 use aead::{
-    PostfixTagged,
+    TagPosition,
     array::{Array, ArraySize},
     consts::U16,
-    inout::InOutBuf,
+    inout::{InOut, InOutBuf},
 };
 use core::marker::PhantomData;
-use inout::{InOut, InOutBuf};
 
 /// Deoxys-I with 128-bit keys
 pub type DeoxysI128 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
@@ -263,13 +262,7 @@ where
 {
     type NonceSize = M::NonceSize;
     type TagSize = U16;
-}
-
-impl<M, B> PostfixTagged for Deoxys<M, B>
-where
-    M: DeoxysMode<B>,
-    B: DeoxysBcType,
-{
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl<M, B> AeadInOut for Deoxys<M, B>
@@ -286,7 +279,7 @@ where
         Ok(Tag::from(M::encrypt_inout(
             nonce,
             associated_data,
-            buffer.into(),
+            buffer,
             &self.subkeys,
         )))
     }
@@ -298,7 +291,7 @@ where
         buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
-        M::decrypt_inout(nonce, associated_data, buffer.into(), tag, &self.subkeys)
+        M::decrypt_inout(nonce, associated_data, buffer, tag, &self.subkeys)
     }
 }
 

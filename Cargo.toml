@@ -8,7 +8,7 @@ members = [
     #"belt-dwp",
     "ccm",
     "chacha20poly1305",
-    #"deoxys",
+    "deoxys",
     #"eax",
     "ocb3",
     "xaes-256-gcm",

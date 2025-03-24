@@ -92,7 +92,6 @@ where
         let mut tag = Tag::default();
         let mut checksum = Checksum::default();
         let mut tweak = Tweak::default();
-        let buffer_len = buffer.len();
 
         // Associated Data
         <Self as DeoxysModeInternal<B>>::compute_ad_tag(
@@ -111,82 +110,68 @@ where
         tweak[8] = nonce[7] << 4;
 
         // Message authentication and encryption
-        if !buffer.is_empty() {
-            tweak[0] = (tweak[0] & 0xf) | TWEAK_M;
 
-            let (data_blocks, tail) = buffer.into_chunks();
-            let data_blocks_len = data_blocks.len();
+        tweak[0] = (tweak[0] & 0xf) | TWEAK_M;
 
-            for (index, data) in data_blocks.into_iter().enumerate() {
-                // Copy block number
-                let tmp = tweak[8] & 0xf0;
-                tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
-                tweak[8] = (tweak[8] & 0xf) | tmp;
+        let (data_blocks, mut tail) = buffer.into_chunks();
+        let mut data_blocks_len = data_blocks.len();
 
-                for (c, d) in checksum.iter_mut().zip(data.get_in().iter()) {
-                    *c ^= d;
-                }
-
-                B::encrypt_inout(data, &tweak, subkeys);
-            }
-
-            let mut data = tail;
-            let index = data_blocks_len;
-            if !data.is_empty() {
-                // Last block, incomplete
-
-                // Copy block number
-                let tmp = tweak[8] & 0xf0;
-                tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
-                tweak[8] = (tweak[8] & 0xf) | tmp;
-
-                // Last block checksum
-                tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
-
-                let mut block = Block::default();
-                block[0..data.len()].copy_from_slice(data.get_in());
-
-                block[data.len()] = 0x80;
-
-                for (c, d) in checksum.iter_mut().zip(block.iter()) {
-                    *c ^= d;
-                }
-
-                block.fill(0);
-
-                // Last block encryption
-                B::encrypt_inout((&mut block).into(), &tweak, subkeys);
-
-                data.xor_in2out((block[..data.len()]).into());
-
-                // Tag computing.
-                tweak[0] = (tweak[0] & 0xf) | TWEAK_CHKSUM;
-
-                let tmp = tweak[8] & 0xf0;
-                tweak[8..].copy_from_slice(&((index + 1) as u64).to_be_bytes());
-                tweak[8] = (tweak[8] & 0xf) | tmp;
-
-                B::encrypt_inout((&mut checksum).into(), tweak.as_ref(), subkeys);
-
-                for (t, c) in tag.iter_mut().zip(checksum.iter()) {
-                    *t ^= c;
-                }
-            }
-        }
-
-        if buffer_len % 16 == 0 {
-            // Tag computing without last block
-            tweak[0] = (tweak[0] & 0xf) | TWEAK_TAG;
-
+        for (index, data) in data_blocks.into_iter().enumerate() {
+            // Copy block number
             let tmp = tweak[8] & 0xf0;
-            tweak[8..].copy_from_slice(&((buffer_len / 16) as u64).to_be_bytes());
+            tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
             tweak[8] = (tweak[8] & 0xf) | tmp;
 
-            B::encrypt_inout((&mut checksum).into(), tweak.as_ref(), subkeys);
-
-            for (t, c) in tag.iter_mut().zip(checksum.iter()) {
-                *t ^= c;
+            for (c, d) in checksum.iter_mut().zip(data.get_in().iter()) {
+                *c ^= d;
             }
+
+            B::encrypt_inout(data, &tweak, subkeys);
+        }
+
+        // Process incomplete last block
+        if !tail.is_empty() {
+            // Copy block number
+            let tmp = tweak[8] & 0xf0;
+            tweak[8..].copy_from_slice(&(data_blocks_len as u64).to_be_bytes());
+            tweak[8] = (tweak[8] & 0xf) | tmp;
+
+            // Last block checksum
+            tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
+
+            let mut block = Block::default();
+            block[..tail.len()].copy_from_slice(tail.get_in());
+
+            block[tail.len()] = 0x80;
+
+            for (c, d) in checksum.iter_mut().zip(block.iter()) {
+                *c ^= d;
+            }
+
+            block.fill(0);
+
+            // Last block encryption
+            B::encrypt_inout((&mut block).into(), &tweak, subkeys);
+
+            tail.xor_in2out((block[..tail.len()]).into());
+
+            data_blocks_len += 1;
+        };
+
+        // Tag computing.
+        let t = if tail.is_empty() {
+            TWEAK_TAG
+        } else {
+            TWEAK_CHKSUM
+        };
+        tweak[0] = (tweak[0] & 0xf) | t;
+        let tmp = tweak[8] & 0xf0;
+        tweak[8..].copy_from_slice(&(data_blocks_len as u64).to_be_bytes());
+        tweak[8] = (tweak[8] & 0xf) | tmp;
+
+        B::encrypt_inout((&mut checksum).into(), tweak.as_ref(), subkeys);
+        for (t, c) in tag.iter_mut().zip(checksum.iter()) {
+            *t ^= c;
         }
 
         tag
@@ -202,7 +187,6 @@ where
         let mut computed_tag = Tag::default();
         let mut checksum = Checksum::default();
         let mut tweak = Tweak::default();
-        let buffer_len = buffer.len();
 
         // Associated Data
         <Self as DeoxysModeInternal<B>>::compute_ad_tag(
@@ -221,78 +205,67 @@ where
         tweak[8] = nonce[7] << 4;
 
         // Message authentication and encryption
-        if !buffer.is_empty() {
-            tweak[0] = (tweak[0] & 0xf) | TWEAK_M;
 
-            let (data_blocks, tail) = buffer.into_chunks();
-            let data_blocks_len = data_blocks.len();
+        tweak[0] = (tweak[0] & 0xf) | TWEAK_M;
 
-            for (index, mut data) in data_blocks.into_iter().enumerate() {
-                // Copy block number
-                let tmp = tweak[8] & 0xf0;
-                tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
-                tweak[8] = (tweak[8] & 0xf) | tmp;
+        let (data_blocks, mut tail) = buffer.into_chunks();
+        let mut data_blocks_len = data_blocks.len();
 
-                B::decrypt_inout(data.reborrow(), tweak.as_ref(), subkeys);
+        for (index, mut data) in data_blocks.into_iter().enumerate() {
+            // Copy block number
+            let tmp = tweak[8] & 0xf0;
+            tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
+            tweak[8] = (tweak[8] & 0xf) | tmp;
 
-                for (c, d) in checksum.iter_mut().zip(data.get_out().iter()) {
-                    *c ^= d;
-                }
-            }
+            B::decrypt_inout(data.reborrow(), tweak.as_ref(), subkeys);
 
-            let mut data = tail;
-            let index = data_blocks_len;
-            if !data.is_empty() {
-                // Copy block number
-                let tmp = tweak[8] & 0xf0;
-                tweak[8..].copy_from_slice(&(index as u64).to_be_bytes());
-                tweak[8] = (tweak[8] & 0xf) | tmp;
-
-                // Last block checksum
-                tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
-
-                let mut block = Block::default();
-                B::encrypt_inout((&mut block).into(), tweak.as_ref(), subkeys);
-
-                data.xor_in2out((block[..data.len()]).into());
-
-                block.fill(0);
-
-                block[0..data.len()].copy_from_slice(data.get_out());
-                block[data.len()] = 0x80;
-
-                for (c, d) in checksum.iter_mut().zip(block.iter()) {
-                    *c ^= d;
-                }
-
-                // Tag computing.
-                tweak[0] = (tweak[0] & 0xf) | TWEAK_CHKSUM;
-
-                let tmp = tweak[8] & 0xf0;
-                tweak[8..].copy_from_slice(&((index + 1) as u64).to_be_bytes());
-                tweak[8] = (tweak[8] & 0xf) | tmp;
-
-                B::encrypt_inout((&mut checksum).into(), tweak.as_ref(), subkeys);
-
-                for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
-                    *t ^= c;
-                }
+            for (c, d) in checksum.iter_mut().zip(data.get_out().iter()) {
+                *c ^= d;
             }
         }
 
-        if buffer_len % 16 == 0 {
-            // Tag computing without last block
-            tweak[0] = (tweak[0] & 0xf) | TWEAK_TAG;
-
+        // Process incomplete last block
+        if !tail.is_empty() {
+            // Copy block number
             let tmp = tweak[8] & 0xf0;
-            tweak[8..].copy_from_slice(&((buffer_len / 16) as u64).to_be_bytes());
+            tweak[8..].copy_from_slice(&(data_blocks_len as u64).to_be_bytes());
             tweak[8] = (tweak[8] & 0xf) | tmp;
 
-            B::encrypt_inout((&mut checksum).into(), tweak.as_ref(), subkeys);
+            // Last block checksum
+            tweak[0] = (tweak[0] & 0xf) | TWEAK_M_LAST;
 
-            for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
-                *t ^= c;
+            let mut block = Block::default();
+            B::encrypt_inout((&mut block).into(), tweak.as_ref(), subkeys);
+
+            tail.xor_in2out((block[..tail.len()]).into());
+
+            block.fill(0);
+
+            block[..tail.len()].copy_from_slice(tail.get_out());
+            block[tail.len()] = 0x80;
+
+            for (c, d) in checksum.iter_mut().zip(block.iter()) {
+                *c ^= d;
             }
+
+            data_blocks_len += 1;
+        }
+
+        // Tag computing.
+        let t = if tail.is_empty() {
+            TWEAK_TAG
+        } else {
+            TWEAK_CHKSUM
+        };
+        tweak[0] = (tweak[0] & 0xf) | t;
+        let tmp = tweak[8] & 0xf0;
+        tweak[8..].copy_from_slice(&(data_blocks_len as u64).to_be_bytes());
+        tweak[8] = (tweak[8] & 0xf) | tmp;
+
+        B::encrypt_inout((&mut checksum).into(), tweak.as_ref(), subkeys);
+
+        for (t, c) in computed_tag.iter_mut().zip(checksum.iter()) {
+            *t ^= c;
         }
 
         if tag.ct_eq(&computed_tag).into() {

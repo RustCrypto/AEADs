@@ -330,8 +330,7 @@ dependencies = [
 [[package]]
 name = "inout"
 version = "0.2.0-rc.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac5e145e8ade9f74c0a5efc60ccb4e714b0144f7e2220b7ca64254feee71c57f"
+source = "git+https://github.com/baloo/utils.git?branch=baloo%2Finout%2Fsplit#c5547a90b475a914ca362baec78db42d9ed29329"
 dependencies = [
  "hybrid-array",
 ]
@@ -353,6 +352,7 @@ dependencies = [
  "ctr",
  "dbl",
  "hex-literal",
+ "inout",
  "subtle",
  "zeroize",
 ]

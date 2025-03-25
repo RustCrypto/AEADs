@@ -56,7 +56,7 @@ pub use aes_gcm;
 use core::ops::{Div, Mul};
 
 use aead::{
-    AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser, PostfixTagged, array::Array,
+    AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, TagPosition, array::Array, inout::InOutBuf,
 };
 use aes::Aes256;
 use aes_gcm::Aes256Gcm;
@@ -96,6 +96,7 @@ pub const C_MAX: u64 = (1 << 36) + 16;
 impl AeadCore for Xaes256Gcm {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl KeySizeUser for Xaes256Gcm {
@@ -126,14 +127,12 @@ impl KeyInit for Xaes256Gcm {
     }
 }
 
-impl PostfixTagged for Xaes256Gcm {}
-
-impl AeadInPlaceDetached for Xaes256Gcm {
-    fn encrypt_in_place_detached(
+impl AeadInOut for Xaes256Gcm {
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -141,14 +140,14 @@ impl AeadInPlaceDetached for Xaes256Gcm {
 
         let (n1, n) = nonce.split_ref::<<NonceSize as Div<U2>>::Output>();
         let k = self.derive_key(n1);
-        Aes256Gcm::new(&k).encrypt_in_place_detached(n, associated_data, buffer)
+        Aes256Gcm::new(&k).encrypt_inout_detached(n, associated_data, buffer)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
@@ -157,7 +156,7 @@ impl AeadInPlaceDetached for Xaes256Gcm {
 
         let (n1, n) = nonce.split_ref::<<NonceSize as Div<U2>>::Output>();
         let k = self.derive_key(n1);
-        Aes256Gcm::new(&k).decrypt_in_place_detached(n, associated_data, buffer, tag)
+        Aes256Gcm::new(&k).decrypt_inout_detached(n, associated_data, buffer, tag)
     }
 }
 

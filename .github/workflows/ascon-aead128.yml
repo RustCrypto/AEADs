@@ -1,17 +1,17 @@
-name: ascon-aead
+name: ascon-aead128
 
 on:
   pull_request:
     paths:
-      - ".github/workflows/ascon-aead.yml"
-      - "ascon-aead/**"
+      - ".github/workflows/ascon-aead128.yml"
+      - "ascon-aead128/**"
       - "Cargo.*"
   push:
     branches: master
 
 defaults:
   run:
-    working-directory: ascon-aead
+    working-directory: ascon-aead128
 
 env:
   CARGO_INCREMENTAL: 0

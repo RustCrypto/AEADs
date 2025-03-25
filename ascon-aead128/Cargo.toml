@@ -1,11 +1,8 @@
 [package]
-name = "ascon-aead"
-version = "0.4.2"
-description = "Implementation of the authenticated encryption schemes Ascon-128, Ascon-128a, and Ascon-80pq"
-authors = [
-    "Sebastian Ramacher <sebastian.ramacher@ait.ac.at>",
-    "RustCrypto Developers",
-]
+name = "ascon-aead128"
+version = "0.1.0"
+description = "Implementation of the Ascon-AEAD128 authenticated encryption scheme"
+authors = ["RustCrypto Developers"]
 edition = "2024"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"

@@ -11,8 +11,8 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
+#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
 //!     aead::{Aead, AeadCore, KeyInit, OsRng},
@@ -44,17 +44,11 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(
-    all(feature = "getrandom", feature = "heapless", feature = "std"),
-    doc = "```"
-)]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "heapless", feature = "std")),
-    doc = "```ignore"
-)]
+#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
-//!     aead::{AeadInPlace, KeyInit, OsRng, heapless::Vec},
+//!     aead::{AeadInPlaceDetached, KeyInit, OsRng, heapless::Vec},
 //!     BeltDwp, Nonce
 //! };
 //!
@@ -82,9 +76,9 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-use aead::consts::{U0, U16, U32, U8};
+use aead::consts::{U16, U32, U8};
+use aead::AeadInPlaceDetached;
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
-
 use belt_block::cipher::{Block, BlockCipherEncrypt, KeyIvInit, StreamCipher};
 use belt_block::{belt_block_raw, BeltBlock};
 use belt_ctr::BeltCtr;
@@ -118,7 +112,7 @@ impl KeySizeUser for BeltDwp {
     type KeySize = U32;
 }
 
-impl AeadInPlace for BeltDwp {
+impl AeadInPlaceDetached for BeltDwp {
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce,
@@ -254,7 +248,6 @@ impl KeyInit for BeltDwp {
 impl AeadCore for BeltDwp {
     type NonceSize = U16;
     type TagSize = U8;
-    type CiphertextOverhead = U0;
 }
 
 /// Get the sizes block for the GHASH

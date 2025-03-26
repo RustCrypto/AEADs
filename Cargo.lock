@@ -103,6 +103,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "belt-block"
+version = "0.2.0-pre.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20cce8d102fb5accb008983fb54f0975834bc5f7789080e6564b0f7e13ffe37a"
+dependencies = [
+ "cipher",
+]
+
+[[package]]
+name = "belt-ctr"
+version = "0.2.0-pre"
+source = "git+https://github.com/RustCrypto/block-modes.git#3ec1c8191dea30def40c033513bbc8bdb3a9cd78"
+dependencies = [
+ "belt-block",
+ "cipher",
+]
+
+[[package]]
+name = "belt-dwp"
+version = "0.1.0"
+dependencies = [
+ "aead",
+ "belt-block",
+ "belt-ctr",
+ "hex-literal",
+ "opaque-debug",
+ "universal-hash",
+ "zeroize",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -189,6 +220,7 @@ checksum = "276974d2acb7cf592603150941fc1ff6442acdeb1dc653ac2825928f4703c131"
 dependencies = [
  "crypto-common",
  "inout",
+ "zeroize",
 ]
 
 [[package]]
@@ -325,6 +357,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4dab50e193aebe510fe0e40230145820e02f48dae0cf339ea4204e6e708ff7bd"
 dependencies = [
  "typenum",
+ "zeroize",
 ]
 
 [[package]]

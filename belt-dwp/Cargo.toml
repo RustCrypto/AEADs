@@ -2,14 +2,14 @@
 name = "belt-dwp"
 version = "0.1.0"
 description = "Pure Rust implementation of the Belt-DWP authenticated encryption algorithm (STB 34.101.31-2020)"
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/belt-dwp"
 repository = "https://github.com/RustCrypto/AEADs/tree/master/belt-dwp"
 keywords = ["aead", "belt-dwp"]
 categories = ["cryptography", "no-std"]
-rust-version = "1.81"
+rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }

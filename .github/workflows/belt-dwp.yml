@@ -64,6 +64,6 @@ jobs:
       - run: ${{ matrix.deps }}
       - run: cargo test --target ${{ matrix.target }} --release --no-default-features --lib
       - run: cargo test --target ${{ matrix.target }} --release
-      - run: cargo test --target ${{ matrix.target }} --release --features std
+      - run: cargo test --target ${{ matrix.target }} --release --features heapless
       - run: cargo test --target ${{ matrix.target }} --release --all-features
       - run: cargo build --target ${{ matrix.target }} --benches

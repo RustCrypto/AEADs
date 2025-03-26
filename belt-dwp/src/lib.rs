@@ -15,7 +15,7 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
-//!     aead::{Aead, AeadCore, KeyInit, OsRng},
+//!     aead::{Aead, AeadCore, KeyInit},
 //!     BeltDwp, Nonce
 //! };
 //!
@@ -48,25 +48,25 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
-//!     aead::{AeadInPlaceDetached, KeyInit, OsRng, heapless::Vec},
+//!     aead::{AeadInPlace, AeadInPlaceDetached, KeyInit, heapless::Vec},
 //!     BeltDwp, Nonce
 //! };
 //!
-//! let key = BeltDwp::generate_key(&mut OsRng);
+//! let key = BeltDwp::generate_key().unwrap();
 //! let cipher = BeltDwp::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce1234"); // 128-bits; unique per message
+//! let nonce = Nonce::try_from(&b"unique nonce1234"[..]).unwrap(); // 128-bits; unique per message
 //!
 //! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
 //! # Ok(())
 //! # }
@@ -77,8 +77,8 @@
 //! [`aead::arrayvec::ArrayVec`]).
 
 use aead::consts::{U16, U32, U8};
-use aead::AeadInPlaceDetached;
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+use aead::{AeadInPlaceDetached, PostfixTagged};
 use belt_block::cipher::{Block, BlockCipherEncrypt, KeyIvInit, StreamCipher};
 use belt_block::{belt_block_raw, BeltBlock};
 use belt_ctr::BeltCtr;
@@ -132,6 +132,8 @@ impl AeadInPlaceDetached for BeltDwp {
         Cipher::new(self.key, nonce).decrypt_in_place_detached(associated_data, buffer, tag)
     }
 }
+
+impl PostfixTagged for BeltDwp {}
 
 struct Cipher {
     enc_cipher: BeltCtr,

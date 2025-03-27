@@ -1,7 +1,7 @@
 use aead::{array::Array, consts::U16};
 use core::ops::{Add, Mul};
 
-use super::{utils::bmul64, GfElement};
+use super::{GfElement, utils::bmul64};
 
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct Element(u64, u64);

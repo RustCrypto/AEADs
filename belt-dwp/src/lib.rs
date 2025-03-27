@@ -76,11 +76,11 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-use aead::consts::{U16, U32, U8};
+use aead::consts::{U8, U16, U32};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 use aead::{AeadInPlaceDetached, PostfixTagged};
 use belt_block::cipher::{Block, BlockCipherEncrypt, KeyIvInit, StreamCipher};
-use belt_block::{belt_block_raw, BeltBlock};
+use belt_block::{BeltBlock, belt_block_raw};
 use belt_ctr::BeltCtr;
 use universal_hash::UniversalHash;
 
@@ -262,8 +262,7 @@ fn get_sizes_block(plain_cnt: u64, sec_cnt: u64) -> Block<GHash> {
     sizes_block
 }
 
-impl Drop for BeltDwp
-{
+impl Drop for BeltDwp {
     fn drop(&mut self) {
         #[cfg(feature = "zeroize")]
         {

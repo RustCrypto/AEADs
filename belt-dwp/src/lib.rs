@@ -88,11 +88,11 @@ use universal_hash::crypto_common::{BlockSizeUser, InnerInit};
 
 use crate::ghash::GHash;
 
-/// Nonce type for [`BeltDwp`]
-pub type Nonce = aead::Nonce<BeltDwp>;
+/// Nonce type for [`Dwp`]
+pub type Nonce = aead::Nonce<Dwp>;
 
-/// Tag type for [`BeltDwp`]
-pub type Tag = aead::Tag<BeltDwp>;
+/// Tag type for [`Dwp`]
+pub type Tag = aead::Tag<Dwp>;
 
 mod gf;
 mod ghash;
@@ -102,30 +102,34 @@ const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
 /// Belt-DWP authenticated encryption with associated data (AEAD) cipher, defined in
 /// STB 34.101.31-2020
-pub struct BeltDwp<C = BeltBlock>
+pub type BeltDwp = Dwp<BeltBlock>;
+
+/// Belt-DWP authenticated encryption with associated data (AEAD) cipher, defined in
+/// STB 34.101.31-2020
+pub struct Dwp<C = BeltBlock>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
     cipher: C,
 }
 
-impl<C> InnerUser for BeltDwp<C>
+impl<C> InnerUser for Dwp<C>
 where
-    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + InnerUser,
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
     type Inner = C;
 }
 
-impl<C> InnerInit for BeltDwp<C>
+impl<C> InnerInit for Dwp<C>
 where
-    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + InnerInit,
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
     fn inner_init(inner: Self::Inner) -> Self {
         Self { cipher: inner }
     }
 }
 
-impl<C> AeadInPlaceDetached for BeltDwp<C>
+impl<C> AeadInPlaceDetached for Dwp<C>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
@@ -236,20 +240,9 @@ where
     }
 }
 
-impl<C> PostfixTagged for BeltDwp<C> where C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> {}
+impl<C> PostfixTagged for Dwp<C> where C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> {}
 
-// impl<C> KeyInit for BeltDwp<C>
-// where
-//     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + KeyInit,
-// {
-//     fn new(key: &Key<Self>) -> Self {
-//         Self {
-//             cipher: C::new(key),
-//         }
-//     }
-// }
-
-impl<C> AeadCore for BeltDwp<C>
+impl<C> AeadCore for Dwp<C>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
@@ -271,4 +264,4 @@ fn get_sizes_block(aad_len: usize, msg_len: usize) -> Block<GHash> {
 }
 
 #[cfg(feature = "zeroize")]
-impl zeroize::ZeroizeOnDrop for BeltDwp {}
+impl zeroize::ZeroizeOnDrop for Dwp {}

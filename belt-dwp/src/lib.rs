@@ -76,18 +76,16 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-use aead::consts::{U16, U32, U8};
+use aead::consts::{U8, U16, U32};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 use aead::{AeadInPlaceDetached, PostfixTagged};
-use belt_block::cipher::{Block, BlockCipherEncrypt, KeyIvInit, StreamCipher};
-use belt_block::{belt_block_raw, BeltBlock};
-use belt_ctr::BeltCtr;
+use belt_block::BeltBlock;
+use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
+use belt_ctr::cipher::InnerIvInit;
+use belt_ctr::{BeltCtr, BeltCtrCore};
 use universal_hash::UniversalHash;
 
-use crate::{
-    ghash::GHash,
-    utils::{from_u32, to_u32},
-};
+use crate::ghash::GHash;
 
 /// Nonce type for [`BeltDwp`]
 pub type Nonce = aead::Nonce<BeltDwp>;
@@ -97,7 +95,6 @@ pub type Tag = aead::Tag<BeltDwp>;
 
 mod gf;
 mod ghash;
-mod utils;
 
 /// T from the STB 34.101.31-2020
 const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
@@ -105,7 +102,7 @@ const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 /// Belt-DWP authenticated encryption with associated data (AEAD) cipher, defined in
 /// STB 34.101.31-2020
 pub struct BeltDwp {
-    key: Key<BeltBlock>,
+    backend: BeltBlock,
 }
 
 impl KeySizeUser for BeltDwp {
@@ -119,7 +116,7 @@ impl AeadInPlaceDetached for BeltDwp {
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> aead::Result<Tag> {
-        Cipher::new(self.key, nonce).encrypt_in_place_detached(associated_data, buffer)
+        Cipher::new(self.backend.clone(), nonce).encrypt_in_place_detached(associated_data, buffer)
     }
 
     fn decrypt_in_place_detached(
@@ -129,7 +126,11 @@ impl AeadInPlaceDetached for BeltDwp {
         buffer: &mut [u8],
         tag: &Tag,
     ) -> aead::Result<()> {
-        Cipher::new(self.key, nonce).decrypt_in_place_detached(associated_data, buffer, tag)
+        Cipher::new(self.backend.clone(), nonce).decrypt_in_place_detached(
+            associated_data,
+            buffer,
+            tag,
+        )
     }
 }
 
@@ -142,19 +143,20 @@ struct Cipher {
 }
 
 impl Cipher {
-    fn new(key: Key<BeltBlock>, nonce: &Nonce) -> Self {
-        let cipher: BeltCtr = BeltCtr::new(&key, nonce);
+    fn new(enc_cipher: BeltBlock, nonce: &Nonce) -> Self {
+        let core = BeltCtrCore::inner_iv_init(enc_cipher.clone(), nonce);
 
-        let _s = to_u32::<4>(nonce);
-        let _k = to_u32::<8>(&key);
         // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
-        let s = belt_block_raw(_s, &_k);
+        let mut s = *nonce;
+        enc_cipher.encrypt_block(&mut s);
+
         // 2.2. 𝑟 ← belt-block(𝑠, 𝐾);
-        let r = from_u32::<16>(&belt_block_raw(s, &_k));
+        let mut r = s;
+        enc_cipher.encrypt_block(&mut r);
 
         Self {
-            enc_cipher: cipher,
-            mac_cipher: BeltBlock::new(&key),
+            enc_cipher: BeltCtr::from_core(core),
+            mac_cipher: enc_cipher,
             ghash: GHash::new_with_init_block(
                 &Key::<GHash>::try_from(&r[..]).expect("Key is always 16 bytes"),
                 T,
@@ -243,7 +245,9 @@ impl Cipher {
 
 impl KeyInit for BeltDwp {
     fn new(key: &Key<Self>) -> Self {
-        Self { key: *key }
+        Self {
+            backend: BeltBlock::new(key),
+        }
     }
 }
 

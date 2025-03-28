@@ -169,9 +169,7 @@ impl Cipher {
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> aead::Result<Tag> {
-        let aad_bit_len = associated_data.len() as u64 * 8;
-        let msg_bit_len = buffer.len() as u64 * 8;
-        let sizes_block = get_sizes_block(aad_bit_len, msg_bit_len);
+        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
@@ -205,8 +203,7 @@ impl Cipher {
         buffer: &mut [u8],
         tag: &Tag,
     ) -> aead::Result<()> {
-        let sizes_block =
-            get_sizes_block(associated_data.len() as u64 * 8, buffer.len() as u64 * 8);
+        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
@@ -257,11 +254,14 @@ impl AeadCore for BeltDwp {
 }
 
 /// Get the sizes block for the GHASH
-fn get_sizes_block(plain_cnt: u64, sec_cnt: u64) -> Block<GHash> {
+fn get_sizes_block(aad_len: usize, msg_len: usize) -> Block<GHash> {
+    let aad_bit_len = aad_len as u64 * 8;
+    let msg_bit_len = msg_len as u64 * 8;
+
     let mut sizes_block: Block<GHash> = Default::default();
 
-    sizes_block[..8].copy_from_slice(&plain_cnt.to_le_bytes());
-    sizes_block[8..].copy_from_slice(&sec_cnt.to_le_bytes());
+    sizes_block[..8].copy_from_slice(&aad_bit_len.to_le_bytes());
+    sizes_block[8..].copy_from_slice(&msg_bit_len.to_le_bytes());
 
     sizes_block
 }

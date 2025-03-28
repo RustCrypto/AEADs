@@ -100,7 +100,7 @@ mod ghash;
 mod utils;
 
 /// T from the STB 34.101.31-2020
-const T: u128 = 0xE45D4A588E006D363BF5080AC8BA94B1;
+const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
 /// Belt-DWP authenticated encryption with associated data (AEAD) cipher, defined in
 /// STB 34.101.31-2020
@@ -221,19 +221,17 @@ impl Cipher {
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
         self.mac_cipher.encrypt_block(&mut tag_exact);
 
+        use subtle::ConstantTimeEq;
         // 7. If 𝑇 != Lo(𝑡, 64), return ⊥
-        if tag_exact[..8] != tag[..] {
-            return Err(aead::Error);
+        if tag_exact[..8].ct_eq(tag).into() {
+            // 8. For 𝑖 = 1,2,...,𝑛 do:
+            // 8.1. 𝑠 ← 𝑠 ⊞ ⟨1⟩128;
+            // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
+            self.enc_cipher.apply_keystream(buffer);
+            Ok(())
+        } else {
+            Err(Error)
         }
-
-        // 8. For 𝑖 = 1,2,...,𝑛 do:
-        // 8.1. 𝑠 ← 𝑠 ⊞ ⟨1⟩128;
-        // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
-        buffer.chunks_mut(16).for_each(|block| {
-            self.enc_cipher.apply_keystream(block);
-        });
-
-        Ok(())
     }
 
     pub(crate) fn finish_tag(&mut self) -> Block<GHash> {

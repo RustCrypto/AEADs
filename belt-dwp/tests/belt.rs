@@ -2,7 +2,8 @@ use aead::AeadInPlaceDetached;
 use belt_dwp::{BeltDwp, KeyInit};
 use hex_literal::hex;
 
-/// Test from Appendix A, tables 19-20 of [STB 34.101.31-2020](https://apmi.bsu.by/assets/files/std/belt-spec372.pdf)
+/// Test from Appendix A, tables 19-20 of STB 34.101.31-2020:
+/// https://apmi.bsu.by/assets/files/std/belt-spec372.pdf
 #[test]
 fn test_belt_dwp() {
     struct TestVector {

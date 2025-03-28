@@ -1,17 +1,19 @@
-use aead::{KeyInit, KeySizeUser, consts::U1, consts::U16};
+use aead::array::Array;
+use aead::consts::{U1, U16};
+use aead::{KeyInit, KeySizeUser};
 use belt_block::cipher::{BlockSizeUser, ParBlocksSizeUser};
 use universal_hash::{Reset, UhfBackend, UhfClosure, UniversalHash};
 
 use crate::gf::gf128_soft64::Element;
 
 /// GHASH keys (16-bytes)
-pub type Key = universal_hash::Key<GHash>;
+pub type Key = Array<u8, U16>;
 
 /// GHASH blocks (16-bytes)
-pub type Block = universal_hash::Block<GHash>;
+pub type Block = Array<u8, U16>;
 
 /// GHASH tags (16-bytes)
-pub type Tag = universal_hash::Block<GHash>;
+pub type Tag = Array<u8, U16>;
 
 #[derive(Clone)]
 pub struct GHash {

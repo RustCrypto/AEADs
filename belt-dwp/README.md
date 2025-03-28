@@ -10,8 +10,6 @@
 Pure Rust implementation of **BeltDwp** ([STB 34.101.31-2020][1]): an
 [Authenticated Encryption with Associated Data (AEAD)][2].
 
-[Documentation][docs-link]
-
 ## About
 
 BeltDwp is republic of Belarus standard for authenticated encryption with associated data.

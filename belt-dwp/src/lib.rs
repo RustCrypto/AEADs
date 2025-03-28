@@ -77,15 +77,15 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-use aead::consts::{U16, U8};
+use aead::consts::{U8, U16};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 use aead::{AeadInPlaceDetached, PostfixTagged};
-use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 pub use belt_block::BeltBlock;
+use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
 use belt_ctr::{BeltCtr, BeltCtrCore};
-use universal_hash::crypto_common::BlockSizeUser;
 use universal_hash::UniversalHash;
+use universal_hash::crypto_common::BlockSizeUser;
 
 use crate::ghash::GHash;
 

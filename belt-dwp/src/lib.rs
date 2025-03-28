@@ -79,11 +79,12 @@ use aead::consts::{U8, U16};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 use aead::{AeadInPlaceDetached, PostfixTagged};
 pub use belt_block::BeltBlock;
+use belt_block::cipher::crypto_common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
 use belt_ctr::{BeltCtr, BeltCtrCore};
 use universal_hash::UniversalHash;
-use universal_hash::crypto_common::BlockSizeUser;
+use universal_hash::crypto_common::{BlockSizeUser, InnerInit};
 
 use crate::ghash::GHash;
 
@@ -108,11 +109,20 @@ where
     cipher: C,
 }
 
-impl<C> KeySizeUser for BeltDwp<C>
+impl<C> InnerUser for BeltDwp<C>
 where
-    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + KeySizeUser,
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + InnerUser,
 {
-    type KeySize = C::KeySize;
+    type Inner = C;
+}
+
+impl<C> InnerInit for BeltDwp<C>
+where
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + InnerInit,
+{
+    fn inner_init(inner: Self::Inner) -> Self {
+        Self { cipher: inner }
+    }
 }
 
 impl<C> AeadInPlaceDetached for BeltDwp<C>
@@ -228,16 +238,16 @@ where
 
 impl<C> PostfixTagged for BeltDwp<C> where C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> {}
 
-impl<C> KeyInit for BeltDwp<C>
-where
-    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + KeyInit,
-{
-    fn new(key: &Key<Self>) -> Self {
-        Self {
-            cipher: C::new(key),
-        }
-    }
-}
+// impl<C> KeyInit for BeltDwp<C>
+// where
+//     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + KeyInit,
+// {
+//     fn new(key: &Key<Self>) -> Self {
+//         Self {
+//             cipher: C::new(key),
+//         }
+//     }
+// }
 
 impl<C> AeadCore for BeltDwp<C>
 where

@@ -116,7 +116,49 @@ impl AeadInPlaceDetached for BeltDwp {
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> aead::Result<Tag> {
-        Cipher::new(self.backend.clone(), nonce).encrypt_in_place_detached(associated_data, buffer)
+        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
+
+        // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
+        let mut s = *nonce;
+        self.backend.encrypt_block(&mut s);
+
+        // 2.2. 𝑟 ← belt-block(𝑠, 𝐾);
+        let mut r = s;
+        self.backend.encrypt_block(&mut r);
+
+        // Initialize GHash
+        let mut ghash = GHash::new_with_init_block(
+            &Key::<GHash>::try_from(&r[..]).expect("Key is always 16 bytes"),
+            T,
+        );
+
+        // Initialize CTR mode
+        let core = BeltCtrCore::inner_iv_init(&self.backend, nonce);
+        let mut enc_cipher = BeltCtr::from_core(core);
+
+        // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
+        //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
+        //  3.2 𝑡 ← 𝑡 * 𝑟.
+        ghash.update_padded(associated_data);
+
+        // 4. For 𝑖 = 1, 2, . . . , 𝑛 do:
+        //  4.1 𝑠 ← 𝑠 ⊞ ⟨1⟩_128
+        //  4.2 𝑌𝑖 ← 𝑋𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑋𝑖|)
+        //  4.3 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
+        //  4.4 𝑡 ← 𝑡 * 𝑟.
+        buffer.chunks_mut(16).for_each(|block| {
+            enc_cipher.apply_keystream(block);
+            ghash.update_padded(block);
+        });
+
+        // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
+        ghash.xor_s(&sizes_block);
+
+        // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
+        let mut tag = ghash.finalize_reset();
+        self.backend.encrypt_block(&mut tag);
+
+        Ok(Tag::try_from(&tag[..8]).expect("Tag is always 8 bytes"))
     }
 
     fn decrypt_in_place_detached(
@@ -126,101 +168,38 @@ impl AeadInPlaceDetached for BeltDwp {
         buffer: &mut [u8],
         tag: &Tag,
     ) -> aead::Result<()> {
-        Cipher::new(self.backend.clone(), nonce).decrypt_in_place_detached(
-            associated_data,
-            buffer,
-            tag,
-        )
-    }
-}
-
-impl PostfixTagged for BeltDwp {}
-
-struct Cipher {
-    enc_cipher: BeltCtr,
-    mac_cipher: BeltBlock,
-    ghash: GHash,
-}
-
-impl Cipher {
-    fn new(enc_cipher: BeltBlock, nonce: &Nonce) -> Self {
-        let core = BeltCtrCore::inner_iv_init(enc_cipher.clone(), nonce);
+        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
 
         // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
         let mut s = *nonce;
-        enc_cipher.encrypt_block(&mut s);
+        self.backend.encrypt_block(&mut s);
 
         // 2.2. 𝑟 ← belt-block(𝑠, 𝐾);
         let mut r = s;
-        enc_cipher.encrypt_block(&mut r);
+        self.backend.encrypt_block(&mut r);
 
-        Self {
-            enc_cipher: BeltCtr::from_core(core),
-            mac_cipher: enc_cipher,
-            ghash: GHash::new_with_init_block(
-                &Key::<GHash>::try_from(&r[..]).expect("Key is always 16 bytes"),
-                T,
-            ),
-        }
-    }
-
-    fn encrypt_in_place_detached(
-        &mut self,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-    ) -> aead::Result<Tag> {
-        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
+        // Initialize GHash
+        let mut ghash = GHash::new_with_init_block(
+            &Key::<GHash>::try_from(&r[..]).expect("Key is always 16 bytes"),
+            T,
+        );
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
         //  3.2 𝑡 ← 𝑡 * 𝑟.
-        self.ghash.update_padded(associated_data);
+        ghash.update_padded(associated_data);
 
-        // 4. For 𝑖 = 1, 2, . . . , 𝑛 do:
-        //  4.1 𝑠 ← 𝑠 ⊞ ⟨1⟩_128
-        //  4.2 𝑌𝑖 ← 𝑋𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑋𝑖|)
-        //  4.3 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
-        //  4.4 𝑡 ← 𝑡 * 𝑟.
-        buffer.chunks_mut(16).for_each(|block| {
-            self.enc_cipher.apply_keystream(block);
-            self.ghash.update_padded(block);
-        });
-
-        // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
-        self.ghash.xor_s(&sizes_block);
-
-        // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
-        let mut tag = self.finish_tag();
-
-        self.mac_cipher.encrypt_block(&mut tag);
-
-        Ok(Tag::try_from(&tag[..8]).expect("Tag is always 8 bytes"))
-    }
-
-    fn decrypt_in_place_detached(
-        &mut self,
-        associated_data: &[u8],
-        buffer: &mut [u8],
-        tag: &Tag,
-    ) -> aead::Result<()> {
-        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
-
-        // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
-        //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
-        //  3.2 𝑡 ← 𝑡 * 𝑟.
-        self.ghash.update_padded(associated_data);
         // 4. For 𝑖 = 1, 2, . . . , 𝑛 do:
         //  4.1 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
         //  4.2 𝑡 ← 𝑡 * 𝑟.
-        self.ghash.update_padded(buffer);
+        ghash.update_padded(buffer);
 
         // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
-        self.ghash.xor_s(&sizes_block);
-
-        let mut tag_exact = self.finish_tag();
+        ghash.xor_s(&sizes_block);
 
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
-        self.mac_cipher.encrypt_block(&mut tag_exact);
+        let mut tag_exact = ghash.finalize_reset();
+        self.backend.encrypt_block(&mut tag_exact);
 
         use subtle::ConstantTimeEq;
         // 7. If 𝑇 != Lo(𝑡, 64), return ⊥
@@ -228,17 +207,17 @@ impl Cipher {
             // 8. For 𝑖 = 1,2,...,𝑛 do:
             // 8.1. 𝑠 ← 𝑠 ⊞ ⟨1⟩128;
             // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
-            self.enc_cipher.apply_keystream(buffer);
+            let core = BeltCtrCore::inner_iv_init(&self.backend, nonce);
+            let mut enc_cipher = BeltCtr::from_core(core);
+            enc_cipher.apply_keystream(buffer);
             Ok(())
         } else {
             Err(Error)
         }
     }
-
-    pub(crate) fn finish_tag(&mut self) -> Block<GHash> {
-        self.ghash.finalize_reset()
-    }
 }
+
+impl PostfixTagged for BeltDwp {}
 
 impl KeyInit for BeltDwp {
     fn new(key: &Key<Self>) -> Self {

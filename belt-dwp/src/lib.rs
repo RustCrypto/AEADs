@@ -266,15 +266,5 @@ fn get_sizes_block(plain_cnt: u64, sec_cnt: u64) -> Block<GHash> {
     sizes_block
 }
 
-impl Drop for BeltDwp {
-    fn drop(&mut self) {
-        #[cfg(feature = "zeroize")]
-        {
-            use zeroize::Zeroize;
-            self.key.as_mut_slice().zeroize();
-        }
-    }
-}
-
 #[cfg(feature = "zeroize")]
 impl zeroize::ZeroizeOnDrop for BeltDwp {}

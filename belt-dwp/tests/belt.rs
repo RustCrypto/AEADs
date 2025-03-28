@@ -1,6 +1,9 @@
 use aead::AeadInPlaceDetached;
-use belt_dwp::{BeltDwp, KeyInit};
+use belt_block::BeltBlock;
+use belt_dwp::KeyInit;
 use hex_literal::hex;
+
+type BeltDwp = belt_dwp::BeltDwp<BeltBlock>;
 
 /// Test from Appendix A, tables 19-20 of STB 34.101.31-2020:
 /// https://apmi.bsu.by/assets/files/std/belt-spec372.pdf
@@ -36,11 +39,11 @@ fn test_belt_dwp() {
 
     for vec in test_vectors {
         let mut x = vec.x;
-        let beltdwp = BeltDwp::new_from_slice(&vec.k).unwrap();
-        let tag = beltdwp.encrypt_in_place_detached(&vec.s.into(), &vec.i, &mut x);
+        let belt_dwp = BeltDwp::new_from_slice(&vec.k).unwrap();
+        let tag = belt_dwp.encrypt_in_place_detached(&vec.s.into(), &vec.i, &mut x);
         assert_eq!(vec.t, *tag.unwrap());
         assert_eq!(vec.y, x);
-        beltdwp
+        belt_dwp
             .decrypt_in_place_detached(&vec.s.into(), &vec.i, &mut x, &tag.unwrap())
             .unwrap();
         assert_eq!(x, vec.x);

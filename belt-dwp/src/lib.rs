@@ -15,9 +15,9 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
-//!     aead::{Aead, AeadCore, KeyInit},
-//!     BeltDwp, Nonce
+//!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltBlock
 //! };
+//! type BeltDwp = belt_dwp::BeltDwp::<BeltBlock>;
 //!
 //! let key = BeltDwp::generate_key().unwrap();
 //! let cipher = BeltDwp::new(&key);
@@ -49,8 +49,9 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
 //!     aead::{AeadInPlace, AeadInPlaceDetached, KeyInit, heapless::Vec},
-//!     BeltDwp, Nonce
+//!     Nonce, BeltBlock
 //! };
+//! type BeltDwp = belt_dwp::BeltDwp::<BeltBlock>;
 //!
 //! let key = BeltDwp::generate_key().unwrap();
 //! let cipher = BeltDwp::new(&key);
@@ -76,13 +77,14 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-use aead::consts::{U8, U16, U32};
+use aead::consts::{U16, U8};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 use aead::{AeadInPlaceDetached, PostfixTagged};
-use belt_block::BeltBlock;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
+pub use belt_block::BeltBlock;
 use belt_ctr::cipher::InnerIvInit;
 use belt_ctr::{BeltCtr, BeltCtrCore};
+use universal_hash::crypto_common::BlockSizeUser;
 use universal_hash::UniversalHash;
 
 use crate::ghash::GHash;
@@ -101,15 +103,24 @@ const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
 /// Belt-DWP authenticated encryption with associated data (AEAD) cipher, defined in
 /// STB 34.101.31-2020
-pub struct BeltDwp {
-    backend: BeltBlock,
+pub struct BeltDwp<C = BeltBlock>
+where
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+{
+    cipher: C,
 }
 
-impl KeySizeUser for BeltDwp {
-    type KeySize = U32;
+impl<C> KeySizeUser for BeltDwp<C>
+where
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + KeySizeUser,
+{
+    type KeySize = C::KeySize;
 }
 
-impl AeadInPlaceDetached for BeltDwp {
+impl<C> AeadInPlaceDetached for BeltDwp<C>
+where
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+{
     fn encrypt_in_place_detached(
         &self,
         nonce: &Nonce,
@@ -120,11 +131,11 @@ impl AeadInPlaceDetached for BeltDwp {
 
         // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
         let mut s = *nonce;
-        self.backend.encrypt_block(&mut s);
+        self.cipher.encrypt_block(&mut s);
 
         // 2.2. 𝑟 ← belt-block(𝑠, 𝐾);
         let mut r = s;
-        self.backend.encrypt_block(&mut r);
+        self.cipher.encrypt_block(&mut r);
 
         // Initialize GHash
         let mut ghash = GHash::new_with_init_block(
@@ -133,7 +144,7 @@ impl AeadInPlaceDetached for BeltDwp {
         );
 
         // Initialize CTR mode
-        let core = BeltCtrCore::inner_iv_init(&self.backend, nonce);
+        let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
         let mut enc_cipher = BeltCtr::from_core(core);
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
@@ -156,7 +167,7 @@ impl AeadInPlaceDetached for BeltDwp {
 
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
         let mut tag = ghash.finalize_reset();
-        self.backend.encrypt_block(&mut tag);
+        self.cipher.encrypt_block(&mut tag);
 
         Ok(Tag::try_from(&tag[..8]).expect("Tag is always 8 bytes"))
     }
@@ -172,11 +183,11 @@ impl AeadInPlaceDetached for BeltDwp {
 
         // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
         let mut s = *nonce;
-        self.backend.encrypt_block(&mut s);
+        self.cipher.encrypt_block(&mut s);
 
         // 2.2. 𝑟 ← belt-block(𝑠, 𝐾);
         let mut r = s;
-        self.backend.encrypt_block(&mut r);
+        self.cipher.encrypt_block(&mut r);
 
         // Initialize GHash
         let mut ghash = GHash::new_with_init_block(
@@ -199,7 +210,7 @@ impl AeadInPlaceDetached for BeltDwp {
 
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
         let mut tag_exact = ghash.finalize_reset();
-        self.backend.encrypt_block(&mut tag_exact);
+        self.cipher.encrypt_block(&mut tag_exact);
 
         use subtle::ConstantTimeEq;
         // 7. If 𝑇 != Lo(𝑡, 64), return ⊥
@@ -207,7 +218,7 @@ impl AeadInPlaceDetached for BeltDwp {
             // 8. For 𝑖 = 1,2,...,𝑛 do:
             // 8.1. 𝑠 ← 𝑠 ⊞ ⟨1⟩128;
             // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
-            let core = BeltCtrCore::inner_iv_init(&self.backend, nonce);
+            let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
             let mut enc_cipher = BeltCtr::from_core(core);
             enc_cipher.apply_keystream(buffer);
             Ok(())
@@ -217,18 +228,24 @@ impl AeadInPlaceDetached for BeltDwp {
     }
 }
 
-impl PostfixTagged for BeltDwp {}
+impl<C> PostfixTagged for BeltDwp<C> where C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> {}
 
-impl KeyInit for BeltDwp {
+impl<C> KeyInit for BeltDwp<C>
+where
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> + KeyInit,
+{
     fn new(key: &Key<Self>) -> Self {
         Self {
-            backend: BeltBlock::new(key),
+            cipher: C::new(key),
         }
     }
 }
 
-impl AeadCore for BeltDwp {
-    type NonceSize = U16;
+impl<C> AeadCore for BeltDwp<C>
+where
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+{
+    type NonceSize = C::BlockSize;
     type TagSize = U8;
 }
 

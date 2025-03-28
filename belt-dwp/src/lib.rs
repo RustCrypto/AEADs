@@ -76,11 +76,11 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-use aead::consts::{U8, U16, U32};
+use aead::consts::{U16, U32, U8};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
 use aead::{AeadInPlaceDetached, PostfixTagged};
 use belt_block::cipher::{Block, BlockCipherEncrypt, KeyIvInit, StreamCipher};
-use belt_block::{BeltBlock, belt_block_raw};
+use belt_block::{belt_block_raw, BeltBlock};
 use belt_ctr::BeltCtr;
 use universal_hash::UniversalHash;
 
@@ -155,8 +155,10 @@ impl Cipher {
         Self {
             enc_cipher: cipher,
             mac_cipher: BeltBlock::new(&key),
-            // Unwrap is safe because the key is always 16 bytes
-            ghash: GHash::new_with_init_block(&Key::<GHash>::try_from(&r[..]).unwrap(), T),
+            ghash: GHash::new_with_init_block(
+                &Key::<GHash>::try_from(&r[..]).expect("Key is always 16 bytes"),
+                T,
+            ),
         }
     }
 
@@ -165,8 +167,9 @@ impl Cipher {
         associated_data: &[u8],
         buffer: &mut [u8],
     ) -> aead::Result<Tag> {
-        let sizes_block =
-            get_sizes_block(associated_data.len() as u64 * 8, buffer.len() as u64 * 8);
+        let aad_bit_len = associated_data.len() as u64 * 8;
+        let msg_bit_len = buffer.len() as u64 * 8;
+        let sizes_block = get_sizes_block(aad_bit_len, msg_bit_len);
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
@@ -191,8 +194,7 @@ impl Cipher {
 
         self.mac_cipher.encrypt_block(&mut tag);
 
-        // Unwrap is safe because the tag is always 8 bytes
-        Ok(Tag::try_from(&tag[..8]).unwrap())
+        Ok(Tag::try_from(&tag[..8]).expect("Tag is always 8 bytes"))
     }
 
     fn decrypt_in_place_detached(

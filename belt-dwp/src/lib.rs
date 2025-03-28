@@ -15,9 +15,8 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
-//!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltBlock
+//!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltDwp
 //! };
-//! type BeltDwp = belt_dwp::BeltDwp::<BeltBlock>;
 //!
 //! let key = BeltDwp::generate_key().unwrap();
 //! let cipher = BeltDwp::new(&key);
@@ -49,9 +48,8 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use belt_dwp::{
 //!     aead::{AeadInPlace, AeadInPlaceDetached, KeyInit, heapless::Vec},
-//!     Nonce, BeltBlock
+//!     Nonce, BeltDwp
 //! };
-//! type BeltDwp = belt_dwp::BeltDwp::<BeltBlock>;
 //!
 //! let key = BeltDwp::generate_key().unwrap();
 //! let cipher = BeltDwp::new(&key);

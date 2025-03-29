@@ -29,11 +29,6 @@ crate.
 | [`eax`]              | [EAX]                        | [![crates.io](https://img.shields.io/crates/v/eax.svg)](https://crates.io/crates/eax) | [![Documentation](https://docs.rs/eax/badge.svg)](https://docs.rs/eax) | 1.85 |
 | [`mgm`]              | [MGM]                        | [![crates.io](https://img.shields.io/crates/v/mgm.svg)](https://crates.io/crates/mgm) | [![Documentation](https://docs.rs/mgm/badge.svg)](https://docs.rs/mgm) | 1.85 |
 
-## MSRV Policy
-
-Minimum Supported Rust Version (MSRV) can be changed in the future, but it will be
-done with a minor version bump.
-
 ## License
 
 All crates licensed under either of

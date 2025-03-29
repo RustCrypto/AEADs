@@ -5,6 +5,7 @@ members = [
     "aes-gcm-siv",
     "aes-siv",
     "ascon-aead128",
+    "belt-dwp",
     "ccm",
     "chacha20poly1305",
     "deoxys",
@@ -28,3 +29,5 @@ ctr = { git = "https://github.com/RustCrypto/block-modes.git" }
 ghash = { git = "https://github.com/RustCrypto/universal-hashes.git" }
 
 pmac = { git = "https://github.com/RustCrypto/MACs.git" }
+
+belt-ctr = { git = "https://github.com/RustCrypto/block-modes.git" }

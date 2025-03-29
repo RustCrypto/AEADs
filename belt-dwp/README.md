@@ -7,12 +7,8 @@
 [![Project Chat][chat-image]][chat-link]
 [![Build Status][build-image]][build-link]
 
-Pure Rust implementation of **BeltDwp** ([STB 34.101.31-2020][1]): an
-[Authenticated Encryption with Associated Data (AEAD)][2].
-
-## About
-
-BeltDwp is republic of Belarus standard for authenticated encryption with associated data.
+Pure Rust implementation of the `belt-dwp` [AEAD] algorithm
+specified in the republic of Belarus standard [STB 34.101.31-2020].
 
 ## Security Notes
 
@@ -51,7 +47,5 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (general links)
 
-[1]: https://apmi.bsu.by/assets/files/std/belt-spec372.pdf
-[2]: https://en.wikipedia.org/wiki/Authenticated_encryption
-[3]: https://github.com/RustCrypto/stream-ciphers/tree/master/belt-dwp
-[4]: https://github.com/RustCrypto/universal-hashes/tree/master/belt-dwp
+[STB 34.101.31-2020]: https://apmi.bsu.by/assets/files/std/belt-spec372.pdf
+[AEAD]: https://en.wikipedia.org/wiki/Authenticated_encryption

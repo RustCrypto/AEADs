@@ -1,19 +1,19 @@
 #![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms)]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![warn(missing_docs)]
 
 //! # Usage
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
+//! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(all(feature = "os_rng", feature = "heapless"))] {
 //! use belt_dwp::{
 //!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltDwp
 //! };
@@ -24,8 +24,7 @@
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
-//! # Ok(())
-//! # }
+//! # }; Ok(()) }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -43,9 +42,9 @@
 //! which can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
+//! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(all(feature = "os_rng", feature = "heapless"))] {
 //! use belt_dwp::{
 //!     aead::{AeadInPlace, AeadInPlaceDetached, KeyInit, heapless::Vec},
 //!     Nonce, BeltDwp
@@ -67,26 +66,24 @@
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(&buffer, b"plaintext message");
-//! # Ok(())
-//! # }
+//! # }; Ok(()) }
 //! ```
 //!
 //! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-use aead::consts::{U8, U16};
 pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
-use aead::{AeadInPlaceDetached, PostfixTagged};
 pub use belt_block::BeltBlock;
+
+use aead::consts::{U8, U16};
+use aead::{AeadInPlaceDetached, PostfixTagged};
 use belt_block::cipher::crypto_common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
 use belt_ctr::{BeltCtr, BeltCtrCore};
 use universal_hash::UniversalHash;
 use universal_hash::crypto_common::{BlockSizeUser, InnerInit};
-
-use crate::ghash::GHash;
 
 /// Nonce type for [`Dwp`]
 pub type Nonce = aead::Nonce<Dwp>;
@@ -97,15 +94,17 @@ pub type Tag = aead::Tag<Dwp>;
 mod gf;
 mod ghash;
 
-/// T from the STB 34.101.31-2020
+use ghash::GHash;
+
+/// Constant `T` from the STB 34.101.31-2020
 const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
-/// Belt-DWP authenticated encryption with associated data (AEAD) cipher, defined in
-/// STB 34.101.31-2020
+/// `belt-dwp` authenticated encryption with associated data (AEAD) cipher,
+/// defined in STB 34.101.31-2020.
 pub type BeltDwp = Dwp<BeltBlock>;
 
-/// Belt-DWP authenticated encryption with associated data (AEAD) cipher, defined in
-/// STB 34.101.31-2020
+/// `belt-dwp` authenticated encryption with associated data (AEAD) cipher
+/// defined in STB 34.101.31-2020 generic over block cipher implementation.
 pub struct Dwp<C = BeltBlock>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
@@ -124,8 +123,8 @@ impl<C> InnerInit for Dwp<C>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
-    fn inner_init(inner: Self::Inner) -> Self {
-        Self { cipher: inner }
+    fn inner_init(cipher: Self::Inner) -> Self {
+        Self { cipher }
     }
 }
 
@@ -150,10 +149,7 @@ where
         self.cipher.encrypt_block(&mut r);
 
         // Initialize GHash
-        let mut ghash = GHash::new_with_init_block(
-            &Key::<GHash>::try_from(&r[..]).expect("Key is always 16 bytes"),
-            T,
-        );
+        let mut ghash = GHash::new_with_init_block(&r, T);
 
         // Initialize CTR mode
         let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
@@ -169,10 +165,8 @@ where
         //  4.2 𝑌𝑖 ← 𝑋𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑋𝑖|)
         //  4.3 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
         //  4.4 𝑡 ← 𝑡 * 𝑟.
-        buffer.chunks_mut(16).for_each(|block| {
-            enc_cipher.apply_keystream(block);
-            ghash.update_padded(block);
-        });
+        enc_cipher.apply_keystream(buffer);
+        ghash.update_padded(buffer);
 
         // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
         ghash.xor_s(&sizes_block);
@@ -202,10 +196,7 @@ where
         self.cipher.encrypt_block(&mut r);
 
         // Initialize GHash
-        let mut ghash = GHash::new_with_init_block(
-            &Key::<GHash>::try_from(&r[..]).expect("Key is always 16 bytes"),
-            T,
-        );
+        let mut ghash = GHash::new_with_init_block(&r, T);
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
@@ -264,4 +255,7 @@ fn get_sizes_block(aad_len: usize, msg_len: usize) -> Block<GHash> {
 }
 
 #[cfg(feature = "zeroize")]
-impl zeroize::ZeroizeOnDrop for Dwp {}
+impl<C> zeroize::ZeroizeOnDrop for Dwp<C> where
+    C: zeroize::ZeroizeOnDrop + BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>
+{
+}

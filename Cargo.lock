@@ -370,8 +370,7 @@ dependencies = [
 [[package]]
 name = "inout"
 version = "0.2.0-rc.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac5e145e8ade9f74c0a5efc60ccb4e714b0144f7e2220b7ca64254feee71c57f"
+source = "git+https://github.com/RustCrypto/utils.git#7560ec86787c1342147a8d8ac61a80f5363589a3"
 dependencies = [
  "hybrid-array",
 ]
@@ -393,6 +392,8 @@ dependencies = [
  "ctr",
  "dbl",
  "hex-literal 0.4.1",
+  "hex-literal",
+ "inout",
  "subtle",
  "zeroize",
 ]

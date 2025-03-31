@@ -34,15 +34,15 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[crate-image]: https://img.shields.io/crates/v/ascon-aead
-[crate-link]: https://crates.io/crates/ascon-aead
-[docs-image]: https://docs.rs/ascon-aead/badge.svg
-[docs-link]: https://docs.rs/ascon-aead
+[crate-image]: https://img.shields.io/crates/v/ascon-aead128
+[crate-link]: https://crates.io/crates/ascon-aead128
+[docs-image]: https://docs.rs/ascon-aead128/badge.svg
+[docs-link]: https://docs.rs/ascon-aead128
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/ascon-aead/badge.svg?branch=master&event=push
+[build-image]: https://github.com/RustCrypto/AEADs/workflows/ascon-aead128/badge.svg?branch=master&event=push
 [build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)

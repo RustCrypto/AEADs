@@ -6,13 +6,14 @@ version = 4
 [[package]]
 name = "aead"
 version = "0.6.0-rc.0"
-source = "git+https://github.com/RustCrypto/traits.git#1548d2a7d7ce71a278a783d19d94b59b0103ab15"
+source = "git+https://github.com/RustCrypto/traits.git#de72c67026c5a0aee2a9beb2c9f25f3a19ec2bc8"
 dependencies = [
  "arrayvec",
  "blobby 0.4.0-pre.0",
  "bytes",
  "crypto-common",
  "heapless",
+ "inout",
 ]
 
 [[package]]
@@ -42,7 +43,7 @@ dependencies = [
  "cipher",
  "ctr",
  "ghash",
- "hex-literal 0.4.1",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -72,7 +73,7 @@ dependencies = [
  "ctr",
  "dbl",
  "digest",
- "hex-literal 0.4.1",
+ "hex-literal",
  "pmac",
  "zeroize",
 ]
@@ -82,57 +83,6 @@ name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
-
-[[package]]
-name = "ascon"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f0e716048a18530cce4684daf98a7563a499d710e1ed8ef35567fcb43a7c5f1"
-dependencies = [
- "zeroize",
-]
-
-[[package]]
-name = "ascon-aead128"
-version = "0.1.0"
-dependencies = [
- "aead",
- "ascon",
- "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "belt-block"
-version = "0.2.0-pre.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20cce8d102fb5accb008983fb54f0975834bc5f7789080e6564b0f7e13ffe37a"
-dependencies = [
- "cipher",
-]
-
-[[package]]
-name = "belt-ctr"
-version = "0.2.0-pre"
-source = "git+https://github.com/RustCrypto/block-modes.git#3ec1c8191dea30def40c033513bbc8bdb3a9cd78"
-dependencies = [
- "belt-block",
- "cipher",
-]
-
-[[package]]
-name = "belt-dwp"
-version = "0.1.0"
-dependencies = [
- "aead",
- "belt-block",
- "belt-ctr",
- "hex-literal 1.0.0",
- "opaque-debug",
- "subtle",
- "universal-hash",
- "zeroize",
-]
 
 [[package]]
 name = "bitflags"
@@ -181,7 +131,7 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
- "hex-literal 0.4.1",
+ "hex-literal",
  "subtle",
 ]
 
@@ -221,7 +171,6 @@ checksum = "276974d2acb7cf592603150941fc1ff6442acdeb1dc653ac2825928f4703c131"
 dependencies = [
  "crypto-common",
  "inout",
- "zeroize",
 ]
 
 [[package]]
@@ -247,7 +196,7 @@ dependencies = [
 [[package]]
 name = "crypto-common"
 version = "0.2.0-rc.2"
-source = "git+https://github.com/RustCrypto/traits.git#1548d2a7d7ce71a278a783d19d94b59b0103ab15"
+source = "git+https://github.com/RustCrypto/traits.git#de72c67026c5a0aee2a9beb2c9f25f3a19ec2bc8"
 dependencies = [
  "hybrid-array",
  "rand_core",
@@ -276,8 +225,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "aes",
- "hex-literal 0.4.1",
- "inout",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -352,26 +300,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
-name = "hex-literal"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcaaec4551594c969335c98c903c1397853d4198408ea609190f420500f6be71"
-
-[[package]]
 name = "hybrid-array"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4dab50e193aebe510fe0e40230145820e02f48dae0cf339ea4204e6e708ff7bd"
 dependencies = [
  "typenum",
- "zeroize",
 ]
 
 [[package]]
 name = "inout"
 version = "0.2.0-rc.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac5e145e8ade9f74c0a5efc60ccb4e714b0144f7e2220b7ca64254feee71c57f"
+source = "git+https://github.com/RustCrypto/utils.git#7560ec86787c1342147a8d8ac61a80f5363589a3"
 dependencies = [
  "hybrid-array",
 ]
@@ -392,7 +332,7 @@ dependencies = [
  "cipher",
  "ctr",
  "dbl",
- "hex-literal 0.4.1",
+ "hex-literal",
  "subtle",
  "zeroize",
 ]
@@ -448,24 +388,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc-macro2"
-version = "1.0.94"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a31971752e70b8b2686d7e46ec17fb38dad4051d94024c88df49b667caea9c84"
-dependencies = [
- "unicode-ident",
-]
-
-[[package]]
-name = "quote"
-version = "1.0.39"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1f1914ce909e1658d9907913b4b91947430c7d9be598b15a1912935b8c04801"
-dependencies = [
- "proc-macro2",
-]
-
-[[package]]
 name = "rand_core"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -487,27 +409,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
-name = "syn"
-version = "2.0.99"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e02e925281e18ffd9d640e234264753c43edc62d64b2d4cf898f1bc5e75f3fc2"
-dependencies = [
- "proc-macro2",
- "quote",
- "unicode-ident",
-]
-
-[[package]]
 name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
-
-[[package]]
-name = "unicode-ident"
-version = "1.0.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
 
 [[package]]
 name = "universal-hash"
@@ -610,7 +515,7 @@ dependencies = [
  "aes",
  "aes-gcm",
  "cipher",
- "hex-literal 0.4.1",
+ "hex-literal",
 ]
 
 [[package]]
@@ -618,17 +523,8 @@ name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
-dependencies = [
- "zeroize_derive",
-]
 
-[[package]]
-name = "zeroize_derive"
-version = "1.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
+[[patch.unused]]
+name = "belt-ctr"
+version = "0.2.0-pre"
+source = "git+https://github.com/RustCrypto/block-modes.git#3ec1c8191dea30def40c033513bbc8bdb3a9cd78"

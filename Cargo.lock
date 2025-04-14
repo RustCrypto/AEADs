@@ -43,7 +43,7 @@ dependencies = [
  "cipher",
  "ctr",
  "ghash",
- "hex-literal",
+ "hex-literal 0.4.1",
  "subtle",
  "zeroize",
 ]
@@ -73,7 +73,7 @@ dependencies = [
  "ctr",
  "dbl",
  "digest",
- "hex-literal",
+ "hex-literal 0.4.1",
  "pmac",
  "zeroize",
 ]
@@ -83,6 +83,38 @@ name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
+
+[[package]]
+name = "belt-block"
+version = "0.2.0-pre.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20cce8d102fb5accb008983fb54f0975834bc5f7789080e6564b0f7e13ffe37a"
+dependencies = [
+ "cipher",
+]
+
+[[package]]
+name = "belt-ctr"
+version = "0.2.0-pre"
+source = "git+https://github.com/RustCrypto/block-modes.git#3ec1c8191dea30def40c033513bbc8bdb3a9cd78"
+dependencies = [
+ "belt-block",
+ "cipher",
+]
+
+[[package]]
+name = "belt-dwp"
+version = "0.1.0"
+dependencies = [
+ "aead",
+ "belt-block",
+ "belt-ctr",
+ "hex-literal 1.0.0",
+ "opaque-debug",
+ "subtle",
+ "universal-hash",
+ "zeroize",
+]
 
 [[package]]
 name = "bitflags"
@@ -131,7 +163,7 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
- "hex-literal",
+ "hex-literal 0.4.1",
  "subtle",
 ]
 
@@ -171,6 +203,7 @@ checksum = "276974d2acb7cf592603150941fc1ff6442acdeb1dc653ac2825928f4703c131"
 dependencies = [
  "crypto-common",
  "inout",
+ "zeroize",
 ]
 
 [[package]]
@@ -225,7 +258,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "aes",
- "hex-literal",
+ "hex-literal 0.4.1",
  "subtle",
  "zeroize",
 ]
@@ -300,12 +333,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
+name = "hex-literal"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcaaec4551594c969335c98c903c1397853d4198408ea609190f420500f6be71"
+
+[[package]]
 name = "hybrid-array"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4dab50e193aebe510fe0e40230145820e02f48dae0cf339ea4204e6e708ff7bd"
 dependencies = [
  "typenum",
+ "zeroize",
 ]
 
 [[package]]
@@ -332,7 +372,7 @@ dependencies = [
  "cipher",
  "ctr",
  "dbl",
- "hex-literal",
+ "hex-literal 0.4.1",
  "subtle",
  "zeroize",
 ]
@@ -515,7 +555,7 @@ dependencies = [
  "aes",
  "aes-gcm",
  "cipher",
- "hex-literal",
+ "hex-literal 0.4.1",
 ]
 
 [[package]]
@@ -523,8 +563,3 @@ name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
-
-[[patch.unused]]
-name = "belt-ctr"
-version = "0.2.0-pre"
-source = "git+https://github.com/RustCrypto/block-modes.git#3ec1c8191dea30def40c033513bbc8bdb3a9cd78"

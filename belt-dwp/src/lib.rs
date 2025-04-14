@@ -32,7 +32,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -46,7 +46,7 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! # #[cfg(all(feature = "os_rng", feature = "heapless"))] {
 //! use belt_dwp::{
-//!     aead::{AeadInPlace, AeadInPlaceDetached, KeyInit, heapless::Vec},
+//!     aead::{AeadInOut, KeyInit, heapless::Vec},
 //!     Nonce, BeltDwp
 //! };
 //!
@@ -73,11 +73,11 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-pub use aead::{self, AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 pub use belt_block::BeltBlock;
 
 use aead::consts::{U8, U16};
-use aead::{AeadInPlaceDetached, PostfixTagged};
+use aead::{TagPosition, inout::InOutBuf};
 use belt_block::cipher::crypto_common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
@@ -128,15 +128,15 @@ where
     }
 }
 
-impl<C> AeadInPlaceDetached for Dwp<C>
+impl<C> AeadInOut for Dwp<C>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Result<Tag> {
         let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
 
@@ -165,8 +165,8 @@ where
         //  4.2 𝑌𝑖 ← 𝑋𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑋𝑖|)
         //  4.3 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
         //  4.4 𝑡 ← 𝑡 * 𝑟.
-        enc_cipher.apply_keystream(buffer);
-        ghash.update_padded(buffer);
+        enc_cipher.apply_keystream_inout(buffer.reborrow());
+        ghash.update_padded(buffer.get_out());
 
         // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
         ghash.xor_s(&sizes_block);
@@ -178,11 +178,11 @@ where
         Ok(Tag::try_from(&tag[..8]).expect("Tag is always 8 bytes"))
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> aead::Result<()> {
         let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
@@ -206,7 +206,7 @@ where
         // 4. For 𝑖 = 1, 2, . . . , 𝑛 do:
         //  4.1 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
         //  4.2 𝑡 ← 𝑡 * 𝑟.
-        ghash.update_padded(buffer);
+        ghash.update_padded(buffer.get_in());
 
         // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
         ghash.xor_s(&sizes_block);
@@ -223,7 +223,7 @@ where
             // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
             let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
             let mut enc_cipher = BeltCtr::from_core(core);
-            enc_cipher.apply_keystream(buffer);
+            enc_cipher.apply_keystream_inout(buffer);
             Ok(())
         } else {
             Err(Error)
@@ -231,14 +231,13 @@ where
     }
 }
 
-impl<C> PostfixTagged for Dwp<C> where C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16> {}
-
 impl<C> AeadCore for Dwp<C>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
 {
     type NonceSize = C::BlockSize;
     type TagSize = U8;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 /// Get the sizes block for the GHASH

@@ -14,11 +14,15 @@ pub mod consts {
 }
 
 pub use aead::{
-    self, AeadCore, AeadInPlaceDetached, Error, KeyInit, KeySizeUser,
+    self, AeadCore, AeadInOut, Error, KeyInit, KeySizeUser,
     array::{Array, AssocArraySize},
 };
 
-use aead::{PostfixTagged, array::ArraySize};
+use aead::{
+    TagPosition,
+    array::ArraySize,
+    inout::{InOut, InOutBuf},
+};
 use cipher::{
     BlockCipherDecrypt, BlockCipherEncrypt, BlockSizeUser,
     consts::{U2, U12, U16},
@@ -26,7 +30,6 @@ use cipher::{
 };
 use core::marker::PhantomData;
 use dbl::Dbl;
-use inout::{InOut, InOutBuf};
 use subtle::ConstantTimeEq;
 
 /// Number of L values to be precomputed. Precomputing m values, allows
@@ -171,6 +174,7 @@ where
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
@@ -193,27 +197,18 @@ where
     }
 }
 
-impl<Cipher, NonceSize, TagSize> PostfixTagged for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize> AeadInOut for Ocb3<Cipher, NonceSize, TagSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
-}
-
-impl<Cipher, NonceSize, TagSize> AeadInPlaceDetached for Ocb3<Cipher, NonceSize, TagSize>
-where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
-    NonceSize: sealed::NonceSizes,
-    TagSize: sealed::TagSizes,
-{
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Result<aead::Tag<Self>> {
-        let buffer = InOutBuf::from(buffer);
         if (buffer.len() > P_MAX) || (associated_data.len() > A_MAX) {
             unimplemented!()
         }
@@ -266,14 +261,14 @@ where
         Ok(tag)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &aead::Tag<Self>,
     ) -> aead::Result<()> {
-        let expected_tag = self.decrypt_in_place_return_tag(nonce, associated_data, buffer);
+        let expected_tag = self.decrypt_inout_return_tag(nonce, associated_data, buffer);
         if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
@@ -289,16 +284,15 @@ where
     TagSize: sealed::TagSizes,
 {
     /// Decrypts in place and returns expected tag.
-    pub(crate) fn decrypt_in_place_return_tag(
+    pub(crate) fn decrypt_inout_return_tag(
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Tag<Self> {
         if (buffer.len() > C_MAX) || (associated_data.len() > A_MAX) {
             unimplemented!()
         }
-        let buffer = InOutBuf::from(buffer);
 
         // First, try to process many blocks at once.
         let (tail, index, mut offset_i, mut checksum_i) = self.wide_decrypt(nonce, buffer);

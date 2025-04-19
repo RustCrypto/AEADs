@@ -2,9 +2,9 @@ use aead::{
     Error,
     array::{Array, ArraySize},
     consts::U16,
+    inout::InOutBuf,
 };
 use ascon::State;
-use inout::InOutBuf;
 use subtle::ConstantTimeEq;
 
 /// Produce mask for padding.
@@ -245,30 +245,30 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         tag
     }
 
-    pub(crate) fn encrypt_inplace(
+    pub(crate) fn encrypt_inout(
         &mut self,
-        message: &mut [u8],
+        message: InOutBuf<'_, '_, u8>,
         associated_data: &[u8],
     ) -> Array<u8, U16> {
         self.process_associated_data(associated_data);
-        self.process_encrypt_inout(message.into());
+        self.process_encrypt_inout(message);
         Array::from(self.process_final())
     }
 
-    pub(crate) fn decrypt_inplace(
+    pub(crate) fn decrypt_inout(
         &mut self,
-        ciphertext: &mut [u8],
+        mut ciphertext: InOutBuf<'_, '_, u8>,
         associated_data: &[u8],
         expected_tag: &Array<u8, U16>,
     ) -> Result<(), Error> {
         self.process_associated_data(associated_data);
-        self.process_decrypt_inout(ciphertext.into());
+        self.process_decrypt_inout(ciphertext.reborrow());
 
         let tag = self.process_final();
         if bool::from(tag.ct_eq(expected_tag)) {
             Ok(())
         } else {
-            ciphertext.fill(0);
+            ciphertext.get_out().fill(0);
             Err(Error)
         }
     }

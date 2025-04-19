@@ -1,4 +1,4 @@
-use aead::AeadInPlaceDetached;
+use aead::AeadInOut;
 use belt_dwp::{BeltDwp, KeyInit};
 use hex_literal::hex;
 
@@ -37,11 +37,11 @@ fn test_belt_dwp() {
     for vec in test_vectors {
         let mut x = vec.x;
         let belt_dwp = BeltDwp::new_from_slice(&vec.k).unwrap();
-        let tag = belt_dwp.encrypt_in_place_detached(&vec.s.into(), &vec.i, &mut x);
+        let tag = belt_dwp.encrypt_inout_detached(&vec.s.into(), &vec.i, (&mut x[..]).into());
         assert_eq!(vec.t, *tag.unwrap());
         assert_eq!(vec.y, x);
         belt_dwp
-            .decrypt_in_place_detached(&vec.s.into(), &vec.i, &mut x, &tag.unwrap())
+            .decrypt_inout_detached(&vec.s.into(), &vec.i, (&mut x[..]).into(), &tag.unwrap())
             .unwrap();
         assert_eq!(x, vec.x);
     }

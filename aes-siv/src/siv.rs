@@ -72,6 +72,7 @@ use crate::Tag;
 use aead::{
     Buffer, Error,
     array::{Array, ArraySize, typenum::U16},
+    inout::InOutBuf,
 };
 use aes::{Aes128, Aes256};
 use cipher::{
@@ -209,10 +210,10 @@ where
         // Make room in the buffer for the SIV tag. It needs to be prepended.
         buffer.extend_from_slice(Tag::default().as_slice())?;
 
-        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        // TODO(tarcieri): add offset param to `encrypt_inout_detached`
         buffer.as_mut().copy_within(..pt_len, IV_SIZE);
 
-        let tag = self.encrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..])?;
+        let tag = self.encrypt_inout_detached(headers, (&mut buffer.as_mut()[IV_SIZE..]).into())?;
         buffer.as_mut()[..IV_SIZE].copy_from_slice(tag.as_slice());
         Ok(())
     }
@@ -223,17 +224,17 @@ where
     ///
     /// Returns [`Error`] if `plaintext.len()` is less than `M::OutputSize`.
     /// Returns [`Error`] if `headers.len()` is greater than [`MAX_HEADERS`].
-    pub fn encrypt_in_place_detached<I, T>(
+    pub fn encrypt_inout_detached<I, T>(
         &mut self,
         headers: I,
-        plaintext: &mut [u8],
+        plaintext: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
         // Compute the synthetic IV for this plaintext
-        let siv_tag = s2v(&mut self.mac, headers, plaintext)?;
+        let siv_tag = s2v(&mut self.mac, headers, plaintext.get_in())?;
         self.xor_with_keystream(siv_tag, plaintext);
         Ok(siv_tag)
     }
@@ -270,11 +271,11 @@ where
         }
 
         let siv_tag = Tag::try_from(&buffer.as_ref()[..IV_SIZE]).expect("tag size mismatch");
-        self.decrypt_in_place_detached(headers, &mut buffer.as_mut()[IV_SIZE..], &siv_tag)?;
+        self.decrypt_inout_detached(headers, (&mut buffer.as_mut()[IV_SIZE..]).into(), &siv_tag)?;
 
         let pt_len = buffer.len() - IV_SIZE;
 
-        // TODO(tarcieri): add offset param to `encrypt_in_place_detached`
+        // TODO(tarcieri): add offset param to `encrypt_inout_detached`
         buffer.as_mut().copy_within(IV_SIZE.., 0);
         buffer.truncate(pt_len);
         Ok(())
@@ -286,18 +287,18 @@ where
     /// # Errors
     ///
     /// Returns [`Error`] if the ciphertext is not authentic
-    pub fn decrypt_in_place_detached<I, T>(
+    pub fn decrypt_inout_detached<I, T>(
         &mut self,
         headers: I,
-        ciphertext: &mut [u8],
+        mut ciphertext: InOutBuf<'_, '_, u8>,
         siv_tag: &Tag,
     ) -> Result<(), Error>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<[u8]>,
     {
-        self.xor_with_keystream(*siv_tag, ciphertext);
-        let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext)?;
+        self.xor_with_keystream(*siv_tag, ciphertext.reborrow());
+        let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext.get_out())?;
 
         // Note: `CtOutput` provides constant-time equality
         if CtOutput::<M>::new(computed_siv_tag) == CtOutput::new(*siv_tag) {
@@ -310,7 +311,7 @@ where
     }
 
     /// XOR the given buffer with the keystream for the given IV
-    fn xor_with_keystream(&mut self, mut iv: Tag, msg: &mut [u8]) {
+    fn xor_with_keystream(&mut self, mut iv: Tag, msg: InOutBuf<'_, '_, u8>) {
         // "We zero-out the top bit in each of the last two 32-bit words
         // of the IV before assigning it to Ctr"
         //  — http://web.cs.ucdavis.edu/~rogaway/papers/siv.pdf
@@ -318,7 +319,7 @@ where
         iv[12] &= 0x7f;
 
         Ctr128BE::<C>::inner_iv_init(C::new(&self.encryption_key), &iv)
-            .apply_keystream_partial(msg.into());
+            .apply_keystream_partial(msg);
     }
 }
 

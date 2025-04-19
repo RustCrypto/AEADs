@@ -34,7 +34,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -48,7 +48,7 @@
 #![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_siv::{
-//!     aead::{AeadCore, AeadInPlace, KeyInit, rand_core::OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec},
 //!     Aes256SivAead, Nonce, // Or `Aes128SivAead`
 //! };
 //!
@@ -83,15 +83,14 @@ extern crate alloc;
 
 pub mod siv;
 
-pub use aead::{
-    self, AeadCore, AeadInPlace, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser,
-};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 
 use crate::siv::Siv;
 use aead::{
-    Buffer,
+    TagPosition,
     array::Array,
     consts::{U1, U16, U32, U64},
+    inout::InOutBuf,
 };
 use aes::{Aes128, Aes256};
 use cipher::{BlockCipherEncrypt, BlockSizeUser, array::ArraySize, typenum::IsGreaterOrEqual};
@@ -206,9 +205,10 @@ where
     // https://tools.ietf.org/html/rfc5297#section-6
     type NonceSize = NonceSize;
     type TagSize = U16;
+    const TAG_POSITION: TagPosition = TagPosition::Prefix;
 }
 
-impl<C, M, NonceSize> AeadInPlace for SivAead<C, M, NonceSize>
+impl<C, M, NonceSize> AeadInOut for SivAead<C, M, NonceSize>
 where
     Self: KeySizeUser,
     Siv<C, M>: KeyInit + KeySizeUser<KeySize = <Self as KeySizeUser>::KeySize>,
@@ -217,57 +217,24 @@ where
     <C as KeySizeUser>::KeySize: Add,
     NonceSize: ArraySize + IsGreaterOrEqual<U1>,
 {
-    fn encrypt_in_place(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut dyn Buffer,
-    ) -> Result<(), Error> {
-        // "SIV performs nonce-based authenticated encryption when a component of
-        // the associated data is a nonce.  For purposes of interoperability the
-        // final component -- i.e., the string immediately preceding the
-        // plaintext in the vector input to S2V -- is used for the nonce."
-        // https://tools.ietf.org/html/rfc5297#section-3
-        Siv::<C, M>::new(&self.key).encrypt_in_place([associated_data, nonce.as_slice()], buffer)
-    }
-
-    fn decrypt_in_place(
-        &self,
-        nonce: &Array<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut dyn Buffer,
-    ) -> Result<(), Error> {
-        Siv::<C, M>::new(&self.key).decrypt_in_place([associated_data, nonce.as_slice()], buffer)
-    }
-}
-
-impl<C, M, NonceSize> AeadInPlaceDetached for SivAead<C, M, NonceSize>
-where
-    Self: KeySizeUser,
-    Siv<C, M>: KeyInit + KeySizeUser<KeySize = <Self as KeySizeUser>::KeySize>,
-    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
-    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
-    <C as KeySizeUser>::KeySize: Add,
-    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
-{
-    fn encrypt_in_place_detached(
-        &self,
-        nonce: &Array<u8, Self::NonceSize>,
-        associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Array<u8, Self::TagSize>, Error> {
         Siv::<C, M>::new(&self.key)
-            .encrypt_in_place_detached([associated_data, nonce.as_slice()], buffer)
+            .encrypt_inout_detached([associated_data, nonce.as_slice()], buffer)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Array<u8, Self::TagSize>,
     ) -> Result<(), Error> {
-        Siv::<C, M>::new(&self.key).decrypt_in_place_detached(
+        Siv::<C, M>::new(&self.key).decrypt_inout_detached(
             [associated_data, nonce.as_slice()],
             buffer,
             tag,

@@ -38,7 +38,7 @@
 //! This crate has an optional `alloc` feature which can be disabled in e.g.
 //! microcontroller environments that don't have a heap.
 //!
-//! The [`AeadInPlace::encrypt_in_place`] and [`AeadInPlace::decrypt_in_place`]
+//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
@@ -56,7 +56,7 @@
 //! use eax::aead::{
 //!     array::Array,
 //!     heapless::Vec,
-//!     AeadCore, AeadInPlace, KeyInit, rand_core::OsRng
+//!     AeadCore, AeadInOut, KeyInit, rand_core::OsRng
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
@@ -97,7 +97,7 @@
 //! # {
 //! use aes::Aes256;
 //! use eax::Eax;
-//! use eax::aead::{AeadInPlaceDetached, KeyInit, array::Array};
+//! use eax::aead::{AeadInOut, KeyInit, array::Array};
 //! use eax::aead::heapless::Vec;
 //! use eax::aead::consts::{U8, U128};
 //!
@@ -110,7 +110,7 @@
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! let tag = cipher.encrypt_in_place_detached(nonce, b"", &mut buffer).expect("encryption failure!");
+//! let tag = cipher.encrypt_inout_detached(nonce, b"", buffer.as_mut_slice().into()).expect("encryption failure!");
 //!
 //! // The tag has only 8 bytes, compared to the usual 16 bytes
 //! assert_eq!(tag.len(), 8);
@@ -119,15 +119,15 @@
 //! assert_ne!(&buffer, b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place_detached(nonce, b"", &mut buffer, &tag).expect("decryption failure!");
+//! cipher.decrypt_inout_detached(nonce, b"", buffer.as_mut_slice().into(), &tag).expect("decryption failure!");
 //! assert_eq!(&buffer, b"plaintext message");
 //! # }
 //! ```
 
-pub use aead::{self, AeadCore, AeadInPlaceDetached, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 pub use cipher;
 
-use aead::PostfixTagged;
+use aead::{TagPosition, inout::InOutBuf};
 use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array, consts::U16,
     crypto_common::OutputSizeUser, typenum::Unsigned,
@@ -210,25 +210,19 @@ where
 {
     type NonceSize = Cipher::BlockSize;
     type TagSize = M;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl<Cipher, M> PostfixTagged for Eax<Cipher, M>
+impl<Cipher, M> AeadInOut for Eax<Cipher, M>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
 {
-}
-
-impl<Cipher, M> AeadInPlaceDetached for Eax<Cipher, M>
-where
-    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
-    M: TagSize,
-{
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        mut buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<M>, Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
@@ -247,10 +241,10 @@ where
 
         // 3. enc ← CTR(M) using n as iv
         Ctr128BE::<Cipher>::inner_iv_init(Cipher::new(&self.key), &n)
-            .apply_keystream_partial(buffer.into());
+            .apply_keystream_partial(buffer.reborrow());
 
         // 4. c ← OMAC(2 || enc)
-        let c = Self::cmac_with_iv(&self.key, 2, buffer);
+        let c = Self::cmac_with_iv(&self.key, 2, buffer.get_out());
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
@@ -267,11 +261,11 @@ where
         Ok(tag)
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<M>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
@@ -285,7 +279,7 @@ where
         let h = Self::cmac_with_iv(&self.key, 1, associated_data);
 
         // 4. c ← OMAC(2 || enc)
-        let c = Self::cmac_with_iv(&self.key, 2, buffer);
+        let c = Self::cmac_with_iv(&self.key, 2, buffer.get_in());
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
@@ -305,7 +299,7 @@ where
         if expected_tag.ct_eq(tag).into() {
             // Decrypt
             Ctr128BE::<Cipher>::inner_iv_init(Cipher::new(&self.key), &n)
-                .apply_keystream_partial(buffer.into());
+                .apply_keystream_partial(buffer);
 
             Ok(())
         } else {

@@ -98,6 +98,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "ascon",
+ "inout",
  "subtle",
  "zeroize",
 ]
@@ -392,7 +393,6 @@ dependencies = [
  "ctr",
  "dbl",
  "hex-literal 0.4.1",
-  "hex-literal",
  "inout",
  "subtle",
  "zeroize",

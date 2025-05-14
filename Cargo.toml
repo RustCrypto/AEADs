@@ -18,19 +18,3 @@ resolver = "2"
 [patch.crates-io]
 aead-stream = { path = "./aead-stream" }
 aes-gcm     = { path = "./aes-gcm" }
-
-aead          = { git = "https://github.com/RustCrypto/traits.git" }
-crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
-
-chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
-
-ctr = { git = "https://github.com/RustCrypto/block-modes.git" }
-
-ghash = { git = "https://github.com/RustCrypto/universal-hashes.git" }
-
-pmac = { git = "https://github.com/RustCrypto/MACs.git" }
-
-belt-ctr = { git = "https://github.com/RustCrypto/block-modes.git" }
-
-# https://github.com/RustCrypto/utils/pull/1170
-inout = { git = "https://github.com/RustCrypto/utils.git" }

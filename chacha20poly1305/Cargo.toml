@@ -20,14 +20,14 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.0", default-features = false }
-chacha20 = { version = "=0.10.0-pre.3", default-features = false, features = ["xchacha"] }
-cipher = "=0.5.0-pre.8"
+aead = { version = "0.6.0-rc.1", default-features = false }
+chacha20 = { version = "0.10.0-rc.0", default-features = false, features = ["xchacha"] }
+cipher = "0.5.0-rc.0"
 poly1305 = "0.9.0-rc.0"
 zeroize = { version = "1.8", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
+aead = { version = "0.6.0-rc.1", features = ["dev"], default-features = false }
 
 [features]
 default = ["alloc", "os_rng"]

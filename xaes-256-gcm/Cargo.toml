@@ -16,15 +16,15 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.0", default-features = false }
-aes = "=0.9.0-pre.3"
+aead = { version = "0.6.0-rc.1", default-features = false }
+aes = "0.9.0-rc.0"
 aes-gcm = { version = "=0.11.0-pre.2", default-features = false, features = ["aes"] }
-cipher = "=0.5.0-pre.8"
+cipher = "0.5.0-rc.0"
 aead-stream = { version = "=0.6.0-pre", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
-hex-literal = "0.4"
+aead = { version = "0.6.0-rc.1", features = ["dev"], default-features = false }
+hex-literal = "1"
 
 [features]
 default = ["alloc", "os_rng"]

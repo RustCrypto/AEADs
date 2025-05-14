@@ -13,7 +13,7 @@ rust-version = "1.56"
 [dependencies]
 criterion = "0.4.0"
 rand = "0.9.0"
-aes = "=0.9.0-pre.3"
+aes = "0.9.0-rc.0"
 aes-gcm = { path = "../aes-gcm/" }
 aes-gcm-siv = { path = "../aes-gcm-siv/" }
 ascon-aead = { path = "../ascon-aead/" }
@@ -57,12 +57,3 @@ harness = false
 [patch.crates-io]
 aead-stream = { path = "../aead-stream" }
 
-crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
-aead          = { git = "https://github.com/RustCrypto/traits.git" }
-
-chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
-
-ctr = { git = "https://github.com/baloo/block-modes.git", branch = "baloo/edition-2024" }
-
-ghash   = { git = "https://github.com/RustCrypto/universal-hashes.git" }
-polyval = { git = "https://github.com/RustCrypto/universal-hashes.git" }

@@ -1,6 +1,6 @@
 [package]
 name = "eax"
-version = "0.5.0"
+version = "0.6.0-pre"
 description = """
 Pure Rust implementation of the EAX
 Authenticated Encryption with Associated Data (AEAD) Cipher
@@ -20,15 +20,15 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.0", default-features = false }
-cipher = "=0.5.0-pre.8"
-cmac = "0.8.0-pre.2"
-ctr = "0.10.0-pre.2"
+aead = { version = "0.6.0-rc.1", default-features = false }
+cipher = "0.5.0-rc.0"
+cmac = "0.8.0-rc.0"
+ctr = "0.10.0-rc.0"
 subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.0", features = ["dev"], default-features = false }
-aes = "=0.9.0-pre.3"
+aead = { version = "0.6.0-rc.1", features = ["dev"], default-features = false }
+aes = "0.9.0-rc.0"
 
 [features]
 default = ["alloc", "os_rng"]

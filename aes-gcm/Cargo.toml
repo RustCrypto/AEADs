@@ -1,6 +1,6 @@
 [package]
 name = "aes-gcm"
-version = "0.11.0-pre.2"
+version = "0.11.0-rc.0"
 description = """
 Pure Rust implementation of the AES-GCM (Galois/Counter Mode)
 Authenticated Encryption with Associated Data (AEAD) Cipher
@@ -17,17 +17,17 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.0", default-features = false }
-aes = { version = "=0.9.0-pre.3", optional = true }
-cipher = "=0.5.0-pre.8"
-ctr = "0.10.0-pre.2"
-ghash = { version = "0.6.0-rc.0", default-features = false }
+aead = { version = "0.6.0-rc.1", default-features = false }
+aes = { version = "0.9.0-rc.0", optional = true }
+cipher = "0.5.0-rc.0"
+ctr = "0.10.0-rc.0"
+ghash = { version = "0.6.0-rc.1", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.0", features = ["alloc", "dev"], default-features = false }
-hex-literal = "0.4"
+aead = { version = "0.6.0-rc.1", features = ["alloc", "dev"], default-features = false }
+hex-literal = "1"
 
 [features]
 default = ["aes", "alloc", "os_rng"]

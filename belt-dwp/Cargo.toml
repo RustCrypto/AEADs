@@ -14,7 +14,7 @@ rust-version = "1.85"
 [dependencies]
 aead = { version = "0.6.0-rc.0", default-features = false }
 zeroize = { version = "1.7", default-features = false, optional = true }
-universal-hash = { version = "0.6.0-rc.0" }
+universal-hash = { version = "0.6.0-rc.1" }
 opaque-debug = { version = "0.3" }
 subtle = { version = "2", default-features = false }
 

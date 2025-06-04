@@ -73,23 +73,23 @@
 //! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
 //! [`aead::arrayvec::ArrayVec`]).
 
-pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
+pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, Tag};
 pub use belt_block::BeltBlock;
 
-use aead::consts::{U8, U16};
+use aead::array::ArraySize;
+use aead::consts::{True, U8, U16};
 use aead::{TagPosition, inout::InOutBuf};
 use belt_block::cipher::crypto_common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
 use belt_ctr::{BeltCtr, BeltCtrCore};
+use core::marker::PhantomData;
 use universal_hash::UniversalHash;
 use universal_hash::crypto_common::{BlockSizeUser, InnerInit};
+use universal_hash::typenum::{IsLessOrEqual, NonZero};
 
 /// Nonce type for [`Dwp`]
-pub type Nonce = aead::Nonce<Dwp>;
-
-/// Tag type for [`Dwp`]
-pub type Tag = aead::Tag<Dwp>;
+pub type Nonce = aead::Nonce<BeltDwp>;
 
 mod gf;
 mod ghash;
@@ -101,43 +101,52 @@ const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
 /// `belt-dwp` authenticated encryption with associated data (AEAD) cipher,
 /// defined in STB 34.101.31-2020.
-pub type BeltDwp = Dwp<BeltBlock>;
+pub type BeltDwp = Dwp<BeltBlock, U8>;
 
 /// `belt-dwp` authenticated encryption with associated data (AEAD) cipher
-/// defined in STB 34.101.31-2020 generic over block cipher implementation.
-pub struct Dwp<C = BeltBlock>
+/// defined in STB 34.101.31-2020 generic over block cipher implementation
+/// and tag size.
+pub struct Dwp<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+    TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
     cipher: C,
+    _pd: PhantomData<TagSize>,
 }
 
-impl<C> InnerUser for Dwp<C>
+impl<C, TagSize> InnerUser for Dwp<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+    TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
     type Inner = C;
 }
 
-impl<C> InnerInit for Dwp<C>
+impl<C, TagSize> InnerInit for Dwp<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+    TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
     fn inner_init(cipher: Self::Inner) -> Self {
-        Self { cipher }
+        Self {
+            cipher,
+            _pd: PhantomData,
+        }
     }
 }
 
-impl<C> AeadInOut for Dwp<C>
+impl<C, TagSize> AeadInOut for Dwp<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+    TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
     fn encrypt_inout_detached(
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
         mut buffer: InOutBuf<'_, '_, u8>,
-    ) -> aead::Result<Tag> {
+    ) -> aead::Result<Tag<Self>> {
         let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
 
         // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
@@ -175,7 +184,8 @@ where
         let mut tag = ghash.finalize_reset();
         self.cipher.encrypt_block(&mut tag);
 
-        Ok(Tag::try_from(&tag[..8]).expect("Tag is always 8 bytes"))
+        let tag = &tag[..TagSize::USIZE];
+        Ok(tag.try_into().expect("Tag is always 8 bytes"))
     }
 
     fn decrypt_inout_detached(
@@ -183,7 +193,7 @@ where
         nonce: &Nonce,
         associated_data: &[u8],
         buffer: InOutBuf<'_, '_, u8>,
-        tag: &Tag,
+        tag: &Tag<Self>,
     ) -> aead::Result<()> {
         let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
 
@@ -217,7 +227,7 @@ where
 
         use subtle::ConstantTimeEq;
         // 7. If 𝑇 != Lo(𝑡, 64), return ⊥
-        if tag_exact[..8].ct_eq(tag).into() {
+        if tag_exact[..TagSize::USIZE].ct_eq(tag).into() {
             // 8. For 𝑖 = 1,2,...,𝑛 do:
             // 8.1. 𝑠 ← 𝑠 ⊞ ⟨1⟩128;
             // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
@@ -231,12 +241,13 @@ where
     }
 }
 
-impl<C> AeadCore for Dwp<C>
+impl<C, TagSize> AeadCore for Dwp<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+    TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
     type NonceSize = C::BlockSize;
-    type TagSize = U8;
+    type TagSize = TagSize;
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
@@ -254,7 +265,9 @@ fn get_sizes_block(aad_len: usize, msg_len: usize) -> Block<GHash> {
 }
 
 #[cfg(feature = "zeroize")]
-impl<C> zeroize::ZeroizeOnDrop for Dwp<C> where
-    C: zeroize::ZeroizeOnDrop + BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>
+impl<C, TagSize> zeroize::ZeroizeOnDrop for Dwp<C, TagSize>
+where
+    C: zeroize::ZeroizeOnDrop + BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+    TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
 }

@@ -351,7 +351,7 @@ mod tests {
 
     impl MockBuffer {
         /// Get an [`InOutBuf`] from a [`MockBuffer`]
-        pub fn to_in_out_buf(&mut self) -> InOutBuf<'_, '_, u8> {
+        pub fn as_in_out_buf(&mut self) -> InOutBuf<'_, '_, u8> {
             InOutBuf::new(self.in_buf.as_slice(), self.out_buf.as_mut_slice())
                 .expect("Invariant violation")
         }
@@ -383,14 +383,14 @@ mod tests {
 
         type M = modes::DeoxysI<deoxys_bc::DeoxysBc256>;
         let cipher = DeoxysI128::new(&key);
-        let tag: Tag = M::encrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &cipher.subkeys);
+        let tag: Tag = M::encrypt_inout(&nonce, &aad, buffer.as_in_out_buf(), &cipher.subkeys);
 
         let ciphertext = buffer.as_ref();
         assert_eq!(ciphertext, ciphertext_expected);
         assert_eq!(tag, tag_expected);
 
         let mut buffer = MockBuffer::from(buffer.as_ref());
-        M::decrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &tag, &cipher.subkeys)
+        M::decrypt_inout(&nonce, &aad, buffer.as_in_out_buf(), &tag, &cipher.subkeys)
             .expect("decryption failed");
 
         assert_eq!(&plaintext[..], buffer.as_ref());
@@ -416,14 +416,14 @@ mod tests {
 
         type M = modes::DeoxysII<deoxys_bc::DeoxysBc256>;
         let cipher = DeoxysII128::new(&key);
-        let tag: Tag = M::encrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &cipher.subkeys);
+        let tag: Tag = M::encrypt_inout(&nonce, &aad, buffer.as_in_out_buf(), &cipher.subkeys);
 
         let ciphertext = buffer.as_ref();
         assert_eq!(ciphertext, ciphertext_expected);
         assert_eq!(tag, tag_expected);
 
         let mut buffer = MockBuffer::from(buffer.as_ref());
-        M::decrypt_inout(&nonce, &aad, buffer.to_in_out_buf(), &tag, &cipher.subkeys)
+        M::decrypt_inout(&nonce, &aad, buffer.as_in_out_buf(), &tag, &cipher.subkeys)
             .expect("decryption failed");
 
         assert_eq!(&plaintext[..], buffer.as_ref());

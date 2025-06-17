@@ -1,4 +1,3 @@
-#![allow(unused)]
 use core::num::Wrapping;
 
 /// Multiplication in GF(2)[X], truncated to the low 64-bits, with “holes”

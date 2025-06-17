@@ -178,7 +178,7 @@ where
         ghash.update_padded(buffer.get_out());
 
         // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
-        ghash.xor_s(&sizes_block);
+        ghash.update_padded(&sizes_block);
 
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
         let mut tag = ghash.finalize_reset();
@@ -219,7 +219,7 @@ where
         ghash.update_padded(buffer.get_in());
 
         // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
-        ghash.xor_s(&sizes_block);
+        ghash.update_padded(&sizes_block);
 
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
         let mut tag_exact = ghash.finalize_reset();

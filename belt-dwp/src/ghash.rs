@@ -42,10 +42,6 @@ impl GHash {
             h: Element::from(h),
         }
     }
-
-    pub(crate) fn xor_s(&mut self, x: &Block) {
-        self.s = self.s + Element::from(x);
-    }
 }
 
 impl ParBlocksSizeUser for GHash {
@@ -66,7 +62,7 @@ impl UniversalHash for GHash {
     /// Get GHASH output
     #[inline]
     fn finalize(self) -> Tag {
-        (self.s * self.h).into()
+        self.s.into()
     }
 }
 

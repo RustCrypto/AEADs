@@ -66,4 +66,5 @@ jobs:
       - run: cargo test --target ${{ matrix.target }} --release
       - run: cargo test --target ${{ matrix.target }} --release --features heapless
       - run: cargo test --target ${{ matrix.target }} --release --all-features
-      - run: cargo build --target ${{ matrix.target }} --benches
+      - env: RUSTC_BOOTSTRAP=1
+        run: cargo build --target ${{ matrix.target }} --benches

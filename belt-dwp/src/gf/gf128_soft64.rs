@@ -42,7 +42,7 @@ impl GfElement for Element {
         let v2 = (c ^ (t >> 64)) as u64;
         let v3 = (c >> 64) as u64;
 
-        // reduce over polynominal f(w) = w^128 + w^7 + w^2 + w + 1
+        // reduce over polynomial f(w) = w^128 + w^7 + w^2 + w + 1
         let d = v2 ^ (v3 >> 63) ^ (v3 >> 62) ^ (v3 >> 57);
         self.1 ^= v0 ^ d ^ (d << 1) ^ (d << 2) ^ (d << 7);
         self.0 ^= v1 ^ v3 ^ (v3 << 1) ^ (v3 << 2) ^ (v3 << 7) ^ (d >> 63) ^ (d >> 62) ^ (d >> 57);

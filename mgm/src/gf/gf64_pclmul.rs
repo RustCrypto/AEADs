@@ -32,7 +32,7 @@ impl GfElement for Element {
             core::mem::transmute(c)
         };
 
-        // reduce over polynominal f(w) = w^64 + w^4 + w^3 + w + 1
+        // reduce over polynomial f(w) = w^64 + w^4 + w^3 + w + 1
         let t = e ^ (e >> 63) ^ (e >> 61) ^ (e >> 60);
         self.0 ^= d ^ t ^ (t << 1) ^ (t << 3) ^ (t << 4);
     }

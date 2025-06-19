@@ -31,3 +31,9 @@ jobs:
           toolchain: 1.85.0
           components: clippy
       - run: cargo clippy --all --all-features -- -D warnings
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@v1

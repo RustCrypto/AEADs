@@ -107,7 +107,7 @@ pub type Nonce<NonceSize = U16> = Array<u8, NonceSize>;
 /// AES-SIV tags (i.e. the Synthetic Initialization Vector value)
 pub type Tag = Array<u8, U16>;
 
-/// Convinience wrapper around `Siv` interface.
+/// Convenience wrapper around `Siv` interface.
 ///
 /// The `SivAead` type wraps the more powerful `Siv` interface in a more
 /// commonly used Authenticated Encryption with Associated Data (AEAD) API,

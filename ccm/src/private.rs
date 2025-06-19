@@ -12,7 +12,7 @@ pub trait SealedNonce: Unsigned {
     }
 
     fn get_max_len() -> usize {
-        // a somewhat ugly code to prevent overlfow.
+        // a somewhat ugly code to prevent overflow.
         // compiler should be able to completely optimize it out
         let l = Self::get_l() as u128;
         let v = (1 << (8 * l)) - 1;

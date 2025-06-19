@@ -2,3 +2,9 @@
 extend-exclude = [
     ".git/"
 ]
+
+[default]
+extend-ignore-re = [
+    # Patterns which appear to be 32 or more hex characters
+    '\b[0-9A-Fa-f]{32,}\b',
+]

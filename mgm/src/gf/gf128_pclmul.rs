@@ -57,7 +57,7 @@ impl GfElement for Element {
             let v2 = xor!(c, _mm_shuffle_epi32(t, 0x0E));
             let v3 = _mm_shuffle_epi32(c, 0x0E);
 
-            // reduce over polynominal f(w) = w^128 + w^7 + w^2 + w + 1
+            // reduce over polynomial f(w) = w^128 + w^7 + w^2 + w + 1
             let d = xor!(
                 v2,
                 _mm_srli_epi64(v3, 63),

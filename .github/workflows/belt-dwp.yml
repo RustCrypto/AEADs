@@ -37,6 +37,15 @@ jobs:
           targets: ${{ matrix.target }}
       - run: cargo build --no-default-features --release --target ${{ matrix.target }}
 
+  benches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2025-07-31
+      - run: cargo build --benches
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -66,5 +75,3 @@ jobs:
       - run: cargo test --target ${{ matrix.target }} --release
       - run: cargo test --target ${{ matrix.target }} --release --features heapless
       - run: cargo test --target ${{ matrix.target }} --release --all-features
-      - env: RUSTC_BOOTSTRAP=1
-        run: cargo build --target ${{ matrix.target }} --benches

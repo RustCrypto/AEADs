@@ -99,7 +99,7 @@ pub const MAX_HEADERS: usize = 126;
 type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
 
 /// Size of an AES-SIV key given a particular cipher
-pub type KeySize<C> = <<C as KeySizeUser>::KeySize as Add>::Output;
+pub(crate) type KeySize<C> = <<C as KeySizeUser>::KeySize as Add>::Output;
 
 /// Synthetic Initialization Vector (SIV) mode, providing misuse-resistant
 /// authenticated encryption (MRAE).

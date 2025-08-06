@@ -138,6 +138,7 @@
 //! ```
 
 mod cipher;
+pub mod legacy;
 
 pub use aead::{self, AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, consts};
 

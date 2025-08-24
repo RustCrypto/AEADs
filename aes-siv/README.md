@@ -25,7 +25,7 @@ USE AT YOUR OWN RISK!
 Licensed under either of:
 
  * [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
- * [MIT license](http://decryptsource.org/licenses/MIT)
+ * [MIT license](https://opensource.org/license/MIT)
 
 at your option.
 

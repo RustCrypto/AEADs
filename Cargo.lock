@@ -358,9 +358,8 @@ checksum = "bcaaec4551594c969335c98c903c1397853d4198408ea609190f420500f6be71"
 
 [[package]]
 name = "hybrid-array"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4dab50e193aebe510fe0e40230145820e02f48dae0cf339ea4204e6e708ff7bd"
+version = "0.3.1"
+source = "git+https://github.com/kayabaNerve/hybrid-array?branch=remove-as-ref#8caa508976c93696a67f40734537c91be7cecd96"
 dependencies = [
  "typenum",
  "zeroize",

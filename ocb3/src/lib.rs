@@ -249,7 +249,7 @@ where
             let checksum_rhs = &mut [0u8; 16];
             checksum_rhs[..remaining_bytes].copy_from_slice(tail.get_in());
             checksum_rhs[remaining_bytes] = 0b1000_0000;
-            inplace_xor(&mut checksum_i, checksum_rhs.as_ref());
+            inplace_xor(&mut checksum_i, (&*checksum_rhs).into());
             // C_* = P_* xor Pad[1..bitlen(P_*)]
             let p_star = tail.get_out();
             let pad = &mut pad[..p_star.len()];
@@ -333,7 +333,7 @@ where
             let checksum_rhs = &mut [0u8; 16];
             checksum_rhs[..remaining_bytes].copy_from_slice(tail.get_out());
             checksum_rhs[remaining_bytes] = 0b1000_0000;
-            inplace_xor(&mut checksum_i, checksum_rhs.as_ref());
+            inplace_xor(&mut checksum_i, (&*checksum_rhs).into());
         }
 
         self.compute_tag(associated_data, &mut checksum_i, &offset_i)
@@ -609,7 +609,7 @@ mod tests {
         let expected_ll0 = Block::from(hex!("1A84ECDE1E3D6E09BD3E058A8723606D"));
         let expected_ll1 = Block::from(hex!("3509D9BC3C7ADC137A7C0B150E46C0DA"));
 
-        let cipher = aes::Aes128::new(key.as_ref());
+        let cipher = aes::Aes128::new((&key).into());
         let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
 
         assert_eq!(ll_star, expected_ll_star);
@@ -629,7 +629,7 @@ mod tests {
 
         const TAGLEN: u32 = 16;
 
-        let cipher = aes::Aes128::new(key.as_ref());
+        let cipher = aes::Aes128::new((&key).into());
         let (bottom, stretch) =
             nonce_dependent_variables::<aes::Aes128, U12>(&cipher, &Nonce::from(nonce), TAGLEN);
         let offset_0 = initial_offset::<aes::Aes128, U12>(&cipher, &Nonce::from(nonce), TAGLEN);

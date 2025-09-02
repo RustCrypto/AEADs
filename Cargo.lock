@@ -116,8 +116,7 @@ dependencies = [
 [[package]]
 name = "belt-ctr"
 version = "0.2.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9e62741717c47d2f988623df3ee9265788c339255c2ca555133d4f6303bf5b8"
+source = "git+https://github.com/RustCrypto/block-modes#044d1010efc422c4ee76263f9b70102d77fd342b"
 dependencies = [
  "belt-block",
  "cipher",
@@ -152,10 +151,10 @@ checksum = "4a859067dcb257cb2ae028cb821399b55140b76fb8b2a360e052fe109019db43"
 [[package]]
 name = "block-buffer"
 version = "0.11.0-rc.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a229bfd78e4827c91b9b95784f69492c1b77c1ab75a45a8a037b139215086f94"
+source = "git+https://github.com/RustCrypto/utils#adfccfea2686ef191b607f653cc3587753b6ec66"
 dependencies = [
  "hybrid-array",
+ "zeroize",
 ]
 
 [[package]]
@@ -191,8 +190,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "chacha20"
 version = "0.10.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e057d7ab0331b90074df7ca698b3361860c20a1d8c8e28f49c01f526e3f3958"
+source = "git+https://github.com/RustCrypto/stream-ciphers#1b7c8220310edf3614e06e4abd1ab476c3024445"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -214,9 +212,9 @@ dependencies = [
 [[package]]
 name = "cipher"
 version = "0.5.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd4ef774202f1749465fc7cf88d70fc30620e8cacd5429268f4bff7d003bd976"
+source = "git+https://github.com/RustCrypto/traits#5202618e4596f30146380c595e0b1c279253e419"
 dependencies = [
+ "block-buffer",
  "crypto-common",
  "inout",
  "zeroize",
@@ -225,8 +223,7 @@ dependencies = [
 [[package]]
 name = "cmac"
 version = "0.8.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14088e66e0ff42509343b570d1c9c641bb4ddb972c43e606157fb6c571c334f0"
+source = "git+https://github.com/RustCrypto/MACs#d1736a3f38a7c0fbbdb82e3b3ab171e526a63c57"
 dependencies = [
  "cipher",
  "dbl",
@@ -245,8 +242,7 @@ dependencies = [
 [[package]]
 name = "crypto-common"
 version = "0.2.0-rc.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a23fa214dea9efd4dacee5a5614646b30216ae0f05d4bb51bafb50e9da1c5be"
+source = "git+https://github.com/RustCrypto/traits#5202618e4596f30146380c595e0b1c279253e419"
 dependencies = [
  "hybrid-array",
  "rand_core",
@@ -255,17 +251,15 @@ dependencies = [
 [[package]]
 name = "ctr"
 version = "0.10.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f239edce204df0e4503cccef3492552773d1ca4e002659a59ca715f099b45ca1"
+source = "git+https://github.com/RustCrypto/block-modes#044d1010efc422c4ee76263f9b70102d77fd342b"
 dependencies = [
  "cipher",
 ]
 
 [[package]]
 name = "dbl"
-version = "0.4.0-rc.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb24c766034b76390c67f3d9c44e63019febeb4cc39e4ba40b5fc79e20c898e1"
+version = "0.5.0-pre"
+source = "git+https://github.com/RustCrypto/utils#adfccfea2686ef191b607f653cc3587753b6ec66"
 dependencies = [
  "hybrid-array",
 ]
@@ -284,8 +278,7 @@ dependencies = [
 [[package]]
 name = "digest"
 version = "0.11.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "460dd7f37e4950526b54a5a6b1f41b6c8e763c58eb9a8fc8fc05ba5c2f44ca7b"
+source = "git+https://github.com/RustCrypto/traits#5202618e4596f30146380c595e0b1c279253e419"
 dependencies = [
  "block-buffer",
  "crypto-common",
@@ -358,9 +351,9 @@ checksum = "bcaaec4551594c969335c98c903c1397853d4198408ea609190f420500f6be71"
 
 [[package]]
 name = "hybrid-array"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4dab50e193aebe510fe0e40230145820e02f48dae0cf339ea4204e6e708ff7bd"
+checksum = "6fe39a812f039072707ce38020acbab2f769087952eddd9e2b890f37654b2349"
 dependencies = [
  "typenum",
  "zeroize",
@@ -369,8 +362,7 @@ dependencies = [
 [[package]]
 name = "inout"
 version = "0.2.0-rc.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c774c86bce20ea04abe1c37cf0051c5690079a3a28ef5fdac2a5a0412b3d7d74"
+source = "git+https://github.com/RustCrypto/utils#adfccfea2686ef191b607f653cc3587753b6ec66"
 dependencies = [
  "hybrid-array",
 ]
@@ -405,8 +397,7 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 [[package]]
 name = "pmac"
 version = "0.8.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e42d2ce38a15f4109ba14559b415880704fcf24c529b77ea488855553d1d56f1"
+source = "git+https://github.com/RustCrypto/MACs#d1736a3f38a7c0fbbdb82e3b3ab171e526a63c57"
 dependencies = [
  "cipher",
  "dbl",

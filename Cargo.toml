@@ -19,6 +19,8 @@ members = [
 aead-stream = { path = "aead-stream" }
 aes-gcm = { path = "aes-gcm" }
 
+# https://github.com/RustCrypto/block-modes/pull/84
+belt-ctr = { git = "https://github.com/RustCrypto/block-modes" }
 # https://github.com/RustCrypto/utils/pull/1208
 block-buffer = { git = "https://github.com/RustCrypto/utils" }
 # https://github.com/RustCrypto/stream-ciphers/pull/450
@@ -33,6 +35,8 @@ crypto-common = { git = "https://github.com/RustCrypto/traits" }
 ctr = { git = "https://github.com/RustCrypto/block-modes" }
 # https://github.com/RustCrypto/utils/pull/1208
 dbl = { git = "https://github.com/RustCrypto/utils" }
+# https://github.com/RustCrypto/traits/pull/1976
+digest = { git = "https://github.com/RustCrypto/traits" }
 # https://github.com/RustCrypto/utils/pull/1208
 inout = { git = "https://github.com/RustCrypto/utils" }
 # https://github.com/RustCrypto/MACs/pull/206

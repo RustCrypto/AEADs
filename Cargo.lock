@@ -19,7 +19,7 @@ dependencies = [
 
 [[package]]
 name = "aead-stream"
-version = "0.6.0-rc.0"
+version = "0.6.0-rc.1"
 dependencies = [
  "aead",
 ]
@@ -37,7 +37,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.11.0-rc.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "aead",
  "aes",
@@ -51,7 +51,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.12.0-rc.0"
+version = "0.12.0-rc.1"
 dependencies = [
  "aead",
  "aes",
@@ -64,7 +64,7 @@ dependencies = [
 
 [[package]]
 name = "aes-siv"
-version = "0.8.0-rc.0"
+version = "0.8.0-rc.1"
 dependencies = [
  "aead",
  "aes",
@@ -203,7 +203,7 @@ dependencies = [
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.11.0-rc.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "aead",
  "chacha20",
@@ -320,9 +320,9 @@ dependencies = [
 
 [[package]]
 name = "ghash"
-version = "0.6.0-rc.1"
+version = "0.6.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7df2ef47489983b86b012ce4955b61fcfb1a99a761a1a8c79c3129e722da6795"
+checksum = "4f88107cb02ed63adcc4282942e60c4d09d80208d33b360ce7c729ce6dae1739"
 dependencies = [
  "polyval",
 ]
@@ -427,9 +427,9 @@ dependencies = [
 
 [[package]]
 name = "polyval"
-version = "0.7.0-rc.1"
+version = "0.7.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff52e661730d7c6f95a72137e812e337eb5ff371d38d8588798e0df8404e610c"
+checksum = "1ffd40cc99d0fbb02b4b3771346b811df94194bc103983efa0203c8893755085"
 dependencies = [
  "cfg-if",
  "cpufeatures",
@@ -592,7 +592,7 @@ dependencies = [
 
 [[package]]
 name = "xaes-256-gcm"
-version = "0.0.1-pre.0"
+version = "0.1.0-rc.1"
 dependencies = [
  "aead",
  "aead-stream",

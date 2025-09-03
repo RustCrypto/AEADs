@@ -13,10 +13,10 @@ rust-version = "1.56"
 [dependencies]
 criterion = "0.4.0"
 rand = "0.9.0"
-aes = "=0.9.0-pre.3"
+aes = "0.9.0-rc.1"
 aes-gcm = { path = "../aes-gcm/" }
 aes-gcm-siv = { path = "../aes-gcm-siv/" }
-ascon-aead = { path = "../ascon-aead/" }
+ascon-aead128 = { path = "../ascon-aead128/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
 deoxys = { path = "../deoxys/" }
 eax = { path = "../eax/" }
@@ -35,8 +35,8 @@ path = "src/aes-gcm-siv.rs"
 harness = false
 
 [[bench]]
-name = "ascon-aead"
-path = "src/ascon-aead.rs"
+name = "ascon-aead128"
+path = "src/ascon-aead128.rs"
 harness = false
 
 [[bench]]
@@ -53,16 +53,3 @@ harness = false
 name = "eax"
 path = "src/eax.rs"
 harness = false
-
-[patch.crates-io]
-aead-stream = { path = "../aead-stream" }
-
-crypto-common = { git = "https://github.com/RustCrypto/traits.git" }
-aead          = { git = "https://github.com/RustCrypto/traits.git" }
-
-chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers.git" }
-
-ctr = { git = "https://github.com/baloo/block-modes.git", branch = "baloo/edition-2024" }
-
-ghash   = { git = "https://github.com/RustCrypto/universal-hashes.git" }
-polyval = { git = "https://github.com/RustCrypto/universal-hashes.git" }

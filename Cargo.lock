@@ -417,9 +417,9 @@ dependencies = [
 
 [[package]]
 name = "poly1305"
-version = "0.9.0-rc.1"
+version = "0.9.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acc2072a7f2eb76d8cb988195d48046451ea2c3dc98a5bbe1b112b70e1cffa60"
+checksum = "fb78a635f75d76d856374961deecf61031c0b6f928c83dc9c0924ab6c019c298"
 dependencies = [
  "cpufeatures",
  "universal-hash",

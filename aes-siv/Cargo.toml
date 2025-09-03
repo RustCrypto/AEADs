@@ -22,7 +22,7 @@ aes = "0.9.0-rc.0"
 cipher = "0.5.0-rc.1"
 cmac = "0.8.0-rc.0"
 ctr = "0.10.0-rc.0"
-dbl = "0.5.0-pre"
+dbl = "0.5"
 digest = { version = "0.11.0-rc.0", features = ["mac"] }
 zeroize = { version = "1", optional = true, default-features = false }
 

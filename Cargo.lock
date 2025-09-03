@@ -261,8 +261,9 @@ dependencies = [
 
 [[package]]
 name = "dbl"
-version = "0.5.0-pre"
-source = "git+https://github.com/RustCrypto/utils#adfccfea2686ef191b607f653cc3587753b6ec66"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0d7a944e61df464668c5f51f56cc667396a8821434273112948ea0b66e405d7"
 dependencies = [
  "hybrid-array",
 ]

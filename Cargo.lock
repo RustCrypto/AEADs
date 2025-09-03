@@ -26,9 +26,9 @@ dependencies = [
 
 [[package]]
 name = "aes"
-version = "0.9.0-rc.0"
+version = "0.9.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd4838e4ad37bb032dea137f441d5f71c16c26c068af512e64c5bc13a88cdfc7"
+checksum = "7e713c57c2a2b19159e7be83b9194600d7e8eb3b7c2cd67e671adf47ce189a05"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -106,17 +106,18 @@ dependencies = [
 
 [[package]]
 name = "belt-block"
-version = "0.2.0-rc.0"
+version = "0.2.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9aa0cd4ec3b89021a53caa73cefc5a458cf33b338498e1191916153877bd794"
+checksum = "c4bbddee901eea0f5448cfcc94ea6390d0ee0f3ca8d0308fe34e37553f856640"
 dependencies = [
  "cipher",
 ]
 
 [[package]]
 name = "belt-ctr"
-version = "0.2.0-rc.0"
-source = "git+https://github.com/RustCrypto/block-modes#044d1010efc422c4ee76263f9b70102d77fd342b"
+version = "0.2.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc8c735d632d372934c91b23c3e118c08a71b92bfe3d1b25bb7754818a1e6d4b"
 dependencies = [
  "belt-block",
  "cipher",
@@ -190,8 +191,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chacha20"
-version = "0.10.0-rc.0"
-source = "git+https://github.com/RustCrypto/stream-ciphers#1b7c8220310edf3614e06e4abd1ab476c3024445"
+version = "0.10.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6715ea8ef83a13ae76da6239f97762debdf7f5fa45a638dc9c585423a9cd4834"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -224,8 +226,9 @@ dependencies = [
 
 [[package]]
 name = "cmac"
-version = "0.8.0-rc.0"
-source = "git+https://github.com/RustCrypto/MACs#d1736a3f38a7c0fbbdb82e3b3ab171e526a63c57"
+version = "0.8.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2fa99ca412f76b4656efeab943ef06f1ddd8036c31ca38f35188f173d0dc85e"
 dependencies = [
  "cipher",
  "dbl",
@@ -253,8 +256,9 @@ dependencies = [
 
 [[package]]
 name = "ctr"
-version = "0.10.0-rc.0"
-source = "git+https://github.com/RustCrypto/block-modes#044d1010efc422c4ee76263f9b70102d77fd342b"
+version = "0.10.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27e41d01c6f73b9330177f5cf782ae5b581b5f2c7840e298e0275ceee5001434"
 dependencies = [
  "cipher",
 ]
@@ -402,8 +406,9 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "pmac"
-version = "0.8.0-rc.0"
-source = "git+https://github.com/RustCrypto/MACs#d1736a3f38a7c0fbbdb82e3b3ab171e526a63c57"
+version = "0.8.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c5e3507e63425b47335c20c1b4bae29e29094bdc64bcc8df478ecfa20af6d26"
 dependencies = [
  "cipher",
  "dbl",
@@ -495,9 +500,9 @@ checksum = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
 
 [[package]]
 name = "universal-hash"
-version = "0.6.0-rc.1"
+version = "0.6.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17866ce72039aaa929b785c51d08d0395e02cb5eaffd3efdf634b9b1f80b8157"
+checksum = "a55be643b40a21558f44806b53ee9319595bc7ca6896372e4e08e5d7d83c9cd6"
 dependencies = [
  "crypto-common",
  "subtle",

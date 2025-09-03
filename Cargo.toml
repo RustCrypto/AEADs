@@ -18,14 +18,3 @@ members = [
 [patch.crates-io]
 aead-stream = { path = "aead-stream" }
 aes-gcm = { path = "aes-gcm" }
-
-# https://github.com/RustCrypto/block-modes/pull/84
-belt-ctr = { git = "https://github.com/RustCrypto/block-modes" }
-# https://github.com/RustCrypto/stream-ciphers/pull/450
-chacha20 = { git = "https://github.com/RustCrypto/stream-ciphers" }
-# https://github.com/RustCrypto/MACs/pull/206
-cmac = { git = "https://github.com/RustCrypto/MACs" }
-# https://github.com/RustCrypto/block-modes/pull/84
-ctr = { git = "https://github.com/RustCrypto/block-modes" }
-# https://github.com/RustCrypto/MACs/pull/206
-pmac = { git = "https://github.com/RustCrypto/MACs" }

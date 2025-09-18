@@ -146,8 +146,7 @@ checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 [[package]]
 name = "blobby"
 version = "0.4.0-pre.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a859067dcb257cb2ae028cb821399b55140b76fb8b2a360e052fe109019db43"
+source = "git+https://github.com/RustCrypto/utils#a7e36d36cfc6ae0d804605b91731c7359eb43a95"
 
 [[package]]
 name = "block-buffer"

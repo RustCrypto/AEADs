@@ -53,9 +53,15 @@ macro_rules! wycheproof_tests {
     ($siv:ty, $name:ident, $test_name:expr) => {
         #[test]
         fn $name() {
-            use blobby::Blob5Iterator;
+            use aead::dev::TestVector;
 
-            let data = include_bytes!(concat!("data/", $test_name, ".blb"));
+            aead::dev::blobby::parse_into_structs!(
+                include_bytes!(concat!("data/", $test_name, ".blb"));
+                static TEST_VECTORS: &[
+                    TestVector { key, nonce, aad, plaintext, ciphertext, pass }
+                ];
+            );
+
             fn run_test(
                 key: &[u8],
                 aad: &[u8],
@@ -86,9 +92,9 @@ macro_rules! wycheproof_tests {
                 }
             }
 
-            for (i, row) in Blob5Iterator::new(data).unwrap().enumerate() {
-                let [key, aad, pt, ct, status] = row.unwrap();
-                let pass = match status[0] {
+            for (i, row) in TEST_VECTORS.iter().enumerate() {
+                let &TestVector{ key, aad, plaintext: pt, ciphertext: ct, pass, ..} = row;
+                let pass = match pass[0] {
                     0 => false,
                     1 => true,
                     _ => panic!("invalid value for pass flag"),

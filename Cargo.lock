@@ -5,9 +5,9 @@ version = 4
 
 [[package]]
 name = "aead"
-version = "0.6.0-rc.1"
+version = "0.6.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c01559752fbde7734af628961723aa734aa46351cbf5c9ce41133ad2ae1a09b9"
+checksum = "ac8202ab55fcbf46ca829833f347a82a2a4ce0596f0304ac322c2d100030cd56"
 dependencies = [
  "arrayvec",
  "blobby",
@@ -146,8 +146,7 @@ checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 [[package]]
 name = "blobby"
 version = "0.4.0-pre.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a859067dcb257cb2ae028cb821399b55140b76fb8b2a360e052fe109019db43"
+source = "git+https://github.com/RustCrypto/utils#a7e36d36cfc6ae0d804605b91731c7359eb43a95"
 
 [[package]]
 name = "block-buffer"

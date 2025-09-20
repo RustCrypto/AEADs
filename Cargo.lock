@@ -6,7 +6,7 @@ version = 4
 [[package]]
 name = "aead"
 version = "0.6.0-rc.2"
-source = "git+https://github.com/RustCrypto/traits.git#219861dfcde81d2410dec55e64065e4c573c7be6"
+source = "git+https://github.com/RustCrypto/traits.git#aae99a0014abd27bf73a31b2c810ffe0b86989bb"
 dependencies = [
  "arrayvec",
  "blobby",
@@ -239,7 +239,7 @@ dependencies = [
 [[package]]
 name = "crypto-common"
 version = "0.2.0-rc.4"
-source = "git+https://github.com/RustCrypto/traits.git#219861dfcde81d2410dec55e64065e4c573c7be6"
+source = "git+https://github.com/RustCrypto/traits.git#aae99a0014abd27bf73a31b2c810ffe0b86989bb"
 dependencies = [
  "hybrid-array",
  "rand_core",

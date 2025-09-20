@@ -9,7 +9,8 @@ use hex_literal::hex;
 use ocb3::{Array, Ocb3};
 
 // Test vectors from https://www.rfc-editor.org/rfc/rfc7253.html#appendix-A
-aead::new_test!(rfc7253_ocb_aes, "rfc7253_ocb_aes", Aes128Ocb3);
+aead::new_pass_test!(rfc7253_ocb_aes_pass, "rfc7253_ocb_aes_pass", Aes128Ocb3);
+aead::new_fail_test!(rfc7253_ocb_aes_fail, "rfc7253_ocb_aes_fail", Aes128Ocb3);
 
 fn num2str96(num: usize) -> [u8; 12] {
     let num: u32 = num.try_into().unwrap();

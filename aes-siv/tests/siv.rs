@@ -50,7 +50,7 @@ macro_rules! tests {
 }
 
 macro_rules! wycheproof_tests {
-    ($siv:ty, $name:ident, $test_name:expr) => {
+    ($siv:ty, $name:ident, $test_name:expr, pass = $pass:expr) => {
         #[test]
         fn $name() {
             use aead::dev::TestVector;
@@ -58,7 +58,7 @@ macro_rules! wycheproof_tests {
             aead::dev::blobby::parse_into_structs!(
                 include_bytes!(concat!("data/", $test_name, ".blb"));
                 static TEST_VECTORS: &[
-                    TestVector { key, nonce, aad, plaintext, ciphertext, pass }
+                    TestVector { key, nonce, aad, plaintext, ciphertext }
                 ];
             );
 
@@ -93,13 +93,8 @@ macro_rules! wycheproof_tests {
             }
 
             for (i, row) in TEST_VECTORS.iter().enumerate() {
-                let &TestVector{ key, aad, plaintext: pt, ciphertext: ct, pass, ..} = row;
-                let pass = match pass[0] {
-                    0 => false,
-                    1 => true,
-                    _ => panic!("invalid value for pass flag"),
-                };
-                if let Some(desc) = run_test(key, aad, pt, ct, pass) {
+                let &TestVector{ key, aad, plaintext: pt, ciphertext: ct, ..} = row;
+                if let Some(desc) = run_test(key, aad, pt, ct, $pass) {
                     panic!(
                         "\n\
                          Failed test №{}: {}\n\
@@ -108,7 +103,7 @@ macro_rules! wycheproof_tests {
                          pt:\t{:?}\n\
                          ct:\t{:?}\n\
                          pass:\t{:?}\n",
-                        i, desc, key, aad, pt, ct, pass,
+                        i, desc, key, aad, pt, ct, $pass,
                     );
                 }
             }
@@ -161,7 +156,18 @@ mod aes128cmacsiv {
 
     tests!(Aes128Siv, TEST_VECTORS);
 
-    wycheproof_tests!(Aes128Siv, wycheproof, "wycheproof-256");
+    wycheproof_tests!(
+        Aes128Siv,
+        wycheproof_pass,
+        "wycheproof-256_pass",
+        pass = true
+    );
+    wycheproof_tests!(
+        Aes128Siv,
+        wycheproof_fail,
+        "wycheproof-256_fail",
+        pass = false
+    );
 }
 
 mod aes256cmacsiv {
@@ -201,7 +207,18 @@ mod aes256cmacsiv {
 
     tests!(Aes256Siv, TEST_VECTORS);
 
-    wycheproof_tests!(Aes256Siv, wycheproof, "wycheproof-512");
+    wycheproof_tests!(
+        Aes256Siv,
+        wycheproof_pass,
+        "wycheproof-512_pass",
+        pass = true
+    );
+    wycheproof_tests!(
+        Aes256Siv,
+        wycheproof_fail,
+        "wycheproof-512_fail",
+        pass = false
+    );
 }
 
 #[cfg(feature = "pmac")]

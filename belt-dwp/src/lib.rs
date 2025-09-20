@@ -13,7 +13,7 @@
 //!
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! # #[cfg(all(feature = "os_rng", feature = "heapless"))] {
+//! # #[cfg(feature = "os_rng")] {
 //! use belt_dwp::{
 //!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltDwp
 //! };
@@ -36,17 +36,18 @@
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
-//! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of [`aead::Buffer`] for `heapless::Vec`
-//! (re-exported from the [`aead`] crate as [`aead::heapless::Vec`]),
-//! which can then be passed as the `buffer` parameter to the in-place encrypt
+//! Enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]).
+//!
+//! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! # #[cfg(all(feature = "os_rng", feature = "heapless"))] {
+//! # #[cfg(all(feature = "os_rng", feature = "arrayvec"))] {
 //! use belt_dwp::{
-//!     aead::{AeadInOut, KeyInit, heapless::Vec},
+//!     aead::{AeadInOut, KeyInit, arrayvec::ArrayVec},
 //!     Nonce, BeltDwp
 //! };
 //!
@@ -54,24 +55,20 @@
 //! let cipher = BeltDwp::new(&key);
 //! let nonce = Nonce::try_from(&b"unique nonce1234"[..]).unwrap(); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
-//! buffer.extend_from_slice(b"plaintext message");
+//! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
+//! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
 //! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
-//! assert_ne!(&buffer, b"plaintext message");
+//! assert_ne!(buffer.as_ref(), b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
-//! assert_eq!(&buffer, b"plaintext message");
+//! assert_eq!(buffer.as_ref(), b"plaintext message");
 //! # }; Ok(()) }
 //! ```
-//!
-//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
-//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]).
 
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, Tag};
 pub use belt_block::BeltBlock;

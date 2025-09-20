@@ -12,8 +12,8 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
 //! use xaes_256_gcm::{
 //!     Xaes256Gcm, Nonce, Key,
 //!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},

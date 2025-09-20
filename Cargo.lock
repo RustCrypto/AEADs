@@ -6,14 +6,12 @@ version = 4
 [[package]]
 name = "aead"
 version = "0.6.0-rc.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac8202ab55fcbf46ca829833f347a82a2a4ce0596f0304ac322c2d100030cd56"
+source = "git+https://github.com/RustCrypto/traits.git#219861dfcde81d2410dec55e64065e4c573c7be6"
 dependencies = [
  "arrayvec",
  "blobby",
  "bytes",
  "crypto-common",
- "heapless",
  "inout",
 ]
 
@@ -145,8 +143,9 @@ checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 
 [[package]]
 name = "blobby"
-version = "0.4.0-pre.0"
-source = "git+https://github.com/RustCrypto/utils#a7e36d36cfc6ae0d804605b91731c7359eb43a95"
+version = "0.4.0-pre.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4db6eec520c1f3d3b060c5b67527c3d1d4122d9f0ff47edf0149a7ffa34cebb"
 
 [[package]]
 name = "block-buffer"
@@ -157,12 +156,6 @@ dependencies = [
  "hybrid-array",
  "zeroize",
 ]
-
-[[package]]
-name = "byteorder"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
@@ -246,8 +239,7 @@ dependencies = [
 [[package]]
 name = "crypto-common"
 version = "0.2.0-rc.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a8235645834fbc6832939736ce2f2d08192652269e11010a6240f61b908a1c6"
+source = "git+https://github.com/RustCrypto/traits.git#219861dfcde81d2410dec55e64065e4c573c7be6"
 dependencies = [
  "hybrid-array",
  "rand_core",
@@ -324,25 +316,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4f88107cb02ed63adcc4282942e60c4d09d80208d33b360ce7c729ce6dae1739"
 dependencies = [
  "polyval",
-]
-
-[[package]]
-name = "hash32"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47d60b12902ba28e2730cd37e95b8c9223af2808df9e902d4df49588d1470606"
-dependencies = [
- "byteorder",
-]
-
-[[package]]
-name = "heapless"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bfb9eb618601c89945a70e254898da93b13be0388091d42117462b265bb3fad"
-dependencies = [
- "hash32",
- "stable_deref_trait",
 ]
 
 [[package]]
@@ -461,12 +434,6 @@ checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
 dependencies = [
  "getrandom",
 ]
-
-[[package]]
-name = "stable_deref_trait"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "subtle"

@@ -26,7 +26,6 @@ alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
 os_rng = ["aead/os_rng", "rand_core"]
-heapless = ["aead/heapless"]
 rand_core = ["aead/rand_core"]
 zeroize = ["dep:zeroize", "ascon/zeroize"]
 

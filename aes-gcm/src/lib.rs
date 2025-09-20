@@ -12,8 +12,8 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
+#![cfg_attr(feature = "os_rng", doc = "```")]
+#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
 //! use aes_gcm::{
 //!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
 //!     Aes256Gcm, Nonce, Key // Or `Aes128Gcm`
@@ -58,17 +58,20 @@
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
-//! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of [`aead::Buffer`] for `heapless::Vec`
-//! (re-exported from the [`aead`] crate as [`aead::heapless::Vec`]),
-//! which can then be passed as the `buffer` parameter to the in-place encrypt
+//! Enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
+//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
+//! [`aead`] crate as [`aead::bytes::BytesMut`]).
+//!
+//! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "heapless"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "heapless")), doc = "```ignore")]
+#![cfg_attr(all(feature = "os_rng", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(not(all(feature = "os_rng", feature = "arrayvec")), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_gcm::{
-//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec},
+//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, arrayvec::ArrayVec},
 //!     Aes256Gcm, Nonce, // Or `Aes128Gcm`
 //! };
 //!
@@ -76,27 +79,20 @@
 //! let cipher = Aes256Gcm::new(&key);
 //! let nonce = Aes256Gcm::generate_nonce().expect("generate nonce"); // 96-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Note: buffer needs 16-bytes overhead for auth tag
-//! buffer.extend_from_slice(b"plaintext message");
+//! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
+//! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
 //! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
-//! assert_ne!(&buffer, b"plaintext message");
+//! assert_ne!(buffer.as_ref(), b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
-//! assert_eq!(&buffer, b"plaintext message");
+//! assert_eq!(buffer.as_ref(), b"plaintext message");
 //! # Ok(())
 //! # }
-//! ```
-//!
-//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
-//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
-//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
-//! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 

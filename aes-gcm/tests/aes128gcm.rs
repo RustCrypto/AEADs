@@ -3621,4 +3621,5 @@ const TEST_VECTORS: &[TestVector<[u8; 16], [u8; 12]>] = &[
 tests!(Aes128Gcm, TEST_VECTORS);
 
 // Test vectors from Wycheproof
-aead::new_test!(wycheproof, "wycheproof-128", Aes128Gcm);
+aead::new_pass_test!(wycheproof_pass, "wycheproof-128_pass", Aes128Gcm);
+aead::new_fail_test!(wycheproof_fail, "wycheproof-128_fail", Aes128Gcm);

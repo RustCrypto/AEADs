@@ -66,43 +66,40 @@
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
-//! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of [`aead::Buffer`] for `heapless::Vec`
-//! (re-exported from the [`aead`] crate as [`aead::heapless::Vec`]),
-//! which can then be passed as the `buffer` parameter to the in-place encrypt
+//! Enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
+//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
+//! [`aead`] crate as [`aead::bytes::BytesMut`]).
+//!
+//! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
 //! ```
-//! # #[cfg(feature = "heapless")]
+//! # #[cfg(feature = "arrayvec")]
 //! # {
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, heapless::Vec};
+//! use deoxys::aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, arrayvec::ArrayVec};
 //!
 //! let key = DeoxysII256::generate_key().expect("generate key");
 //! let cipher = DeoxysII256::new(&key);
 //!
 //! let nonce = DeoxysII256::generate_nonce().expect("generate nonce"); // 120-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Buffer needs 16-bytes overhead for tag
-//! buffer.extend_from_slice(b"plaintext message");
+//! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for tag
+//! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
 //! cipher.encrypt_in_place(&nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
-//! assert_ne!(&buffer, b"plaintext message");
+//! assert_ne!(buffer.as_ref(), b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
-//! assert_eq!(&buffer, b"plaintext message");
+//! assert_eq!(buffer.as_ref(), b"plaintext message");
 //! # }
 //! ```
-//!
-//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
-//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
-//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
-//! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
 /// Deoxys-BC implementations.
 mod deoxys_bc;

@@ -62,43 +62,40 @@
 //! methods accept any type that impls the [`aead::Buffer`] trait which
 //! contains the plaintext for encryption or ciphertext for decryption.
 //!
-//! Note that if you enable the `heapless` feature of this crate,
-//! you will receive an impl of [`aead::Buffer`] for `heapless::Vec`
-//! (re-exported from the [`aead`] crate as [`aead::heapless::Vec`]),
-//! which can then be passed as the `buffer` parameter to the in-place encrypt
+//! Enabling the `arrayvec` feature of this crate will provide an impl of
+//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
+//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
+//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
+//! [`aead`] crate as [`aead::bytes::BytesMut`]).
+//!
+//! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
 //! ```
-//! # #[cfg(feature = "heapless")] {
+//! # #[cfg(feature = "arrayvec")] {
 //! use ascon_aead128::{AsconAead128, Key, Nonce};
 //! use ascon_aead128::aead::{AeadInOut, KeyInit};
-//! use ascon_aead128::aead::heapless::Vec;
+//! use ascon_aead128::aead::arrayvec::ArrayVec;
 //!
 //! let key = Key::<AsconAead128>::from_slice(b"very secret key.");
 //! let cipher = AsconAead128::new(key);
 //!
 //! let nonce = Nonce::<AsconAead128>::from_slice(b"unique nonce 012"); // 128-bits; unique per message
 //!
-//! let mut buffer: Vec<u8, 128> = Vec::new(); // Buffer needs 16-bytes overhead for authentication tag
-//! buffer.extend_from_slice(b"plaintext message");
+//! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for authentication tag
+//! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
 //! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
-//! assert_ne!(&buffer, b"plaintext message");
+//! assert_ne!(buffer.as_ref(), b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
-//! assert_eq!(&buffer, b"plaintext message");
+//! assert_eq!(buffer.as_ref(), b"plaintext message");
 //! # }
 //! ```
-//!
-//! Similarly, enabling the `arrayvec` feature of this crate will provide an impl of
-//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
-//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
-//! [`aead`] crate as [`aead::bytes::BytesMut`]).
 
 #[cfg(feature = "zeroize")]
 pub use zeroize;

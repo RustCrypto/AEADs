@@ -19,5 +19,6 @@ members = [
 aead-stream = { path = "aead-stream" }
 aes-gcm = { path = "aes-gcm" }
 
-# https://github.com/RustCrypto/utils/pull/1187
-blobby = { git = "https://github.com/RustCrypto/utils" }
+# https://github.com/RustCrypto/traits/pull/2019
+aead = { git = "https://github.com/RustCrypto/traits.git" }
+crypto-common = { git = "https://github.com/RustCrypto/traits.git" }

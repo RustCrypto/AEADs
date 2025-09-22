@@ -31,7 +31,6 @@ default = ["alloc", "os_rng"]
 alloc = ["aead/alloc", "aead-stream?/alloc", "aes-gcm/alloc"]
 arrayvec = ["aead/arrayvec", "aes-gcm/arrayvec"]
 os_rng = ["aead/os_rng", "aes-gcm/os_rng", "rand_core"]
-heapless = ["aead/heapless", "aes-gcm/heapless"]
 rand_core = ["aead/rand_core", "aes-gcm/rand_core"]
 
 [package.metadata.docs.rs]

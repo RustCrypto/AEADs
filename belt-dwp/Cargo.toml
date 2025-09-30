@@ -18,7 +18,7 @@ belt-ctr = { version = "0.2.0-rc.1" }
 opaque-debug = { version = "0.3" }
 subtle = { version = "2", default-features = false }
 universal-hash = { version = "0.6.0-rc.2" }
-zeroize = { version = "1.7", default-features = false, optional = true }
+zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]
 hex-literal = "1"

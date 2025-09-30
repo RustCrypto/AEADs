@@ -14,7 +14,7 @@ rust-version = "1.85"
 [dependencies]
 aead = { version = "0.6.0-rc.2", default-features = false }
 subtle = { version = "2", default-features = false }
-zeroize = { version = "1.6", optional = true, default-features = false, features = ["derive"] }
+zeroize = { version = "1.8", optional = true, default-features = false, features = ["derive"] }
 ascon = "0.4"
 
 [dev-dependencies]

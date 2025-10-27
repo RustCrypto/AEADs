@@ -165,7 +165,7 @@ checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
 name = "ccm"
-version = "0.6.0-pre"
+version = "0.6.0-pre.0"
 dependencies = [
  "aead",
  "aes",

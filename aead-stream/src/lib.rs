@@ -200,7 +200,6 @@ macro_rules! impl_stream_object {
             #[doc = "object from the given AEAD primitive."]
             pub fn from_aead(aead: A, nonce: &Nonce<A, S>) -> Self
             where
-                A: KeyInit,
                 S: NewStream<A>,
             {
                 Self::from_stream_primitive(S::from_aead(aead, nonce))

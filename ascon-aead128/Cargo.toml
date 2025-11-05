@@ -12,20 +12,20 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.2", default-features = false }
+aead = { version = "0.6.0-rc.3", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1.8", optional = true, default-features = false, features = ["derive"] }
-ascon = "0.4"
+ascon = "0.5.0-rc.0"
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.2", features = ["dev"] }
+aead = { version = "0.6.0-rc.3", features = ["dev"] }
 
 [features]
-default = ["alloc", "os_rng"]
+default = ["alloc", "getrandom"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-os_rng = ["aead/os_rng", "rand_core"]
+getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
 zeroize = ["dep:zeroize", "ascon/zeroize"]
 

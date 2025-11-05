@@ -11,18 +11,20 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(feature = "os_rng", doc = "```")]
-#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_siv::{
-//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
+//!     aead::{Aead, AeadCore, KeyInit},
 //!     Aes256SivAead, Nonce // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key().expect("Generate key");
+//! let key = Aes256SivAead::generate_key().expect("key generation failure");
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Aes256SivAead::generate_nonce().expect("Generate nonce"); // 128-bits; unique per message
+//!
+//! let nonce = Aes256SivAead::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
@@ -47,18 +49,21 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "arrayvec"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "arrayvec")), doc = "```ignore")]
+#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "arrayvec")),
+    doc = "```ignore"
+)]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes_siv::{
-//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, arrayvec::ArrayVec},
+//!     aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec},
 //!     Aes256SivAead, Nonce, // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key().expect("Generate key");
+//! let key = Aes256SivAead::generate_key().expect("key generation failure");
 //! let cipher = Aes256SivAead::new(&key);
-//! let nonce = Aes256SivAead::generate_nonce().expect("Generate nonce"); // 128-bits; unique per message
 //!
+//! let nonce = Aes256SivAead::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!

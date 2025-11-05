@@ -13,7 +13,7 @@ rust-version = "1.56"
 [dependencies]
 criterion = "0.4.0"
 rand = "0.9.0"
-aes = "0.9.0-rc.1"
+aes = "0.9.0-rc.2"
 aes-gcm = { path = "../aes-gcm/" }
 aes-gcm-siv = { path = "../aes-gcm-siv/" }
 ascon-aead128 = { path = "../ascon-aead128/" }

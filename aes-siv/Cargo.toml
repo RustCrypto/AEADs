@@ -17,29 +17,30 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = "0.6.0-rc.2"
-aes = "0.9.0-rc.1"
-cipher = "0.5.0-rc.1"
-cmac = "0.8.0-rc.1"
-ctr = "0.10.0-rc.1"
+aead = "0.6.0-rc.3"
+aes = "0.9.0-rc.2"
+cipher = "0.5.0-rc.2"
+cmac = "0.8.0-rc.3"
+ctr = "0.10.0-rc.2"
 dbl = "0.5"
-digest = { version = "0.11.0-rc.2", features = ["mac"] }
-zeroize = { version = "1", optional = true, default-features = false }
+digest = { version = "0.11.0-rc.4", features = ["mac"] }
 
 # optional dependencies
-pmac = { version = "0.8.0-rc.1", optional = true }
+pmac = { version = "0.8.0-rc.3", optional = true }
+zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.2", features = ["alloc", "dev"], default-features = false }
+aead = { version = "0.6.0-rc.3", features = ["alloc", "dev"], default-features = false }
 blobby = "0.4"
 hex-literal = "1"
 
 [features]
-default = ["alloc", "os_rng"]
+default = ["alloc", "getrandom"]
 alloc = ["aead/alloc"]
+
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-os_rng = ["aead/os_rng", "rand_core"]
+getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
 
 [package.metadata.docs.rs]

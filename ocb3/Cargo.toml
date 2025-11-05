@@ -16,25 +16,25 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.2", default-features = false }
-cipher = "0.5.0-rc.1"
-ctr = "0.10.0-rc.1"
+aead = { version = "0.6.0-rc.3", default-features = false }
+cipher = "0.5.0-rc.2"
+ctr = "0.10.0-rc.2"
 dbl = "0.5"
 subtle = { version = "2", default-features = false }
 aead-stream = { version = "0.6.0-rc.1", optional = true, default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.2", features = ["dev"], default-features = false }
-aes = { version = "0.9.0-rc.1", default-features = false }
+aead = { version = "0.6.0-rc.3", features = ["dev"], default-features = false }
+aes = { version = "0.9.0-rc.2", default-features = false }
 hex-literal = "0.4"
 
 [features]
-default = ["alloc", "os_rng"]
+default = ["alloc", "getrandom"]
 alloc = ["aead/alloc", "aead-stream?/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-os_rng = ["aead/os_rng", "rand_core"]
+getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
 
 [package.metadata.docs.rs]

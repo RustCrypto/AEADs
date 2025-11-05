@@ -12,23 +12,23 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.2", default-features = false }
-belt-block = { version = "0.2.0-rc.1" }
-belt-ctr = { version = "0.2.0-rc.1" }
+aead = { version = "0.6.0-rc.3", default-features = false }
+belt-block = { version = "0.2.0-rc.2" }
+belt-ctr = { version = "0.2.0-rc.2" }
 opaque-debug = { version = "0.3" }
 subtle = { version = "2", default-features = false }
-universal-hash = { version = "0.6.0-rc.2" }
+universal-hash = { version = "0.6.0-rc.3" }
 zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]
 hex-literal = "1"
 
 [features]
-default = ["alloc", "os_rng"]
+default = ["alloc", "getrandom"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-os_rng = ["aead/os_rng", "rand_core"]
+getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
 reduced-round = []
 zeroize = ["dep:zeroize", "belt-ctr/zeroize"]

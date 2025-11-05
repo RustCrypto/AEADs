@@ -17,16 +17,16 @@ Pure Rust implementation of the Offset Codebook Mode v3 (OCB3)
 ```rust
 use aes::Aes128;
 use ocb3::{
-    aead::{Aead, AeadCore, KeyInit, array::Array, rand_core::OsRng},
+    aead::{Aead, AeadCore, KeyInit, array::Array},
     consts::U12,
     Ocb3,
 };
 
 type Aes128Ocb3 = Ocb3<Aes128, U12>;
 
-let key = Aes128::generate_key().unwrap();
+let key = Aes128::generate_key().expect("key generation failure");
 let cipher = Aes128Ocb3::new(&key);
-let nonce = Aes128Ocb3::generate_nonce().unwrap();
+let nonce = Aes128Ocb3::generate_nonce().expect("nonce failure");
 let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref()).unwrap();
 let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref()).unwrap();
 

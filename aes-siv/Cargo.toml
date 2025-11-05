@@ -1,6 +1,6 @@
 [package]
 name = "aes-siv"
-version = "0.8.0-rc.1"
+version = "0.8.0-rc.2"
 description = """
 Pure Rust implementation of the AES-SIV Misuse-Resistant Authenticated
 Encryption Cipher (RFC 5297) with optional architecture-specific

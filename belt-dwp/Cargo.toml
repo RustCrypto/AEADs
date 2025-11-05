@@ -1,6 +1,6 @@
 [package]
 name = "belt-dwp"
-version = "0.1.0-pre"
+version = "0.1.0-rc.2"
 description = "Pure Rust implementation of the Belt-DWP authenticated encryption algorithm (STB 34.101.31-2020)"
 edition = "2024"
 license = "Apache-2.0 OR MIT"

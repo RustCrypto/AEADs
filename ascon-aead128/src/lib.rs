@@ -11,45 +11,42 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! # #[cfg(feature = "alloc")] {
-//! use ascon_aead128::{AsconAead128, Key, Nonce};
-//! use ascon_aead128::aead::{Aead, KeyInit};
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! use ascon_aead128::{
+//!     AsconAead128, Key, Nonce,
+//!     aead::{Aead, KeyInit, AeadCore}
+//! };
 //!
-//! let key = Key::<AsconAead128>::from_slice(b"very secret key.");
-//! let cipher = AsconAead128::new(key);
+//! let key = AsconAead128::generate_key().expect("key generation failure");
+//! let cipher = AsconAead128::new(&key);
 //!
-//! let nonce = Nonce::<AsconAead128>::from_slice(b"unique nonce 012"); // 128-bits; unique per message
+//! let nonce = AsconAead128::generate_nonce().expect("generate nonce"); // MUST be unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!
 //! With randomly sampled keys and nonces (requires `getrandom` feature):
 //!
-//! ```
-//! # #[cfg(feature = "getrandom")] {
-//! use ascon_aead128::AsconAead128;
-//! use ascon_aead128::aead::{Aead, AeadCore, KeyInit, OsRng};
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! use ascon_aead128::{AsconAead128, aead::{Aead, AeadCore, KeyInit}};
 //!
-//! let key = AsconAead128::generate_key().expect("generate key");
+//! let key = AsconAead128::generate_key().expect("key generation failure");
 //! let cipher = AsconAead128::new(&key);
 //!
-//! let nonce = AsconAead128::generate_nonce().expect("generate nonce"); // 128 bits; unique per message
+//! let nonce = AsconAead128::generate_nonce().expect("generate nonce"); // MUST be unique per message
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
-//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
-//!
-//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!
@@ -71,29 +68,34 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # #[cfg(feature = "arrayvec")] {
-//! use ascon_aead128::{AsconAead128, Key, Nonce};
-//! use ascon_aead128::aead::{AeadInOut, KeyInit};
-//! use ascon_aead128::aead::arrayvec::ArrayVec;
+#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "arrayvec")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! use ascon_aead128::{
+//!     AsconAead128, Key, Nonce,
+//!     aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec}
+//! };
 //!
-//! let key = Key::<AsconAead128>::from_slice(b"very secret key.");
-//! let cipher = AsconAead128::new(key);
+//! let key = AsconAead128::generate_key().expect("key generation failure");
+//! let cipher = AsconAead128::new(&key);
 //!
-//! let nonce = Nonce::<AsconAead128>::from_slice(b"unique nonce 012"); // 128-bits; unique per message
-//!
+//! let nonce = AsconAead128::generate_nonce().expect("generate nonce"); // MUST be unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for authentication tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer).expect("encryption failure!");
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(buffer.as_ref(), b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
 //! assert_eq!(buffer.as_ref(), b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 

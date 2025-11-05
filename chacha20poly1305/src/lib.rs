@@ -23,18 +23,20 @@
 //!
 //! # Usage
 //!
-#![cfg_attr(feature = "os_rng", doc = "```")]
-#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
+//!     aead::{Aead, AeadCore, KeyInit},
 //!     ChaCha20Poly1305, Nonce
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key().expect("generate key");
+//! let key = ChaCha20Poly1305::generate_key().expect("key generation failure");
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = ChaCha20Poly1305::generate_nonce().expect("Generate nonce"); // 96-bits; unique per message
+//!
+//! let nonce = ChaCha20Poly1305::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
@@ -59,18 +61,21 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "arrayvec"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "arrayvec")), doc = "```ignore")]
+#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "arrayvec")),
+    doc = "```ignore"
+)]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, arrayvec::ArrayVec},
+//!     aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec},
 //!     ChaCha20Poly1305, Nonce,
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key().expect("Generate key");
+//! let key = ChaCha20Poly1305::generate_key().expect("key generation failure");
 //! let cipher = ChaCha20Poly1305::new(&key);
-//! let nonce = ChaCha20Poly1305::generate_nonce().expect("Generate nonce"); // 96-bits; unique per message
 //!
+//! let nonce = ChaCha20Poly1305::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
@@ -116,17 +121,17 @@
 //!
 //! # Usage
 //!
-#![cfg_attr(feature = "os_rng", doc = "```")]
-#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use chacha20poly1305::{
-//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
+//!     aead::{Aead, AeadCore, KeyInit},
 //!     XChaCha20Poly1305, XNonce
 //! };
 //!
-//! let key = XChaCha20Poly1305::generate_key().expect("Generate key");
+//! let key = XChaCha20Poly1305::generate_key().expect("key generation failure");
 //! let cipher = XChaCha20Poly1305::new(&key);
-//! let nonce = XChaCha20Poly1305::generate_nonce().expect("Generate nonce"); // 192-bits; unique per message
+//! let nonce = XChaCha20Poly1305::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");

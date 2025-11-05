@@ -20,21 +20,21 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.2", default-features = false }
-chacha20 = { version = "0.10.0-rc.2", default-features = false, features = ["xchacha"] }
-cipher = "0.5.0-rc.1"
-poly1305 = "0.9.0-rc.2"
+aead = { version = "0.6.0-rc.3", default-features = false }
+chacha20 = { version = "0.10.0-rc.4", default-features = false, features = ["xchacha"] }
+cipher = "0.5.0-rc.2"
+poly1305 = "0.9.0-rc.3"
 zeroize = { version = "1.8", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.2", features = ["dev"], default-features = false }
+aead = { version = "0.6.0-rc.3", features = ["dev"], default-features = false }
 
 [features]
-default = ["alloc", "os_rng"]
+default = ["alloc", "getrandom"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-os_rng = ["aead/os_rng", "rand_core"]
+getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
 reduced-round = []
 zeroize = ["dep:zeroize", "chacha20/zeroize"]

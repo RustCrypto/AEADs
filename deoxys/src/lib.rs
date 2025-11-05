@@ -8,19 +8,21 @@
 
 //! # Usage
 //!
-#![cfg_attr(feature = "os_rng", doc = "```")]
-#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use deoxys::{
-//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
+//!     aead::{Aead, AeadCore, KeyInit},
 //!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
 //!     Nonce // Or `Aes128Gcm`
 //! };
 //!
-//! let key = DeoxysII256::generate_key().expect("Generate key");
+//! let key = DeoxysII256::generate_key().expect("key generation failure");
 //! let cipher = DeoxysII256::new(&key);
-//! let nonce = DeoxysII256::generate_nonce().expect("Generate nonce"); // 120-bits; unique per message
+//!
+//! let nonce = DeoxysII256::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
@@ -29,32 +31,34 @@
 //!
 //! ## Usage with AAD
 //! Deoxys can authenticate additional data that is not encrypted alongside with the ciphertext.
-//! ```
-//! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload, rand_core::OsRng};
 //!
-//! let key = DeoxysII256::generate_key().expect("generate key");
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
+//! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload};
+//!
+//! let key = DeoxysII256::generate_key().expect("key generation failure");
 //! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = DeoxysII256::generate_nonce().expect("generate nonce"); // 120-bits; unique per message
+//! let nonce = DeoxysII256::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //!
 //! let payload = Payload {
 //!    msg: &b"this will be encrypted".as_ref(),
 //!    aad: &b"this will NOT be encrypted, but will be authenticated".as_ref(),
 //! };
 //!
-//! let ciphertext = cipher.encrypt(&nonce, payload)
-//!     .expect("encryption failure!"); // NOTE: handle this error to avoid panics!
+//! let ciphertext = cipher.encrypt(&nonce, payload)?;
 //!
 //! let payload = Payload {
 //!    msg: &ciphertext,
 //!    aad: &b"this will NOT be encrypted, but will be authenticated".as_ref(),
 //! };
 //!
-//! let plaintext = cipher.decrypt(&nonce, payload)
-//!     .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-//!
+//! let plaintext = cipher.decrypt(&nonce, payload)?;
 //! assert_eq!(&plaintext, b"this will be encrypted");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -75,29 +79,33 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # #[cfg(feature = "arrayvec")]
-//! # {
+#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "arrayvec")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadCore, AeadInOut, KeyInit, rand_core::OsRng, arrayvec::ArrayVec};
+//! use deoxys::aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec};
 //!
-//! let key = DeoxysII256::generate_key().expect("generate key");
+//! let key = DeoxysII256::generate_key().expect("key generation failure");
 //! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = DeoxysII256::generate_nonce().expect("generate nonce"); // 120-bits; unique per message
+//! let nonce = DeoxysII256::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //!
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(&nonce, b"", &mut buffer).expect("encryption failure!");
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(buffer.as_ref(), b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(buffer.as_ref(), b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 

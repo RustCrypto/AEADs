@@ -13,7 +13,7 @@
 //!
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! # #[cfg(feature = "os_rng")] {
+//! # #[cfg(feature = "getrandom")] {
 //! use belt_dwp::{
 //!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltDwp
 //! };
@@ -45,7 +45,7 @@
 //!
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! # #[cfg(all(feature = "os_rng", feature = "arrayvec"))] {
+//! # #[cfg(all(feature = "getrandom", feature = "arrayvec"))] {
 //! use belt_dwp::{
 //!     aead::{AeadInOut, KeyInit, arrayvec::ArrayVec},
 //!     Nonce, BeltDwp

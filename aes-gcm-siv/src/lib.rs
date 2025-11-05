@@ -11,18 +11,20 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(feature = "os_rng", doc = "```")]
-#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_gcm_siv::{
-//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng},
+//!     aead::{Aead, AeadCore, KeyInit},
 //!     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key().expect("generate key");
+//! let key = Aes256GcmSiv::generate_key().expect("key generation failure");
 //! let cipher = Aes256GcmSiv::new(&key);
-//! let nonce = Aes256GcmSiv::generate_nonce().expect("generate nonce"); // 96-bits; unique per message
+//!
+//! let nonce = Aes256GcmSiv::generate_nonce().expect("nonce failure"); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
@@ -47,29 +49,32 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(all(feature = "os_rng", feature = "arrayvec"), doc = "```")]
-#![cfg_attr(not(all(feature = "os_rng", feature = "arrayvec")), doc = "```ignore")]
+#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "arrayvec")),
+    doc = "```ignore"
+)]
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use aes_gcm_siv::{
-//!     aead::{AeadInOut, Buffer, KeyInit, rand_core::OsRng, arrayvec::ArrayVec},
+//!     aead::{AeadInOut, AeadCore, Buffer, KeyInit, arrayvec::ArrayVec},
 //!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key().expect("generate key");
+//! let key = Aes256GcmSiv::generate_key().expect("key generation failure");
 //! let cipher = Aes256GcmSiv::new(&key);
-//! let nonce = Nonce::from_slice(b"unique nonce"); // 96-bits; unique per message
 //!
+//! let nonce = Aes256GcmSiv::generate_nonce().expect("nonce failure"); // 96-bits; unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!
 //! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
 //!
 //! // `buffer` now contains the message ciphertext
 //! assert_ne!(buffer.as_ref(), b"plaintext message");
 //!
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(nonce, b"", &mut buffer)?;
+//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(buffer.as_ref(), b"plaintext message");
 //! # Ok(())
 //! # }

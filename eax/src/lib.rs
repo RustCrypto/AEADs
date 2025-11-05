@@ -12,12 +12,12 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(feature = "os_rng", doc = "```")]
-#![cfg_attr(not(feature = "os_rng"), doc = "```ignore")]
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes::Aes256;
 //! use eax::{
-//!     aead::{Aead, AeadCore, KeyInit, rand_core::OsRng, array::Array},
+//!     aead::{Aead, AeadCore, KeyInit, array::Array},
 //!     Eax, Nonce
 //! };
 //!
@@ -59,7 +59,7 @@
 //! use eax::aead::{
 //!     array::Array,
 //!     arrayvec::ArrayVec,
-//!     AeadCore, AeadInOut, KeyInit, rand_core::OsRng
+//!     AeadCore, AeadInOut, KeyInit,
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;

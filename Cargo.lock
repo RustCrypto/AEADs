@@ -18,7 +18,7 @@ dependencies = [
 
 [[package]]
 name = "aead-stream"
-version = "0.6.0-rc.1"
+version = "0.6.0-rc.2"
 dependencies = [
  "aead",
 ]
@@ -36,7 +36,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.11.0-rc.1"
+version = "0.11.0-rc.2"
 dependencies = [
  "aead",
  "aes",
@@ -50,7 +50,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.12.0-rc.1"
+version = "0.12.0-rc.2"
 dependencies = [
  "aead",
  "aes",
@@ -63,7 +63,7 @@ dependencies = [
 
 [[package]]
 name = "aes-siv"
-version = "0.8.0-rc.1"
+version = "0.8.0-rc.2"
 dependencies = [
  "aead",
  "aes",
@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "ascon-aead128"
-version = "0.1.0-pre"
+version = "0.1.0-rc.2"
 dependencies = [
  "aead",
  "ascon",
@@ -124,7 +124,7 @@ dependencies = [
 
 [[package]]
 name = "belt-dwp"
-version = "0.1.0-pre"
+version = "0.1.0-rc.2"
 dependencies = [
  "aead",
  "belt-block",
@@ -166,7 +166,7 @@ checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
 name = "ccm"
-version = "0.6.0-pre.0"
+version = "0.6.0-rc.2"
 dependencies = [
  "aead",
  "aes",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.11.0-rc.1"
+version = "0.11.0-rc.2"
 dependencies = [
  "aead",
  "chacha20",
@@ -268,7 +268,7 @@ dependencies = [
 
 [[package]]
 name = "deoxys"
-version = "0.2.0-pre"
+version = "0.2.0-rc.2"
 dependencies = [
  "aead",
  "aes",
@@ -290,7 +290,7 @@ dependencies = [
 
 [[package]]
 name = "eax"
-version = "0.6.0-pre"
+version = "0.6.0-rc.2"
 dependencies = [
  "aead",
  "aes",
@@ -360,7 +360,7 @@ checksum = "875b3680cb2f8f71bdcf9a30f38d48282f5d3c95cbf9b3fa57269bb5d5c06828"
 
 [[package]]
 name = "ocb3"
-version = "0.2.0-pre"
+version = "0.2.0-rc.2"
 dependencies = [
  "aead",
  "aead-stream",
@@ -558,7 +558,7 @@ dependencies = [
 
 [[package]]
 name = "xaes-256-gcm"
-version = "0.1.0-rc.1"
+version = "0.1.0-rc.2"
 dependencies = [
  "aead",
  "aead-stream",

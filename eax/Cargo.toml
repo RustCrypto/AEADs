@@ -1,6 +1,6 @@
 [package]
 name = "eax"
-version = "0.6.0-pre"
+version = "0.6.0-rc.2"
 description = """
 Pure Rust implementation of the EAX
 Authenticated Encryption with Associated Data (AEAD) Cipher

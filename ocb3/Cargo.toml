@@ -27,7 +27,7 @@ zeroize = { version = "1", optional = true, default-features = false }
 [dev-dependencies]
 aead = { version = "0.6.0-rc.3", features = ["dev"], default-features = false }
 aes = { version = "0.9.0-rc.2", default-features = false }
-hex-literal = "0.4"
+hex-literal = "1"
 
 [features]
 default = ["alloc", "getrandom"]

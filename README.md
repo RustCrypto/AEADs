@@ -27,7 +27,9 @@ crate.
 | [`chacha20poly1305`] | [(X)ChaCha20Poly1305]        | [![crates.io](https://img.shields.io/crates/v/chacha20poly1305.svg)](https://crates.io/crates/chacha20poly1305) | [![Documentation](https://docs.rs/chacha20poly1305/badge.svg)](https://docs.rs/chacha20poly1305) | 1.85 |
 | [`deoxys`]           | [Deoxys-I/II]                | [![crates.io](https://img.shields.io/crates/v/deoxys.svg)](https://crates.io/crates/deoxys) | [![Documentation](https://docs.rs/deoxys/badge.svg)](https://docs.rs/deoxys) | 1.85 |
 | [`eax`]              | [EAX]                        | [![crates.io](https://img.shields.io/crates/v/eax.svg)](https://crates.io/crates/eax) | [![Documentation](https://docs.rs/eax/badge.svg)](https://docs.rs/eax) | 1.85 |
+| [`grain-128aeadv2`]  | [Grain-128AEADv2]            | [![crates.io](https://img.shields.io/crates/v/grain-128aeadv2.svg)](https://crates.io/crates/grain-128aeadv2) | [![Documentation](https://docs.rs/grain-128aeadv2/badge.svg)](https://docs.rs/grain-128aeadv2) | 1.85 |
 | [`mgm`]              | [MGM]                        | [![crates.io](https://img.shields.io/crates/v/mgm.svg)](https://crates.io/crates/mgm) | [![Documentation](https://docs.rs/mgm/badge.svg)](https://docs.rs/mgm) | 1.85 |
+
 
 ## License
 
@@ -69,6 +71,7 @@ dual licensed as above, without any additional terms or conditions.
 [`chacha20poly1305`]: https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305
 [`deoxys`]: https://github.com/RustCrypto/AEADs/tree/master/deoxys
 [`eax`]: https://github.com/RustCrypto/AEADs/tree/master/eax
+[`grain-128aeadv2`]: https://github.com/RustCrypto/AEADs/tree/master/grain-128aeadv2
 [`mgm`]: https://github.com/RustCrypto/AEADs/tree/master/mgm
 
 [//]: # (algorithms)
@@ -81,5 +84,6 @@ dual licensed as above, without any additional terms or conditions.
 [CCM]: https://en.wikipedia.org/wiki/CCM_mode
 [Deoxys-I/II]: https://sites.google.com/view/deoxyscipher
 [EAX]: https://en.wikipedia.org/wiki/EAX_mode
+[Grain-128AEADv2]: https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/grain-128aead-spec-final.pdf
 [MGM]: https://eprint.iacr.org/2019/123.pdf
 [(X)ChaCha20Poly1305]: https://tools.ietf.org/html/rfc8439

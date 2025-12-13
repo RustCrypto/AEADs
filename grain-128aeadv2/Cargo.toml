@@ -1,0 +1,39 @@
+[package]
+name = "grain-128aeadv2"
+version = "0.1.2"
+edition = "2024"
+description = "Implementation of Grain-128AEADv2 stream cipher."
+rust-version = "1.85"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/grain-128aeadv2"
+repository = "https://github.com/acmo0/grain-128aeadv2/"
+keywords = ["AEAD", "grain-128", "encryption"]
+categories = ["cryptography", "no-std"]
+authors = ["Grégoire Frémion <gregoire.fremion@telecom-sudparis.eu"]
+
+[dependencies]
+aead = { version = "0.6.0-rc.3", default-features = false }
+zeroize = { version = "1.8", optional = true, default-features = false, features = ["derive"] }
+num-traits = { version = "0.2.19", default-features = false }
+
+
+[features]
+default = ["vec"]
+vec = []
+zeroize = ["dep:zeroize"]
+alloc = ["aead/alloc"]
+arrayvec = ["aead/arrayvec"]
+getrandom = ["aead/getrandom"]
+rand_core = ["aead/rand_core"]
+
+[profile.release]
+debug = true
+
+[dev-dependencies]
+assert_no_alloc = { version = "1.1.2", default-features = false }
+proptest = "1.9.0"
+
+
+[package.metadata.docs.rs]
+all-features = true

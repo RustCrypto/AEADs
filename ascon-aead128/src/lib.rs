@@ -14,34 +14,17 @@
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use ascon_aead128::{
-//!     AsconAead128, Key, Nonce,
-//!     aead::{Aead, KeyInit, AeadCore}
+//!     aead::{Aead, Generate, KeyInit, AeadCore},
+//!     AsconAead128, AsconAead128Key, AsconAead128Nonce
 //! };
 //!
-//! let key = AsconAead128::generate_key().expect("key generation failure");
+//! let key = AsconAead128Key::generate();
 //! let cipher = AsconAead128::new(&key);
 //!
-//! let nonce = AsconAead128::generate_nonce().expect("generate nonce"); // MUST be unique per message
-//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
-//!
-//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
-//! assert_eq!(&plaintext, b"plaintext message");
-//! # Ok(())
-//! # }
-//! ```
-//!
-//! With randomly sampled keys and nonces (requires `getrandom` feature):
-//!
-#![cfg_attr(feature = "getrandom", doc = "```")]
-#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! use ascon_aead128::{AsconAead128, aead::{Aead, AeadCore, KeyInit}};
-//!
-//! let key = AsconAead128::generate_key().expect("key generation failure");
-//! let cipher = AsconAead128::new(&key);
-//!
-//! let nonce = AsconAead128::generate_nonce().expect("generate nonce"); // MUST be unique per message
+//! let nonce = AsconAead128Nonce::generate(); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
@@ -74,15 +57,17 @@
     doc = "```ignore"
 )]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
+//!
 //! use ascon_aead128::{
-//!     AsconAead128, Key, Nonce,
-//!     aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec}
+//!     aead::{AeadCore, AeadInOut, Generate, KeyInit, arrayvec::ArrayVec},
+//!     AsconAead128, AsconAead128Key, AsconAead128Nonce
 //! };
 //!
-//! let key = AsconAead128::generate_key().expect("key generation failure");
+//! let key = AsconAead128Key::generate();
 //! let cipher = AsconAead128::new(&key);
 //!
-//! let nonce = AsconAead128::generate_nonce().expect("generate nonce"); // MUST be unique per message
+//! let nonce = AsconAead128Nonce::generate(); // MUST be unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for authentication tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!

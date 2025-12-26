@@ -13,16 +13,18 @@
 //!
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use aes_gcm_siv::{
-//!     aead::{Aead, AeadCore, KeyInit},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
 //!     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key().expect("key generation failure");
+//! let key = Key::<Aes256GcmSiv>::generate();
 //! let cipher = Aes256GcmSiv::new(&key);
 //!
-//! let nonce = Aes256GcmSiv::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
@@ -54,16 +56,18 @@
     not(all(feature = "getrandom", feature = "arrayvec")),
     doc = "```ignore"
 )]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
+//!
 //! use aes_gcm_siv::{
-//!     aead::{AeadInOut, AeadCore, Buffer, KeyInit, arrayvec::ArrayVec},
+//!     aead::{AeadInOut, AeadCore, Buffer, Generate, Key, KeyInit, arrayvec::ArrayVec},
 //!     Aes256GcmSiv, Nonce, // Or `Aes128GcmSiv`
 //! };
 //!
-//! let key = Aes256GcmSiv::generate_key().expect("key generation failure");
+//! let key = Key::<Aes256GcmSiv>::generate();
 //! let cipher = Aes256GcmSiv::new(&key);
 //!
-//! let nonce = Aes256GcmSiv::generate_nonce().expect("nonce failure"); // 96-bits; unique per message
+//! let nonce = Nonce::generate(); // 96-bits; unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.extend_from_slice(b"plaintext message");
 //!

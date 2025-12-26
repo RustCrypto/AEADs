@@ -11,16 +11,18 @@
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use deoxys::{
-//!     aead::{Aead, AeadCore, KeyInit},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
 //!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//!     Nonce // Or `Aes128Gcm`
+//!     Nonce
 //! };
 //!
-//! let key = DeoxysII256::generate_key().expect("key generation failure");
+//! let key = Key::<DeoxysII256>::generate();
 //! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = DeoxysII256::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
@@ -35,13 +37,18 @@
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{Aead, AeadCore, KeyInit, Payload};
+//! // NOTE: requires the `getrandom` feature is enabled
 //!
-//! let key = DeoxysII256::generate_key().expect("key generation failure");
+//! use deoxys::{
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit, Payload},
+//!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
+//!     Nonce
+//! };
+//!
+//! let key = Key::<DeoxysII256>::generate();
 //! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = DeoxysII256::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //!
 //! let payload = Payload {
 //!    msg: &b"this will be encrypted".as_ref(),
@@ -85,13 +92,18 @@
     doc = "```ignore"
 )]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! use deoxys::{DeoxysII256, Nonce}; // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//! use deoxys::aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec};
+//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
 //!
-//! let key = DeoxysII256::generate_key().expect("key generation failure");
+//! use deoxys::{
+//!     aead::{AeadCore, AeadInOut, Generate, Key, KeyInit, arrayvec::ArrayVec},
+//!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
+//!     Nonce
+//! };
+//!
+//! let key = Key::<DeoxysII256>::generate();
 //! let cipher = DeoxysII256::new(&key);
 //!
-//! let nonce = DeoxysII256::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //!
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();

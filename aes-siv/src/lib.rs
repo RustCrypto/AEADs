@@ -14,15 +14,17 @@
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use aes_siv::{
-//!     aead::{Aead, AeadCore, KeyInit},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
 //!     Aes256SivAead, Nonce // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key().expect("key generation failure");
+//! let key = Key::<Aes256SivAead>::generate();
 //! let cipher = Aes256SivAead::new(&key);
 //!
-//! let nonce = Aes256SivAead::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
@@ -55,15 +57,17 @@
     doc = "```ignore"
 )]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
+//!
 //! use aes_siv::{
-//!     aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec},
+//!     aead::{AeadCore, AeadInOut, Generate, Key, KeyInit, arrayvec::ArrayVec},
 //!     Aes256SivAead, Nonce, // Or `Aes128SivAead`
 //! };
 //!
-//! let key = Aes256SivAead::generate_key().expect("key generation failure");
+//! let key = Key::<Aes256SivAead>::generate();
 //! let cipher = Aes256SivAead::new(&key);
 //!
-//! let nonce = Aes256SivAead::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!

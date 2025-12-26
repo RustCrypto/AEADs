@@ -68,9 +68,10 @@ jobs:
           toolchain: ${{ matrix.rust }}
           targets: ${{ matrix.target }}
       - run: ${{ matrix.deps }}
-      - run: cargo test --target ${{ matrix.target }} --release --no-default-features
-      - run: cargo test --target ${{ matrix.target }} --release
-      - run: cargo test --target ${{ matrix.target }} --release --features reduced-round
-      - run: cargo test --target ${{ matrix.target }} --release --all-features
-      - run: cargo build --target ${{ matrix.target }} --benches
+      - run: cargo test --target ${{ matrix.target }} --lib --no-default-features
+      - run: cargo test --target ${{ matrix.target }} --lib
+      - run: cargo test --target ${{ matrix.target }} --lib --features zeroize
+      - run: cargo test --target ${{ matrix.target }} --all-features --lib
+      - run: cargo test --target ${{ matrix.target }} --all-features --release
+      - run: cargo test --target ${{ matrix.target }} --all-features --doc
 

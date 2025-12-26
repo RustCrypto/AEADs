@@ -30,8 +30,8 @@
 //! ```
 
 use aead::{
-    consts::U0, generic_array::GenericArray, AeadCore, AeadInPlace, Error, Key, KeyInit,
-    KeySizeUser,
+    AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser, consts::U0,
+    generic_array::GenericArray,
 };
 use cfg_if::cfg_if;
 use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};

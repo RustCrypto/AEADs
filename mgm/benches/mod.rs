@@ -1,7 +1,7 @@
 #![feature(test)]
 extern crate test;
 
-use aead::{generic_array::GenericArray, AeadInPlace, KeyInit};
+use aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 use hex_literal::hex;
 use kuznyechik::Kuznyechik;
 use mgm::Mgm;

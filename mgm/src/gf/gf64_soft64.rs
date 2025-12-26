@@ -1,4 +1,4 @@
-use super::{utils::bmul64, GfElement};
+use super::{GfElement, utils::bmul64};
 use aead::{consts::U8, generic_array::GenericArray};
 
 pub struct Element(u64);

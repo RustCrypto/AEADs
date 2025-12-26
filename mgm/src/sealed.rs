@@ -1,9 +1,9 @@
 use aead::{
-    generic_array::{
-        typenum::{U16, U8},
-        ArrayLength, GenericArray,
-    },
     Error,
+    generic_array::{
+        ArrayLength, GenericArray,
+        typenum::{U8, U16},
+    },
 };
 use cipher::BlockCipher;
 

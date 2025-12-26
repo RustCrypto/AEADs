@@ -1,14 +1,14 @@
 use crate::{
+    DecArgs, EncArgs, MgmBlockSize,
     gf::GfElement,
     sealed::{Counter, Sealed},
-    DecArgs, EncArgs, MgmBlockSize,
 };
 use aead::{
-    generic_array::{
-        typenum::{Unsigned, U16, U8},
-        GenericArray,
-    },
     Error,
+    generic_array::{
+        GenericArray,
+        typenum::{U8, U16, Unsigned},
+    },
 };
 use cipher::{Block, BlockEncrypt, ParBlocks};
 use subtle::ConstantTimeEq;

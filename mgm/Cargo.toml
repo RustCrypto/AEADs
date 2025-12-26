@@ -5,7 +5,7 @@ name = "mgm"
 version = "0.5.0-pre.1"
 description = "Generic implementation of the Multilinear Galois Mode (MGM) cipher"
 authors = ["RustCrypto Developers"]
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 documentation = "https://docs.rs/mgm"
@@ -13,7 +13,7 @@ homepage = "https://github.com/RustCrypto/AEADs/tree/master/mgm"
 repository = "https://github.com/RustCrypto/AEADs"
 categories = ["cryptography", "no-std"]
 keywords = ["encryption", "aead"]
-rust-version = "1.81"
+rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.5", default-features = false }
@@ -28,7 +28,7 @@ cpufeatures = "0.2"
 aead = { version = "0.5", features = ["dev"], default-features = false }
 kuznyechik = "0.7"
 magma = "0.7"
-hex-literal = "0.2"
+hex-literal = "1"
 
 [features]
 default = ["alloc", "getrandom"]
@@ -36,7 +36,7 @@ std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-getrandom  = ["aead/getrandom", "rand_core"]
+getrandom = ["aead/getrandom", "rand_core"]
 rand_core = ["aead/rand_core"]
 stream = ["aead/stream"]
 force-soft = [] # Disable support for hardware intrinsics

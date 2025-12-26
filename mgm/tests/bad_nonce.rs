@@ -2,7 +2,7 @@
 
 #![cfg(feature = "alloc")]
 
-use aead::{generic_array::GenericArray, Aead, KeyInit};
+use aead::{Aead, KeyInit, generic_array::GenericArray};
 use mgm::Mgm;
 
 #[test]

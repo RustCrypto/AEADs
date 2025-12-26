@@ -26,15 +26,17 @@
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use chacha20poly1305::{
-//!     aead::{Aead, AeadCore, KeyInit},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
 //!     ChaCha20Poly1305, Nonce
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key().expect("key generation failure");
+//! let key = Key::<ChaCha20Poly1305>::generate();
 //! let cipher = ChaCha20Poly1305::new(&key);
 //!
-//! let nonce = ChaCha20Poly1305::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
@@ -66,16 +68,18 @@
     not(all(feature = "getrandom", feature = "arrayvec")),
     doc = "```ignore"
 )]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
+//!
 //! use chacha20poly1305::{
-//!     aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec},
+//!     aead::{AeadCore, AeadInOut, Generate, Key, KeyInit, arrayvec::ArrayVec},
 //!     ChaCha20Poly1305, Nonce,
 //! };
 //!
-//! let key = ChaCha20Poly1305::generate_key().expect("key generation failure");
+//! let key = Key::<ChaCha20Poly1305>::generate();
 //! let cipher = ChaCha20Poly1305::new(&key);
 //!
-//! let nonce = ChaCha20Poly1305::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::generate(); // MUST be unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!
@@ -124,14 +128,16 @@
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use chacha20poly1305::{
-//!     aead::{Aead, AeadCore, KeyInit},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
 //!     XChaCha20Poly1305, XNonce
 //! };
 //!
-//! let key = XChaCha20Poly1305::generate_key().expect("key generation failure");
+//! let key = Key::<XChaCha20Poly1305>::generate();
 //! let cipher = XChaCha20Poly1305::new(&key);
-//! let nonce = XChaCha20Poly1305::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = XNonce::generate(); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");

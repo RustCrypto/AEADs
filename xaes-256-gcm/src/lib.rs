@@ -15,14 +15,16 @@
 #![cfg_attr(feature = "getrandom", doc = "```")]
 #![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use xaes_256_gcm::{
-//!     Xaes256Gcm, Nonce, Key,
-//!     aead::{Aead, AeadCore, KeyInit},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
+//!     Xaes256Gcm, Nonce
 //! };
 //!
-//! let key = Xaes256Gcm::generate_key().expect("generate key");
+//! let key = Key::<Xaes256Gcm>::generate();
 //! let cipher = Xaes256Gcm::new(&key);
-//! let nonce = Xaes256Gcm::generate_nonce().expect("Generate nonce"); // 192-bits
+//! let nonce = Nonce::generate(); // 192-bits; MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");

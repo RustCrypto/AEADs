@@ -11,12 +11,14 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "alloc"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "alloc")), doc = "```ignore")]
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `getrandom` feature is enabled
+//!
 //! use aes::Aes256;
 //! use ccm::{
-//!     aead::{Aead, AeadCore, KeyInit, array::Array},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit, Nonce},
 //!     consts::{U10, U13},
 //!     Ccm,
 //! };
@@ -24,10 +26,10 @@
 //! // AES-256-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
 //! pub type Aes256Ccm = Ccm<Aes256, U10, U13>;
 //!
-//! let key = Aes256Ccm::generate_key().expect("key generation failure");
+//! let key = Key::<Aes256Ccm>::generate();
 //! let cipher = Aes256Ccm::new(&key);
 //!
-//! let nonce = Aes256Ccm::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::<Aes256Ccm>::generate(); // MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //!
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
@@ -62,7 +64,7 @@
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes::Aes256;
 //! use ccm::{
-//!     aead::{AeadCore, AeadInOut, KeyInit, arrayvec::ArrayVec},
+//!     aead::{AeadCore, AeadInOut, Generate, Key, KeyInit, Nonce, arrayvec::ArrayVec},
 //!     consts::{U10, U13},
 //!     Ccm,
 //! };
@@ -70,10 +72,10 @@
 //! // AES-256-CCM type with tag and nonce size equal to 10 and 13 bytes respectively
 //! pub type Aes256Ccm = Ccm<Aes256, U10, U13>;
 //!
-//! let key = Aes256Ccm::generate_key().expect("key generation failure");
+//! let key = Key::<Aes256Ccm>::generate();
 //! let cipher = Aes256Ccm::new(&key);
 //!
-//! let nonce = Aes256Ccm::generate_nonce().expect("nonce failure"); // MUST be unique per message
+//! let nonce = Nonce::<Aes256Ccm>::generate(); // MUST be unique per message
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
 //!

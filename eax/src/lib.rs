@@ -17,15 +17,15 @@
 //! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use aes::Aes256;
 //! use eax::{
-//!     aead::{Aead, AeadCore, KeyInit, array::Array},
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit, array::Array},
 //!     Eax, Nonce
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
 //!
-//! let key = Aes256Eax::generate_key().expect("generate key");
+//! let key = Key::<Aes256Eax>::generate();
 //! let cipher = Aes256Eax::new(&key);
-//! let nonce = Aes256Eax::generate_nonce().expect("generate nonce"); // 128-bits; unique per message
+//! let nonce = Nonce::generate(); // 128-bits; MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -51,23 +51,29 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # #[cfg(feature = "arrayvec")]
-//! # {
+#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "arrayvec")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
+//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
+//!
 //! use aes::Aes256;
-//! use eax::Eax;
-//! use eax::aead::{
-//!     array::Array,
-//!     arrayvec::ArrayVec,
-//!     AeadCore, AeadInOut, KeyInit,
+//! use eax::{
+//!     aead::{
+//!         arrayvec::ArrayVec,
+//!         AeadCore, AeadInOut, Generate, Key, KeyInit,
+//!     },
+//!     Eax, Nonce
 //! };
 //!
 //! pub type Aes256Eax = Eax<Aes256>;
 //!
-//! let key = Aes256Eax::generate_key().expect("generate key");
+//! let key = Key::<Aes256Eax>::generate();
 //! let cipher = Aes256Eax::new(&key);
 //!
-//! let nonce = Aes256Eax::generate_nonce().expect("generate nonce"); // 128-bits; unique per message
+//! let nonce = Nonce::generate(); // 128-bits; MUST be unique per message
 //!
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new();
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
@@ -81,6 +87,7 @@
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
 //! assert_eq!(buffer.as_ref(), b"plaintext message");
+//! # Ok(())
 //! # }
 //! ```
 //!

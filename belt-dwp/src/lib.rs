@@ -11,20 +11,21 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-//! ```
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! # #[cfg(feature = "getrandom")] {
+#![cfg_attr(feature = "getrandom", doc = "```")]
+#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use belt_dwp::{
-//!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltDwp
+//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
+//!     BeltDwp, Nonce
 //! };
 //!
-//! let key = BeltDwp::generate_key().unwrap();
+//! let key = Key::<BeltDwp>::generate();
 //! let cipher = BeltDwp::new(&key);
-//! let nonce = BeltDwp::generate_nonce().unwrap(); // 128-bits; unique per message
+//! let nonce = Nonce::generate(); // 128-bits; MUST be unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
-//! # }; Ok(()) }
+//! # Ok(()) }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -43,17 +44,20 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-//! ```
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! # #[cfg(all(feature = "getrandom", feature = "arrayvec"))] {
+#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
+#![cfg_attr(
+    not(all(feature = "getrandom", feature = "arrayvec")),
+    doc = "```ignore"
+)]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use belt_dwp::{
-//!     aead::{AeadInOut, KeyInit, arrayvec::ArrayVec},
-//!     Nonce, BeltDwp
+//!     aead::{AeadInOut, Generate, Key, KeyInit, arrayvec::ArrayVec},
+//!     BeltDwp, Nonce
 //! };
 //!
-//! let key = BeltDwp::generate_key().unwrap();
+//! let key = Key::<BeltDwp>::generate();
 //! let cipher = BeltDwp::new(&key);
-//! let nonce = Nonce::try_from(&b"unique nonce1234"[..]).unwrap(); // 128-bits; unique per message
+//! let nonce = Nonce::generate(); // 128-bits; MUST be unique per message
 //!
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
@@ -67,7 +71,7 @@
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(buffer.as_ref(), b"plaintext message");
-//! # }; Ok(()) }
+//! # Ok(()) }
 //! ```
 
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, Tag};

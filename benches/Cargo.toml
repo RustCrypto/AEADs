@@ -20,6 +20,7 @@ ascon-aead128 = { path = "../ascon-aead128/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
 deoxys = { path = "../deoxys/" }
 eax = { path = "../eax/" }
+grain-128aeadv2 = { path = "../grain-128aeadv2/" }
 
 [target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))'.dependencies]
 criterion-cycles-per-byte = "0.4.0"
@@ -52,4 +53,9 @@ harness = false
 [[bench]]
 name = "eax"
 path = "src/eax.rs"
+harness = false
+
+[[bench]]
+name = "grain-128"
+path = "src/grain-128.rs"
 harness = false

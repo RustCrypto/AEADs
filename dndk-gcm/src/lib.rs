@@ -50,19 +50,10 @@ pub struct DndkGcm24 {
     aes: Aes256,
 }
 
-/// DNDK-GCM with a 12-byte nonce (KC_Choice = 0).
-#[derive(Clone)]
-pub struct DndkGcm12 {
-    aes: Aes256,
-}
-
 type KeySize = <Aes256Gcm as KeySizeUser>::KeySize;
 
 /// DNDK-GCM nonce (24 bytes).
 pub type Nonce24 = aes_gcm::Nonce<cipher::consts::U24>;
-
-/// DNDK-GCM nonce (12 bytes).
-pub type Nonce12 = aes_gcm::Nonce<U12>;
 
 /// DNDK-GCM key.
 pub type Key<B = Aes256> = aes_gcm::Key<B>;
@@ -85,27 +76,11 @@ impl AeadCore for DndkGcm24 {
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl AeadCore for DndkGcm12 {
-    type NonceSize = U12;
-    type TagSize = <Aes256Gcm as AeadCore>::TagSize;
-    const TAG_POSITION: TagPosition = TagPosition::Postfix;
-}
-
 impl KeySizeUser for DndkGcm24 {
     type KeySize = KeySize;
 }
 
-impl KeySizeUser for DndkGcm12 {
-    type KeySize = KeySize;
-}
-
 impl KeyInit for DndkGcm24 {
-    fn new(key: &Key) -> Self {
-        Self { aes: Aes256::new(key) }
-    }
-}
-
-impl KeyInit for DndkGcm12 {
     fn new(key: &Key) -> Self {
         Self { aes: Aes256::new(key) }
     }
@@ -138,37 +113,6 @@ impl AeadInOut for DndkGcm24 {
         }
 
         let (gcm_iv, key) = derive_key_and_iv::<24>(&self.aes, nonce.as_slice());
-        Aes256Gcm::new(&key).decrypt_inout_detached(&gcm_iv, associated_data, buffer, tag)
-    }
-}
-
-impl AeadInOut for DndkGcm12 {
-    fn encrypt_inout_detached(
-        &self,
-        nonce: &Nonce12,
-        associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
-    ) -> Result<Tag, Error> {
-        if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
-            return Err(Error);
-        }
-
-        let (gcm_iv, key) = derive_key_and_iv::<12>(&self.aes, nonce.as_slice());
-        Aes256Gcm::new(&key).encrypt_inout_detached(&gcm_iv, associated_data, buffer)
-    }
-
-    fn decrypt_inout_detached(
-        &self,
-        nonce: &Nonce12,
-        associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
-        tag: &Tag,
-    ) -> Result<(), Error> {
-        if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
-            return Err(Error);
-        }
-
-        let (gcm_iv, key) = derive_key_and_iv::<12>(&self.aes, nonce.as_slice());
         Aes256Gcm::new(&key).decrypt_inout_detached(&gcm_iv, associated_data, buffer, tag)
     }
 }

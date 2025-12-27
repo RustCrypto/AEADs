@@ -4,10 +4,7 @@ Pure Rust implementation of DNDK-GCM (Double Nonce Derive Key AES-GCM) with
 key commitment disabled (KC_Choice = 0) as specified in
 `draft-gueron-cfrg-dndkgcm`.
 
-This crate provides two fixed-nonce variants:
-
-- `DndkGcm24`: 24-byte nonce (recommended in the draft).
-- `DndkGcm12`: 12-byte nonce (AES-GCM compatible length).
+This crate provides a fixed 24-byte nonce variant: `DndkGcm24`.
 
 ## Usage
 

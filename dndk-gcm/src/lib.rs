@@ -19,12 +19,12 @@
 //!
 //! use dndk_gcm::{
 //!     aead::{Aead, AeadCore, Key, KeyInit},
-//!     DndkGcm24, Nonce24
+//!     DndkGcm, Nonce
 //! };
 //!
-//! let key = Key::<DndkGcm24>::from_slice(&[0u8; 32]);
-//! let cipher = DndkGcm24::new(key);
-//! let nonce = Nonce24::from_slice(&[0u8; 24]); // 192-bits; MUST be unique per message
+//! let key = Key::<DndkGcm>::from_slice(&[0u8; 32]);
+//! let cipher = DndkGcm::new(key);
+//! let nonce = Nonce::from_slice(&[0u8; 24]); // 192-bits; MUST be unique per message
 //! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
@@ -46,14 +46,14 @@ use cipher::{BlockCipherEncrypt, BlockSizeUser, consts::U12};
 
 /// DNDK-GCM with a 24-byte nonce (KC_Choice = 0).
 #[derive(Clone)]
-pub struct DndkGcm24 {
+pub struct DndkGcm {
     aes: Aes256,
 }
 
 type KeySize = <Aes256Gcm as KeySizeUser>::KeySize;
 
 /// DNDK-GCM nonce (24 bytes).
-pub type Nonce24 = aes_gcm::Nonce<cipher::consts::U24>;
+pub type Nonce = aes_gcm::Nonce<cipher::consts::U24>;
 
 /// DNDK-GCM key.
 pub type Key<B = Aes256> = aes_gcm::Key<B>;
@@ -70,26 +70,26 @@ pub const A_MAX: u64 = (1 << 61) - 1;
 /// Maximum length of ciphertext.
 pub const C_MAX: u64 = (1 << 36) - 32;
 
-impl AeadCore for DndkGcm24 {
+impl AeadCore for DndkGcm {
     type NonceSize = cipher::consts::U24;
     type TagSize = <Aes256Gcm as AeadCore>::TagSize;
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl KeySizeUser for DndkGcm24 {
+impl KeySizeUser for DndkGcm {
     type KeySize = KeySize;
 }
 
-impl KeyInit for DndkGcm24 {
+impl KeyInit for DndkGcm {
     fn new(key: &Key) -> Self {
         Self { aes: Aes256::new(key) }
     }
 }
 
-impl AeadInOut for DndkGcm24 {
+impl AeadInOut for DndkGcm {
     fn encrypt_inout_detached(
         &self,
-        nonce: &Nonce24,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag, Error> {
@@ -103,7 +103,7 @@ impl AeadInOut for DndkGcm24 {
 
     fn decrypt_inout_detached(
         &self,
-        nonce: &Nonce24,
+        nonce: &Nonce,
         associated_data: &[u8],
         buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,

@@ -11,13 +11,13 @@ This crate provides a fixed 24-byte nonce variant: `DndkGcm24`.
 ```rust
 use dndk_gcm::{
     aead::{Aead, Key, KeyInit},
-    DndkGcm24, Nonce24,
+    DndkGcm, Nonce,
 };
 
-let key = Key::<DndkGcm24>::from_slice(&[0u8; 32]);
-let cipher = DndkGcm24::new(key);
+let key = Key::<DndkGcm>::from_slice(&[0u8; 32]);
+let cipher = DndkGcm::new(key);
 
-let nonce = Nonce24::from_slice(&[0u8; 24]);
+let nonce = Nonce::from_slice(&[0u8; 24]);
 let ciphertext = cipher.encrypt(nonce, b"hello".as_ref()).unwrap();
 let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).unwrap();
 assert_eq!(&plaintext, b"hello");

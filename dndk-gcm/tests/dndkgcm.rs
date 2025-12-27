@@ -6,7 +6,7 @@ mod common;
 
 use aes_gcm::aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
 use common::TestVector;
-use dndk_gcm::DndkGcm24;
+use dndk_gcm::DndkGcm;
 use hex_literal::hex;
 
 /// DNDK-GCM test vectors (draft-gueron-cfrg-dndkgcm-03, Appendix A)
@@ -21,4 +21,4 @@ const TEST_VECTORS_24: &[TestVector<[u8; 32], [u8; 24]>] = &[
     },
 ];
 
-tests!(DndkGcm24, TEST_VECTORS_24);
+tests!(DndkGcm, TEST_VECTORS_24);

@@ -37,8 +37,7 @@ pub use aes;
 pub use aes_gcm;
 
 use aead::{
-    AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, TagPosition, array::Array,
-    inout::InOutBuf,
+    AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, TagPosition, array::Array, inout::InOutBuf,
 };
 use aes::Aes256;
 use aes_gcm::Aes256Gcm;
@@ -82,7 +81,9 @@ impl KeySizeUser for DndkGcm {
 
 impl KeyInit for DndkGcm {
     fn new(key: &Key) -> Self {
-        Self { aes: Aes256::new(key) }
+        Self {
+            aes: Aes256::new(key),
+        }
     }
 }
 

@@ -289,6 +289,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "dndk-gcm"
+version = "0.1.0-rc.1"
+dependencies = [
+ "aead",
+ "aead-stream",
+ "aes",
+ "aes-gcm",
+ "cipher",
+ "hex-literal",
+]
+
+[[package]]
 name = "eax"
 version = "0.6.0-rc.2"
 dependencies = [

@@ -18,13 +18,13 @@ edition = "2024"
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.4", default-features = false }
+aead = { version = "0.6.0-rc.5", default-features = false }
 aes = { version = "0.9.0-rc.2", features = ["hazmat"], default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.4", features = ["dev"], default-features = false }
+aead = { version = "0.6.0-rc.5", features = ["dev"], default-features = false }
 hex-literal = "1"
 
 [features]

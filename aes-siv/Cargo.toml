@@ -23,7 +23,7 @@ cipher = "0.5.0-rc.3"
 cmac = "0.8.0-rc.3"
 ctr = "0.10.0-rc.2"
 dbl = "0.5"
-digest = { version = "0.11.0-rc.4", features = ["mac"] }
+digest = { version = "0.11.0-rc.5", features = ["mac"] }
 
 # optional dependencies
 pmac = { version = "0.8.0-rc.3", optional = true }

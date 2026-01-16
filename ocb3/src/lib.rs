@@ -32,27 +32,6 @@ use core::marker::PhantomData;
 use dbl::Dbl;
 use subtle::ConstantTimeEq;
 
-/// Number of L values to be precomputed. Precomputing m values, allows
-/// processing inputs of length up to 2^m blocks (2^m * 16 bytes) without
-/// needing to calculate L values at runtime.
-///
-/// By setting this to 32, we can process inputs of length up to 1 terabyte.
-#[cfg(target_pointer_width = "64")]
-const L_TABLE_SIZE: usize = 32;
-
-/// Number of L values to be precomputed. Precomputing m values, allows
-/// processing inputs of length up to 2^m blocks (2^m * 16 bytes) without
-/// needing to calculate L values at runtime.
-#[cfg(target_pointer_width = "32")]
-const L_TABLE_SIZE: usize = 16;
-
-/// Max associated data.
-pub const A_MAX: usize = 1 << (L_TABLE_SIZE + 4);
-/// Max plaintext.
-pub const P_MAX: usize = 1 << (L_TABLE_SIZE + 4);
-/// Max ciphertext.
-pub const C_MAX: usize = 1 << (L_TABLE_SIZE + 4);
-
 /// OCB3 nonce
 pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
@@ -131,8 +110,17 @@ mod sealed {
 /// // Invalid tag size equal to 20 bytes
 /// let cipher = Ocb3::<Aes128, U12, U20>::new(&key);
 /// ```
+///
+/// # Maximum plaintext and associated data lengths
+///
+/// The maximum lengths depend on the `L_TABLE_SIZE` constant which sets
+/// number of L values to be precomputed. Precomputing `m` values, allows
+/// processing inputs of length up to 2^m blocks (2^m * 16 bytes) without
+/// needing to calculate L values at runtime.
+///
+/// By default `L_TABLE_SIZE` is equal to 26, which allows to handle up to 1 GiB of data.
 #[derive(Clone)]
-pub struct Ocb3<Cipher, NonceSize = U12, TagSize = U16>
+pub struct Ocb3<Cipher, NonceSize = U12, TagSize = U16, const L_TABLE_SIZE: usize = 26>
 where
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
@@ -147,7 +135,8 @@ where
     ll: [Block; L_TABLE_SIZE],
 }
 
-impl<Cipher, NonceSize, TagSize> KeySizeUser for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> KeySizeUser
+    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
     Cipher: KeySizeUser,
     NonceSize: sealed::NonceSizes,
@@ -156,7 +145,8 @@ where
     type KeySize = Cipher::KeySize;
 }
 
-impl<Cipher, NonceSize, TagSize> KeyInit for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> KeyInit
+    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
@@ -167,7 +157,8 @@ where
     }
 }
 
-impl<Cipher, NonceSize, TagSize> AeadCore for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> AeadCore
+    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
@@ -177,7 +168,8 @@ where
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl<Cipher, NonceSize, TagSize> From<Cipher> for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> From<Cipher>
+    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
@@ -197,7 +189,8 @@ where
     }
 }
 
-impl<Cipher, NonceSize, TagSize> AeadInOut for Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> AeadInOut
+    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
@@ -209,8 +202,9 @@ where
         associated_data: &[u8],
         buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Result<aead::Tag<Self>> {
-        if (buffer.len() > P_MAX) || (associated_data.len() > A_MAX) {
-            unimplemented!()
+        let max_len = 1 << (L_TABLE_SIZE + 4);
+        if (buffer.len() >= max_len) || (associated_data.len() >= max_len) {
+            return Err(aead::Error);
         }
 
         // First, try to process many blocks at once.
@@ -268,7 +262,7 @@ where
         buffer: InOutBuf<'_, '_, u8>,
         tag: &aead::Tag<Self>,
     ) -> aead::Result<()> {
-        let expected_tag = self.decrypt_inout_return_tag(nonce, associated_data, buffer);
+        let expected_tag = self.decrypt_inout_return_tag(nonce, associated_data, buffer)?;
         if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
@@ -277,7 +271,8 @@ where
     }
 }
 
-impl<Cipher, NonceSize, TagSize> Ocb3<Cipher, NonceSize, TagSize>
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize>
+    Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
@@ -289,9 +284,10 @@ where
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
         buffer: InOutBuf<'_, '_, u8>,
-    ) -> aead::Tag<Self> {
-        if (buffer.len() > C_MAX) || (associated_data.len() > A_MAX) {
-            unimplemented!()
+    ) -> aead::Result<aead::Tag<Self>> {
+        let max_len = 1 << (L_TABLE_SIZE + 4);
+        if (buffer.len() > max_len) || (associated_data.len() > max_len) {
+            return Err(aead::Error);
         }
 
         // First, try to process many blocks at once.
@@ -336,7 +332,7 @@ where
             inplace_xor(&mut checksum_i, checksum_rhs.as_array_ref());
         }
 
-        self.compute_tag(associated_data, &mut checksum_i, &offset_i)
+        Ok(self.compute_tag(associated_data, &mut checksum_i, &offset_i))
     }
 
     /// Encrypts plaintext in groups of two.
@@ -483,9 +479,12 @@ where
 
 /// Computes key-dependent variables defined in
 /// https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
-fn key_dependent_variables<Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt>(
+fn key_dependent_variables<Cipher, const L_TABLE_SIZE: usize>(
     cipher: &Cipher,
-) -> (Block, Block, [Block; L_TABLE_SIZE]) {
+) -> (Block, Block, [Block; L_TABLE_SIZE])
+where
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+{
     let mut ll_star = Block::default();
     cipher.encrypt_block(&mut ll_star);
     let ll_dollar = ll_star.dbl();
@@ -611,7 +610,7 @@ mod tests {
         let expected_ll1 = Block::from(hex!("3509D9BC3C7ADC137A7C0B150E46C0DA"));
 
         let cipher = aes::Aes128::new(&Array(key));
-        let (ll_star, ll_dollar, ll) = key_dependent_variables(&cipher);
+        let (ll_star, ll_dollar, ll) = key_dependent_variables::<_, 2>(&cipher);
 
         assert_eq!(ll_star, expected_ll_star);
         assert_eq!(ll_dollar, expected_ll_dollar);

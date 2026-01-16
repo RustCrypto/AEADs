@@ -18,12 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Relax MSRV policy and allow MSRV bumps in patch releases
 - `getrandom` feature renamed as `os_rng` ([#662])
 
+### Fixed
+- Plaintext and associated data length checks ([#762])
+
 ## Removed
 - `std` & `stream` features ([#662])
+- `C_MAX` constant ([#762])
 
 [#583]: https://github.com/RustCrypto/AEADs/pull/583
 [#631]: https://github.com/RustCrypto/AEADs/pull/631
 [#662]: https://github.com/RustCrypto/AEADs/pull/662
+[#762]: https://github.com/RustCrypto/AEADs/pull/762
 
 ## 0.10.3 (2023-09-21)
 ### Security

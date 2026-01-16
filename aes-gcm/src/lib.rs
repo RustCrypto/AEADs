@@ -105,14 +105,11 @@ use zeroize::Zeroize;
 #[cfg(feature = "aes")]
 use aes::{Aes128, Aes256, cipher::consts::U12};
 
-/// Maximum length of associated data.
-pub const A_MAX: u64 = 1 << 36;
+/// Maximum length of associated data in bytes.
+pub const A_MAX: u64 = (1 << 61) - 1;
 
-/// Maximum length of plaintext.
-pub const P_MAX: u64 = 1 << 36;
-
-/// Maximum length of ciphertext.
-pub const C_MAX: u64 = (1 << 36) + 16;
+/// Maximum length of plaintext in bytes.
+pub const P_MAX: u64 = (1 << 36) - 32;
 
 /// AES-GCM nonces.
 pub type Nonce<NonceSize> = Array<u8, NonceSize>;
@@ -275,7 +272,7 @@ where
         buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<TagSize>,
     ) -> Result<(), Error> {
-        if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
+        if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 

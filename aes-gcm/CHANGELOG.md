@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Removed
 - `std` & `stream` features ([#662])
+- `C_MAX` constant ([#762])
 
 [#583]: https://github.com/RustCrypto/AEADs/pull/583
 [#631]: https://github.com/RustCrypto/AEADs/pull/631

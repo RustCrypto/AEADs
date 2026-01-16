@@ -111,9 +111,6 @@ pub const A_MAX: u64 = (1 << 61) - 1;
 /// Maximum length of plaintext in bytes.
 pub const P_MAX: u64 = (1 << 36) - 32;
 
-/// Maximum length of ciphertext in bytes (with tag).
-pub const C_MAX: u64 = (1 << 36) + 16;
-
 /// AES-GCM nonces.
 pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 

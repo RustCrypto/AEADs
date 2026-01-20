@@ -17,7 +17,7 @@ belt-block = { version = "0.2.0-rc.2" }
 belt-ctr = { version = "0.2.0-rc.2" }
 opaque-debug = { version = "0.3" }
 subtle = { version = "2", default-features = false }
-universal-hash = { version = "0.6.0-rc.3" }
+universal-hash = { version = "0.6.0-rc.5" }
 zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]

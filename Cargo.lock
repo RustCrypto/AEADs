@@ -5,9 +5,9 @@ version = 4
 
 [[package]]
 name = "aead"
-version = "0.6.0-rc.5"
+version = "0.6.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67a578e7d4edaef88aeb9cdd81556f4a62266ce26601317c006a79e8bc58b5af"
+checksum = "42df8a54cb49159ed451f1e9227584afbefb2556c86d487b0e94dd1dbe4cdb9c"
 dependencies = [
  "arrayvec",
  "blobby",
@@ -233,9 +233,9 @@ dependencies = [
 
 [[package]]
 name = "crypto-common"
-version = "0.2.0-rc.8"
+version = "0.2.0-rc.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6165b8029cdc3e765b74d3548f85999ee799d5124877ce45c2c85ca78e4d4aa"
+checksum = "0f4fc0003068acd7e9cb6659fd956dc4d671f102a06cc115990b9e7bb5745c25"
 dependencies = [
  "getrandom",
  "hybrid-array",
@@ -426,9 +426,9 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "rand_core"
-version = "0.10.0-rc-3"
+version = "0.10.0-rc-4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f66ee92bc15280519ef199a274fe0cafff4245d31bc39aaa31c011ad56cb1f05"
+checksum = "43bb1e3655c24705492d72208c9bacdefe07c30c14b8f7664c556a3e1953b72c"
 
 [[package]]
 name = "subtle"

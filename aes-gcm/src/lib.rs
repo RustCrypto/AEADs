@@ -132,9 +132,9 @@ mod private {
     // Sealed traits stop other crates from implementing any traits that use it.
     pub trait SealedTagSize: ArraySize + Unsigned {}
 
-    #[cfg(feature="hazmat")]
+    #[cfg(feature = "hazmat")]
     impl SealedTagSize for consts::U4 {}
-    #[cfg(feature="hazmat")]
+    #[cfg(feature = "hazmat")]
     impl SealedTagSize for consts::U8 {}
 
     impl SealedTagSize for consts::U12 {}

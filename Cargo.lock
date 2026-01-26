@@ -235,6 +235,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cpubits"
+version = "0.1.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "251aaca52dbc19119279d9364222e188ffdf48006791040bfd002617ab0ebc41"
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -479,11 +485,11 @@ dependencies = [
 
 [[package]]
 name = "polyval"
-version = "0.7.0-rc.3"
+version = "0.7.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ad60831c19edda4b20878a676595c357e93a9b4e6dca2ba98d75b01066b317b"
+checksum = "3d5104542958eebb462a4d4b5acbf7756da05448b72fb7d222199bd1eda42a46"
 dependencies = [
- "cfg-if",
+ "cpubits",
  "cpufeatures",
  "universal-hash",
 ]
@@ -613,9 +619,9 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "universal-hash"
-version = "0.6.0-rc.7"
+version = "0.6.0-rc.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ca141d401f08b91a03a23c3cdd32064da6a4a30b1714d7c3f2f62299644d11f"
+checksum = "82084f2919885ea910502c74f0a362827aaad3d28d142ca97448bfb39c7e271a"
 dependencies = [
  "crypto-common",
  "subtle",

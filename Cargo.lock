@@ -485,9 +485,9 @@ dependencies = [
 
 [[package]]
 name = "polyval"
-version = "0.7.0-rc.4"
+version = "0.7.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d5104542958eebb462a4d4b5acbf7756da05448b72fb7d222199bd1eda42a46"
+checksum = "d7c26fb288ad859274ad7e33746324ab027f70802d54bfadf07732b93bbe3ef7"
 dependencies = [
  "cpubits",
  "cpufeatures",

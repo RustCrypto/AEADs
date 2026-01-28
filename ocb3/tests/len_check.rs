@@ -22,3 +22,17 @@ fn ocb3_len_check() {
         .encrypt_inout_detached(&nonce, &[], (&mut buf[..MAX_SIZE - 1]).into())
         .unwrap();
 }
+
+#[test]
+fn ocb3_len_check_decrypt() {
+    let key = hex!("000102030405060708090A0B0C0D0E0F").into();
+    let nonce = hex!("BBAA9988776655443322110F").into();
+    let cipher = Ocb3::<Aes128, U12, U16, L_SIZE>::new(&key);
+
+    // Buffer length equal to MAX_SIZE must be rejected with an error, not panic.
+    let mut buf = vec![0u8; MAX_SIZE];
+    let tag = aead::Tag::<Ocb3<Aes128, U12, U16, L_SIZE>>::default();
+    cipher
+        .decrypt_inout_detached(&nonce, &[], (&mut buf[..]).into(), &tag)
+        .unwrap_err();
+}

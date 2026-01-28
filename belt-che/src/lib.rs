@@ -11,21 +11,20 @@
 //!
 //! Simple usage (allocating, no associated data):
 //!
-#![cfg_attr(feature = "getrandom", doc = "```")]
-#![cfg_attr(not(feature = "getrandom"), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! use belt_dwp::{
-//!     aead::{Aead, AeadCore, Generate, Key, KeyInit},
-//!     BeltDwp, Nonce
+//! ```
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(feature = "os_rng")] {
+//! use belt_che::{
+//!     aead::{Aead, AeadCore, KeyInit}, Nonce, BeltChe
 //! };
 //!
-//! let key = Key::<BeltDwp>::generate();
-//! let cipher = BeltDwp::new(&key);
-//! let nonce = Nonce::generate(); // 128-bits; MUST be unique per message
+//! let key = BeltChe::generate_key().unwrap();
+//! let cipher = BeltChe::new(&key);
+//! let nonce = BeltChe::generate_nonce().unwrap(); // 128-bits; unique per message
 //! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
 //! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //! assert_eq!(&plaintext, b"plaintext message");
-//! # Ok(()) }
+//! # }; Ok(()) }
 //! ```
 //!
 //! ## In-place Usage (eliminates `alloc` requirement)
@@ -44,20 +43,17 @@
 //! It can then be passed as the `buffer` parameter to the in-place encrypt
 //! and decrypt methods:
 //!
-#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "arrayvec")),
-    doc = "```ignore"
-)]
-//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! use belt_dwp::{
-//!     aead::{AeadInOut, Generate, Key, KeyInit, arrayvec::ArrayVec},
-//!     BeltDwp, Nonce
+//! ```
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(all(feature = "os_rng", feature = "arrayvec"))] {
+//! use belt_che::{
+//!     aead::{AeadInOut, KeyInit, arrayvec::ArrayVec},
+//!     Nonce, BeltChe
 //! };
 //!
-//! let key = Key::<BeltDwp>::generate();
-//! let cipher = BeltDwp::new(&key);
-//! let nonce = Nonce::generate(); // 128-bits; MUST be unique per message
+//! let key = BeltChe::generate_key().unwrap();
+//! let cipher = BeltChe::new(&key);
+//! let nonce = Nonce::try_from(&b"unique nonce1234"[..]).unwrap(); // 128-bits; unique per message
 //!
 //! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
 //! buffer.try_extend_from_slice(b"plaintext message").unwrap();
@@ -71,7 +67,7 @@
 //! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
 //! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
 //! assert_eq!(buffer.as_ref(), b"plaintext message");
-//! # Ok(()) }
+//! # }; Ok(()) }
 //! ```
 
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, Tag};
@@ -81,33 +77,35 @@ use aead::array::ArraySize;
 use aead::consts::{True, U8, U16};
 use aead::{TagPosition, inout::InOutBuf};
 use belt_block::cipher::crypto_common::InnerUser;
-use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
-use belt_ctr::cipher::InnerIvInit;
-use belt_ctr::{BeltCtr, BeltCtrCore};
+use belt_block::cipher::{Block, BlockCipherEncrypt};
 use core::marker::PhantomData;
 use universal_hash::UniversalHash;
 use universal_hash::crypto_common::{BlockSizeUser, InnerInit};
 use universal_hash::typenum::{IsLessOrEqual, NonZero};
 
-/// Nonce type for [`Dwp`]
-pub type Nonce = aead::Nonce<BeltDwp>;
+/// Nonce type for [`Che`]
+pub type Nonce = aead::Nonce<BeltChe>;
 
 mod gf;
 mod ghash;
 
+use crate::gf::gf128_soft64::Element;
 use ghash::GHash;
 
 /// Constant `T` from the STB 34.101.31-2020
 const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
-/// `belt-dwp` authenticated encryption with associated data (AEAD) cipher,
-/// defined in STB 34.101.31-2020 (Scheme 1).
-pub type BeltDwp = Dwp<BeltBlock, U8>;
+/// `C` = `0x02 || 0^120`, represents polynomial x
+const C: u128 = 0x02;
 
-/// `belt-dwp` authenticated encryption with associated data (AEAD) cipher
+/// `belt-Che` authenticated encryption with associated data (AEAD) cipher,
+/// defined in STB 34.101.31-2020 (scheme 2).
+pub type BeltChe = Che<BeltBlock, U8>;
+
+/// `belt-Che` authenticated encryption with associated data (AEAD) cipher
 /// defined in STB 34.101.31-2020 generic over block cipher implementation
 /// and tag size.
-pub struct Dwp<C, TagSize>
+pub struct Che<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
@@ -116,7 +114,7 @@ where
     _pd: PhantomData<TagSize>,
 }
 
-impl<C, TagSize> InnerUser for Dwp<C, TagSize>
+impl<C, TagSize> InnerUser for Che<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
@@ -124,7 +122,7 @@ where
     type Inner = C;
 }
 
-impl<C, TagSize> InnerInit for Dwp<C, TagSize>
+impl<C, TagSize> InnerInit for Che<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
@@ -137,7 +135,7 @@ where
     }
 }
 
-impl<C, TagSize> AeadInOut for Dwp<C, TagSize>
+impl<C, TagSize> AeadInOut for Che<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
@@ -146,47 +144,66 @@ where
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        mut buffer: InOutBuf<'_, '_, u8>,
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Result<Tag<Self>> {
-        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
+        let buffer_len = buffer.len();
+        let sizes_block = get_sizes_block(associated_data.len(), buffer_len);
 
-        // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
+        // 2.1. 𝑠 ← belt-block(𝑆, 𝐾)
         let mut s = *nonce;
         self.cipher.encrypt_block(&mut s);
 
-        // 2.2. 𝑟 ← belt-block(𝑠, 𝐾);
-        let mut r = s;
-        self.cipher.encrypt_block(&mut r);
+        // 2.2. 𝑟 ← 𝑠
+        let r = s;
 
-        // Initialize GHash
+        // 2.3. 𝑡 ← T
         let mut ghash = GHash::new_with_init_block(&r, T);
-
-        // Initialize CTR mode
-        let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
-        let mut enc_cipher = BeltCtr::from_core(core);
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
-        //  3.2 𝑡 ← 𝑡 * 𝑟.
+        //  3.2 𝑡 ← 𝑡 * 𝑟
         ghash.update_padded(associated_data);
 
         // 4. For 𝑖 = 1, 2, . . . , 𝑛 do:
-        //  4.1 𝑠 ← 𝑠 ⊞ ⟨1⟩_128
-        //  4.2 𝑌𝑖 ← 𝑋𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑋𝑖|)
-        //  4.3 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
-        //  4.4 𝑡 ← 𝑡 * 𝑟.
-        enc_cipher.apply_keystream_inout(buffer.reborrow());
-        ghash.update_padded(buffer.get_out());
+        let c_element = Element::from(C);
+        let (chunks, mut tail) = buffer.into_chunks::<U16>();
 
-        // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
+        for mut chunk in chunks {
+            // 4.1 𝑠 ← (𝑠 * 𝐶) ⊕ ⟨1⟩128
+            update_che_counter(&mut s, c_element);
+
+            // 4.2 𝑌𝑖 ← 𝑋𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑋𝑖|)
+            let mut keystream = s;
+            self.cipher.encrypt_block(&mut keystream);
+            chunk.xor_in2out(&keystream);
+
+            // 4.3 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
+            // 4.4 𝑡 ← 𝑡 * 𝑟
+            ghash.update_padded(chunk.get_out());
+        }
+
+        // 4.1 𝑠 ← (𝑠 * 𝐶) ⊕ ⟨1⟩128
+        update_che_counter(&mut s, c_element);
+
+        // 4.2 𝑌𝑖 ← 𝑋𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑋𝑖|)
+        let mut keystream = s;
+        self.cipher.encrypt_block(&mut keystream);
+        tail.xor_in2out(&keystream[..tail.len()]);
+
+        // 4.3 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
+        // 4.4 𝑡 ← 𝑡 * 𝑟
+        ghash.update_padded(tail.get_out());
+
+        // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩64 ‖ ⟨|𝑋|⟩64)
         ghash.update_padded(&sizes_block);
 
-        // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
+        // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾)
         let mut tag = ghash.finalize_reset();
         self.cipher.encrypt_block(&mut tag);
 
+        // 7. 𝑇 ← Lo(𝑡, 64)
         let tag = &tag[..TagSize::USIZE];
-        Ok(tag.try_into().expect("Tag is always 8 bytes"))
+        Ok(tag.try_into().expect("Tag size mismatch"))
     }
 
     fn decrypt_inout_detached(
@@ -196,45 +213,62 @@ where
         buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self>,
     ) -> aead::Result<()> {
-        let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
+        let buffer_len = buffer.len();
+        let sizes_block = get_sizes_block(associated_data.len(), buffer_len);
 
-        // 2.1. 𝑠 ← belt-block(𝑆, 𝐾);
+        // 2.1. 𝑠 ← belt-block(𝑆, 𝐾)
         let mut s = *nonce;
         self.cipher.encrypt_block(&mut s);
 
-        // 2.2. 𝑟 ← belt-block(𝑠, 𝐾);
-        let mut r = s;
-        self.cipher.encrypt_block(&mut r);
+        // 2.2. 𝑟 ← 𝑠
+        let r = s;
 
-        // Initialize GHash
+        // 2.3. 𝑡 ← T
         let mut ghash = GHash::new_with_init_block(&r, T);
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
-        //  3.2 𝑡 ← 𝑡 * 𝑟.
+        //  3.2 𝑡 ← 𝑡 * 𝑟
         ghash.update_padded(associated_data);
 
         // 4. For 𝑖 = 1, 2, . . . , 𝑛 do:
         //  4.1 𝑡 ← 𝑡 ⊕ (𝑌𝑖 ‖ 0^{128−|𝑌𝑖|})
-        //  4.2 𝑡 ← 𝑡 * 𝑟.
+        //  4.2 𝑡 ← 𝑡 * 𝑟
         ghash.update_padded(buffer.get_in());
 
-        // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩_64 ‖ ⟨|𝑋|⟩_64)
+        // 5. 𝑡 ← 𝑡 ⊕ (⟨|𝐼|⟩64 ‖ ⟨|𝑌|⟩64)
         ghash.update_padded(&sizes_block);
 
-        // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾).
+        // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾)
         let mut tag_exact = ghash.finalize_reset();
         self.cipher.encrypt_block(&mut tag_exact);
 
         use subtle::ConstantTimeEq;
-        // 7. If 𝑇 != Lo(𝑡, 64), return ⊥
+
+        // 7. If 𝑇 ≠ Lo(𝑡, 64), return ⊥
         if tag_exact[..TagSize::USIZE].ct_eq(tag).into() {
-            // 8. For 𝑖 = 1,2,...,𝑛 do:
-            // 8.1. 𝑠 ← 𝑠 ⊞ ⟨1⟩128;
-            // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
-            let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
-            let mut enc_cipher = BeltCtr::from_core(core);
-            enc_cipher.apply_keystream_inout(buffer);
+            // 8. For 𝑖 = 1, 2, . . . , 𝑛 do:
+            let c_element = Element::from(C);
+            let (chunks, mut tail) = buffer.into_chunks::<U16>();
+
+            for mut chunk in chunks {
+                // 8.1 𝑠 ← (𝑠 * 𝐶) ⊕ ⟨1⟩128
+                update_che_counter(&mut s, c_element);
+
+                // 8.2 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
+                let mut keystream = s;
+                self.cipher.encrypt_block(&mut keystream);
+                chunk.xor_in2out(&keystream);
+            }
+
+            // 8.1 𝑠 ← (𝑠 * 𝐶) ⊕ ⟨1⟩128
+            update_che_counter(&mut s, c_element);
+
+            // 8.2 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
+            let mut keystream = s;
+            self.cipher.encrypt_block(&mut keystream);
+            tail.xor_in2out(&keystream[..tail.len()]);
+
             Ok(())
         } else {
             Err(Error)
@@ -242,7 +276,7 @@ where
     }
 }
 
-impl<C, TagSize> AeadCore for Dwp<C, TagSize>
+impl<C, TagSize> AeadCore for Che<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
@@ -250,6 +284,15 @@ where
     type NonceSize = C::BlockSize;
     type TagSize = TagSize;
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
+}
+
+/// Updates CHE counter: s ← s * c ⊕ 0x01
+#[inline(always)]
+fn update_che_counter(s: &mut Block<GHash>, c: Element) {
+    let mut s_elem = Element::from(&*s);
+    s_elem = s_elem * c;
+    *s = s_elem.into();
+    s[0] ^= 0x01;
 }
 
 /// Get the sizes block for the GHASH
@@ -266,7 +309,7 @@ fn get_sizes_block(aad_len: usize, msg_len: usize) -> Block<GHash> {
 }
 
 #[cfg(feature = "zeroize")]
-impl<C, TagSize> zeroize::ZeroizeOnDrop for Dwp<C, TagSize>
+impl<C, TagSize> zeroize::ZeroizeOnDrop for Che<C, TagSize>
 where
     C: zeroize::ZeroizeOnDrop + BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,

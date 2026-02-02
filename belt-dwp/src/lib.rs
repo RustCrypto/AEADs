@@ -80,13 +80,13 @@ pub use belt_block::BeltBlock;
 use aead::array::ArraySize;
 use aead::consts::{True, U8, U16};
 use aead::{TagPosition, inout::InOutBuf};
-use belt_block::cipher::crypto_common::InnerUser;
+use belt_block::cipher::common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
 use belt_ctr::{BeltCtr, BeltCtrCore};
 use core::marker::PhantomData;
 use universal_hash::UniversalHash;
-use universal_hash::crypto_common::{BlockSizeUser, InnerInit};
+use universal_hash::common::{BlockSizeUser, InnerInit};
 use universal_hash::typenum::{IsLessOrEqual, NonZero};
 
 /// Nonce type for [`Dwp`]

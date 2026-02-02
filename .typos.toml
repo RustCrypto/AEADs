@@ -8,3 +8,7 @@ extend-ignore-re = [
     # Patterns which appear to be 16 or more hex characters
     '\b[0-9A-Fa-f]{16,}\b',
 ]
+
+[default.extend-words]
+consts = "consts"
+cpy = "cpy"

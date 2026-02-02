@@ -21,7 +21,7 @@ rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6.0-rc.8", default-features = false }
-cipher = "0.5.0-rc.6"
+cipher = "0.5.0-rc.7"
 cmac = "0.8.0-rc.3"
 ctr = "0.10.0-rc.2"
 subtle = { version = "2", default-features = false }

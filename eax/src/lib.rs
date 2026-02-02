@@ -133,8 +133,8 @@ pub use cipher;
 
 use aead::{TagPosition, inout::InOutBuf};
 use cipher::{
-    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array, consts::U16,
-    crypto_common::OutputSizeUser, typenum::Unsigned,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array,
+    common::OutputSizeUser, consts::U16, typenum::Unsigned,
 };
 use cmac::{Cmac, Mac, digest::Output};
 use core::marker::PhantomData;

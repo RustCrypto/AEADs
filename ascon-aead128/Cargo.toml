@@ -1,6 +1,6 @@
 [package]
 name = "ascon-aead128"
-version = "0.1.0-rc.2"
+version = "0.1.0-rc.3"
 description = "Implementation of the Ascon-AEAD128 authenticated encryption scheme"
 authors = ["RustCrypto Developers"]
 edition = "2024"
@@ -12,13 +12,13 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.6.0-rc.8", default-features = false }
+aead = { version = "0.6.0-rc.10", default-features = false }
 subtle = { version = "2", default-features = false }
 zeroize = { version = "1.8", optional = true, default-features = false, features = ["derive"] }
 ascon = "0.5.0-rc.0"
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.8", features = ["dev"] }
+aead = { version = "0.6.0-rc.10", features = ["dev"] }
 
 [features]
 default = ["alloc", "getrandom"]

@@ -28,7 +28,7 @@ subtle = { version = "2", default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.8", features = ["dev"], default-features = false }
-aes = "0.9.0-rc.2"
+aes = "0.9.0-rc.3"
 
 [features]
 default = ["alloc"]

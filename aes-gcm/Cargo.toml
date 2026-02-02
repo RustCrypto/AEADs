@@ -38,6 +38,7 @@ alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
 getrandom = ["aead/getrandom"]
+hazmat = []
 rand_core = ["aead/rand_core"]
 
 [package.metadata.docs.rs]

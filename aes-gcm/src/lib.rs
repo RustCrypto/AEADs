@@ -120,6 +120,8 @@ pub type Tag<TagSize = U16> = Array<u8, TagSize>;
 /// Trait implemented for valid tag sizes, i.e.
 /// [`U12`][consts::U12], [`U13`][consts::U13], [`U14`][consts::U14],
 /// [`U15`][consts::U15] and [`U16`][consts::U16].
+/// When the crate feature `hazmat` is enabled, [`U4`][consts::U4] and
+/// [`U8`][consts::U8] are also supported.
 pub trait TagSize: private::SealedTagSize {}
 
 impl<T: private::SealedTagSize> TagSize for T {}
@@ -129,6 +131,11 @@ mod private {
 
     // Sealed traits stop other crates from implementing any traits that use it.
     pub trait SealedTagSize: ArraySize + Unsigned {}
+
+    #[cfg(feature = "hazmat")]
+    impl SealedTagSize for consts::U4 {}
+    #[cfg(feature = "hazmat")]
+    impl SealedTagSize for consts::U8 {}
 
     impl SealedTagSize for consts::U12 {}
     impl SealedTagSize for consts::U13 {}
@@ -170,6 +177,14 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 /// the default of 128-bits.
 ///
 /// If in doubt, use the built-in [`Aes128Gcm`] and [`Aes256Gcm`] type aliases.
+///
+/// # ⚠️ WARNING: Hazmat!
+///
+/// When using short authentication tags, namely 32-bit tags with `typenum::U4` or
+/// 64-bit tags with `typenum::U8` (which require the crate feature `hazmat`), it is
+/// **RECOMMENDED** that a key not be used for more than the maximum invocations of
+/// authenticated decryption specified in Table 1 or Table 2 of NIST SP 800-38D,
+/// respectively.
 #[derive(Clone)]
 pub struct AesGcm<Aes, NonceSize, TagSize = U16>
 where

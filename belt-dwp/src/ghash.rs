@@ -71,5 +71,3 @@ impl Reset for GHash {
         self.s = Element::default();
     }
 }
-
-opaque_debug::implement!(GHash);

@@ -458,9 +458,9 @@ dependencies = [
 
 [[package]]
 name = "opaque-debug"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
+checksum = "24dbb6c402d5d2af34bf064f5791bb03c224e145aa59f24ebc411ca93523b86e"
 
 [[package]]
 name = "pmac"

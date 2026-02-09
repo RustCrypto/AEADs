@@ -21,7 +21,7 @@ rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6.0-rc.10", default-features = false }
-chacha20 = { version = "0.10.0", default-features = false, features = ["xchacha"] }
+chacha20 = { version = "0.10", default-features = false, features = ["xchacha"] }
 cipher = "0.5"
 poly1305 = "0.9.0-rc.5"
 zeroize = { version = "1.8", optional = true, default-features = false }

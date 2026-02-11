@@ -380,11 +380,13 @@ where
             });
         }
         let mut data = tail;
-        let index = blocks_len;
+        if !data.is_empty() {
+            let index = blocks_len;
 
-        encrypt_decrypt_block::<B, _>(index, tweak, subkeys, nonce, |block| {
-            data.xor_in2out((block[..data.len()]).into())
-        });
+            encrypt_decrypt_block::<B, _>(index, tweak, subkeys, nonce, |block| {
+                data.xor_in2out((block[..data.len()]).into())
+            });
+        }
     }
 }
 

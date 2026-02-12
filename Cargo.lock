@@ -119,6 +119,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "belt-che"
+version = "0.1.0-pre"
+dependencies = [
+ "aead",
+ "belt-block",
+ "belt-ctr",
+ "hex-literal 1.0.0",
+ "opaque-debug",
+ "subtle",
+ "universal-hash",
+ "zeroize",
+]
+
+[[package]]
 name = "belt-ctr"
 version = "0.2.0-rc.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

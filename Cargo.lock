@@ -234,6 +234,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmov"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de0758edba32d61d1fd9f4d69491b47604b91ee2f7e6b33de7e54ca4ebe55dc3"
+
+[[package]]
 name = "cpubits"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -278,6 +284,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ctutils"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1005a6d4446f5120ef475ad3d2af2b30c49c2c9c6904258e3bb30219bebed5e4"
+dependencies = [
+ "cmov",
+]
+
+[[package]]
 name = "dbl"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -299,13 +314,13 @@ dependencies = [
 
 [[package]]
 name = "digest"
-version = "0.11.0-rc.11"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02b42f1d9edf5207c137646b568a0168ca0ec25b7f9eaf7f9961da51a3d91cea"
+checksum = "f8bf3682cdec91817be507e4aa104314898b95b84d74f3d43882210101a545b6"
 dependencies = [
  "block-buffer",
  "crypto-common",
- "subtle",
+ "ctutils",
 ]
 
 [[package]]

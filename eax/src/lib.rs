@@ -252,15 +252,13 @@ where
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
-        let full_tag: Array<_, OutputSize<Cmac<Cipher>>> = n
-            .into_iter()
-            .zip(h)
-            .map(|(a, b)| a ^ b)
-            .zip(c)
-            .map(|(a, b)| a ^ b)
-            .take(OutputSize::<Cmac<Cipher>>::to_usize())
-            .collect();
-
+        let mut full_tag = n;
+        for (a, b) in full_tag.iter_mut().zip(&h) {
+            *a ^= *b;
+        }
+        for (a, b) in full_tag.iter_mut().zip(&c) {
+            *a ^= *b;
+        }
         let tag = Tag::<M>::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch");
         Ok(tag)
     }
@@ -287,14 +285,13 @@ where
 
         // 5. tag ← n ^ h ^ c
         // (^ means xor)
-        let expected_tag: Array<_, OutputSize<Cmac<Cipher>>> = n
-            .into_iter()
-            .zip(h)
-            .map(|(a, b)| a ^ b)
-            .zip(c)
-            .map(|(a, b)| a ^ b)
-            .take(OutputSize::<Cmac<Cipher>>::to_usize())
-            .collect();
+        let mut expected_tag = n;
+        for (a, b) in expected_tag.iter_mut().zip(&h) {
+            *a ^= *b;
+        }
+        for (a, b) in expected_tag.iter_mut().zip(&c) {
+            *a ^= *b;
+        }
 
         let expected_tag = &expected_tag[..tag.len()];
 

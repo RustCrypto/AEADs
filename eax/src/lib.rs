@@ -133,8 +133,7 @@ pub use cipher;
 
 use aead::{TagPosition, inout::InOutBuf};
 use cipher::{
-    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array,
-    common::OutputSizeUser, consts::U16, typenum::Unsigned,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array, consts::U16,
 };
 use cmac::{Cmac, Mac, digest::Output};
 use core::marker::PhantomData;
@@ -158,9 +157,6 @@ pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// EAX tags
 pub type Tag<TagSize> = Array<u8, TagSize>;
-
-// TODO: Drop that once https://github.com/RustCrypto/traits/pull/1533 releases.
-type OutputSize<T> = <T as OutputSizeUser>::OutputSize;
 
 pub mod online;
 
@@ -251,17 +247,8 @@ where
         let c = Self::cmac_with_iv(&self.key, 2, buffer.get_out());
 
         // 5. tag ← n ^ h ^ c
-        // (^ means xor)
-        let full_tag: Array<_, OutputSize<Cmac<Cipher>>> = n
-            .into_iter()
-            .zip(h)
-            .map(|(a, b)| a ^ b)
-            .zip(c)
-            .map(|(a, b)| a ^ b)
-            .take(OutputSize::<Cmac<Cipher>>::to_usize())
-            .collect();
+        let tag = Array::<u8, M>::from_fn(|i| n[i] ^ h[i] ^ c[i]);
 
-        let tag = Tag::<M>::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch");
         Ok(tag)
     }
 
@@ -286,17 +273,7 @@ where
         let c = Self::cmac_with_iv(&self.key, 2, buffer.get_in());
 
         // 5. tag ← n ^ h ^ c
-        // (^ means xor)
-        let expected_tag: Array<_, OutputSize<Cmac<Cipher>>> = n
-            .into_iter()
-            .zip(h)
-            .map(|(a, b)| a ^ b)
-            .zip(c)
-            .map(|(a, b)| a ^ b)
-            .take(OutputSize::<Cmac<Cipher>>::to_usize())
-            .collect();
-
-        let expected_tag = &expected_tag[..tag.len()];
+        let expected_tag = Array::<u8, M>::from_fn(|i| n[i] ^ h[i] ^ c[i]);
 
         // Constant-time MAC comparison
         use subtle::ConstantTimeEq;

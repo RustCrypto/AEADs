@@ -286,7 +286,7 @@ where
         buffer: InOutBuf<'_, '_, u8>,
     ) -> aead::Result<aead::Tag<Self>> {
         let max_len = 1 << (L_TABLE_SIZE + 4);
-        if (buffer.len() > max_len) || (associated_data.len() > max_len) {
+        if (buffer.len() >= max_len) || (associated_data.len() >= max_len) {
             return Err(aead::Error);
         }
 

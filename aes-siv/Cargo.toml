@@ -26,7 +26,7 @@ dbl = "0.5"
 digest = { version = "0.11.0-rc.11", features = ["mac"] }
 
 # optional dependencies
-pmac = { version = "0.8.0-rc.4", optional = true }
+pmac = { version = "0.8.0-rc.5", optional = true }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]

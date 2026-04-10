@@ -83,7 +83,7 @@ use aead::{TagPosition, inout::InOutBuf};
 use belt_block::cipher::common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
-use belt_ctr::{BeltCtr, BeltCtrCore};
+use belt_ctr::{GenericBeltCtr, GenericBeltCtrCore};
 use core::marker::PhantomData;
 use universal_hash::UniversalHash;
 use universal_hash::common::{BlockSizeUser, InnerInit};
@@ -162,8 +162,8 @@ where
         let mut ghash = GHash::new_with_init_block(&r, T);
 
         // Initialize CTR mode
-        let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
-        let mut enc_cipher = BeltCtr::from_core(core);
+        let core = GenericBeltCtrCore::inner_iv_init(&self.cipher, nonce);
+        let mut enc_cipher = GenericBeltCtr::from_core(core);
 
         // 3. For 𝑖 = 1, 2, . . . , 𝑚 do:
         //  3.1 𝑡 ← 𝑡 ⊕ (𝐼𝑖 ‖ 0^{128−|𝐼𝑖|})
@@ -232,8 +232,8 @@ where
             // 8. For 𝑖 = 1,2,...,𝑛 do:
             // 8.1. 𝑠 ← 𝑠 ⊞ ⟨1⟩128;
             // 8.2. 𝑋𝑖 ← 𝑌𝑖 ⊕ Lo(belt-block(𝑠, 𝐾), |𝑌𝑖|)
-            let core = BeltCtrCore::inner_iv_init(&self.cipher, nonce);
-            let mut enc_cipher = BeltCtr::from_core(core);
+            let core = GenericBeltCtrCore::inner_iv_init(&self.cipher, nonce);
+            let mut enc_cipher = GenericBeltCtr::from_core(core);
             enc_cipher.apply_keystream_inout(buffer);
             Ok(())
         } else {

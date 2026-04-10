@@ -18,15 +18,15 @@ rust-version = "1.85"
 
 [dependencies]
 aead = "0.6.0-rc.10"
-aes = "0.9.0-rc.4"
+aes = "0.9"
 cipher = "0.5"
-cmac = "0.8.0-rc.4"
-ctr = "0.10.0-rc.3"
+cmac = "0.8"
+ctr = "0.10"
 dbl = "0.5"
-digest = { version = "0.11.0-rc.11", features = ["mac"] }
+digest = { version = "0.11", features = ["mac"] }
 
 # optional dependencies
-pmac = { version = "0.8.0-rc.4", optional = true }
+pmac = { version = "0.8", optional = true }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]

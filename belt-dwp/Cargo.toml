@@ -13,10 +13,10 @@ rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6.0-rc.10", default-features = false }
-belt-block = { version = "0.2.0-rc.3" }
-belt-ctr = { version = "0.2.0-rc.3" }
+belt-block = "0.2"
+belt-ctr = "0.2"
 subtle = { version = "2", default-features = false }
-universal-hash = { version = "0.6.0-rc.10" }
+universal-hash = { version = "0.6" }
 zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]

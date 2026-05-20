@@ -376,3 +376,14 @@ where
         f.debug_struct("AesGcm").finish_non_exhaustive()
     }
 }
+
+// `AesGcm` intentionally has no custom `Drop`.
+// With the `zeroize` feature enabled, sensitive state is cleared by member drops
+// (`cipher` via `Aes`, `ghash` via internal `Polyval`) after this marker impl.
+#[cfg(feature = "zeroize")]
+impl<Aes, NonceSize, TagSize> zeroize::ZeroizeOnDrop for AesGcm<Aes, NonceSize, TagSize>
+where
+    Aes: zeroize::ZeroizeOnDrop,
+    TagSize: self::TagSize,
+{
+}

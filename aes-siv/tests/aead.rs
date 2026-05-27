@@ -108,7 +108,7 @@ macro_rules! tests {
 mod aes128cmacsivaead {
     use super::TestVector;
     use aes_siv::Aes128SivAead;
-    use aes_siv::aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
+    use aes_siv::aead::{Aead, AeadCore, KeyInit, Payload, array::Array};
 
     /// AES-128-CMAC-SIV test vectors
     const TEST_VECTORS: &[TestVector<[u8; 32]>] = &[TestVector {
@@ -132,7 +132,7 @@ mod aes128cmacsivaead {
 mod aes128pmacsivaead {
     use super::TestVector;
     use aes_siv::Aes128PmacSivAead;
-    use aes_siv::aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
+    use aes_siv::aead::{Aead, AeadCore, KeyInit, Payload, array::Array};
 
     /// AES-128-PMAC-SIV test vectors
     const AES_128_PMAC_SIV_TEST_VECTORS: &[TestVector<[u8; 32]>] = &[TestVector {

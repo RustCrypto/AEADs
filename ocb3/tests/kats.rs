@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use aead::{
-    AeadInOut, KeyInit,
+    AeadCore, KeyInit,
     consts::{U8, U12},
 };
 use aes::{Aes128, Aes192, Aes256};

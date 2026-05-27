@@ -37,10 +37,7 @@ hex-literal = "1"
 [features]
 default = ["alloc", "getrandom"]
 alloc = ["aead/alloc"]
-
-arrayvec = ["aead/arrayvec"]
-bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom"]
+getrandom = ["aead/getrandom", "rand_core"]
 rand_core = ["aead/rand_core"]
 
 [package.metadata.docs.rs]

@@ -35,10 +35,8 @@ hex-literal = "1"
 default = ["aes", "alloc", "getrandom"]
 alloc = ["aead/alloc"]
 
-arrayvec = ["aead/arrayvec"]
-bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom"]
 hazmat = []
+getrandom = ["aead/getrandom", "rand_core"]
 rand_core = ["aead/rand_core"]
 
 [package.metadata.docs.rs]

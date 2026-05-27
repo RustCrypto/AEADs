@@ -20,7 +20,6 @@ aead = { version = "0.6.0-rc.10", default-features = false }
 aes = "0.9"
 aes-gcm = { version = "0.11.0-rc.3", default-features = false, features = ["aes"] }
 cipher = "0.5"
-aead-stream = { version = "0.6.0-rc.2", optional = true, default-features = false }
 
 [dev-dependencies]
 aead = { version = "0.6.0-rc.10", features = ["dev"], default-features = false }
@@ -28,9 +27,8 @@ hex-literal = "1"
 
 [features]
 default = ["alloc", "getrandom"]
-alloc = ["aead/alloc", "aead-stream?/alloc", "aes-gcm/alloc"]
-arrayvec = ["aead/arrayvec", "aes-gcm/arrayvec"]
-getrandom = ["aes-gcm/getrandom"]
+alloc = ["aead/alloc",  "aes-gcm/alloc"]
+getrandom = ["aes-gcm/getrandom", "rand_core"]
 rand_core = ["aead/rand_core", "aes-gcm/rand_core"]
 
 [package.metadata.docs.rs]

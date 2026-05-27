@@ -21,7 +21,6 @@ cipher = "0.5"
 ctr = "0.10"
 dbl = "0.5"
 subtle = { version = "2", default-features = false }
-aead-stream = { version = "0.6.0-rc.3", optional = true, default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
@@ -31,10 +30,8 @@ hex-literal = "1"
 
 [features]
 default = ["alloc", "getrandom"]
-alloc = ["aead/alloc", "aead-stream?/alloc"]
-arrayvec = ["aead/arrayvec"]
-bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom"]
+alloc = ["aead/alloc"]
+getrandom = ["aead/getrandom", "rand_core"]
 rand_core = ["aead/rand_core"]
 
 [package.metadata.docs.rs]

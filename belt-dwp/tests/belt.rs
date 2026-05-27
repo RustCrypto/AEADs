@@ -1,4 +1,4 @@
-use aead::AeadInOut;
+use aead::AeadCore;
 use belt_dwp::{BeltDwp, KeyInit};
 use hex_literal::hex;
 

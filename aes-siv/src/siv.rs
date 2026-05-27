@@ -70,7 +70,7 @@
 
 use crate::Tag;
 use aead::{
-    Buffer, Error,
+    Error,
     array::{Array, ArraySize, typenum::U16},
     inout::InOutBuf,
 };
@@ -83,11 +83,11 @@ use core::ops::Add;
 use dbl::Dbl;
 use digest::{CtOutput, FixedOutputReset, Mac};
 
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-
 #[cfg(feature = "pmac")]
 use pmac::Pmac;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 /// Size of the (synthetic) initialization vector in bytes
 pub const IV_SIZE: usize = 16;
@@ -171,53 +171,6 @@ where
     C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
     M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
 {
-    /// Encrypt the given plaintext, allocating and returning a `Vec<u8>` for
-    /// the ciphertext.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error`] if `plaintext.len()` is less than `M::OutputSize`.
-    /// Returns [`Error`] if `headers.len()` is greater than [`MAX_HEADERS`].
-    #[cfg(feature = "alloc")]
-    pub fn encrypt<I, T>(&mut self, headers: I, plaintext: &[u8]) -> Result<Vec<u8>, Error>
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<[u8]>,
-    {
-        let mut buffer = Vec::with_capacity(plaintext.len() + IV_SIZE);
-        buffer.extend_from_slice(plaintext);
-        self.encrypt_in_place(headers, &mut buffer)?;
-        Ok(buffer)
-    }
-
-    /// Encrypt the given buffer containing a plaintext message in-place.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error`] if `plaintext.len()` is less than `M::OutputSize`.
-    /// Returns [`Error`] if `headers.len()` is greater than [`MAX_HEADERS`].
-    pub fn encrypt_in_place<I, T>(
-        &mut self,
-        headers: I,
-        buffer: &mut dyn Buffer,
-    ) -> Result<(), Error>
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<[u8]>,
-    {
-        let pt_len = buffer.len();
-
-        // Make room in the buffer for the SIV tag. It needs to be prepended.
-        buffer.extend_from_slice(Tag::default().as_slice())?;
-
-        // TODO(tarcieri): add offset param to `encrypt_inout_detached`
-        buffer.as_mut().copy_within(..pt_len, IV_SIZE);
-
-        let tag = self.encrypt_inout_detached(headers, (&mut buffer.as_mut()[IV_SIZE..]).into())?;
-        buffer.as_mut()[..IV_SIZE].copy_from_slice(tag.as_slice());
-        Ok(())
-    }
-
     /// Encrypt the given plaintext in-place, returning the SIV tag on success.
     ///
     /// # Errors
@@ -237,48 +190,6 @@ where
         let siv_tag = s2v(&mut self.mac, headers, plaintext.get_in())?;
         self.xor_with_keystream(siv_tag, plaintext);
         Ok(siv_tag)
-    }
-
-    /// Decrypt the given ciphertext, allocating and returning a `Vec<u8>` for the plaintext.
-    /// Or returning an error in the event the provided authentication tag does not match the given ciphertext.
-    #[cfg(feature = "alloc")]
-    pub fn decrypt<I, T>(&mut self, headers: I, ciphertext: &[u8]) -> Result<Vec<u8>, Error>
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<[u8]>,
-    {
-        let mut buffer = ciphertext.to_vec();
-        self.decrypt_in_place(headers, &mut buffer)?;
-        Ok(buffer)
-    }
-
-    /// Decrypt the message in-place, returning an error in the event the
-    /// provided authentication tag does not match the given ciphertext.
-    ///
-    /// The buffer will be truncated to the length of the original plaintext
-    /// message upon success.
-    pub fn decrypt_in_place<I, T>(
-        &mut self,
-        headers: I,
-        buffer: &mut dyn Buffer,
-    ) -> Result<(), Error>
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<[u8]>,
-    {
-        if buffer.len() < IV_SIZE {
-            return Err(Error);
-        }
-
-        let siv_tag = Tag::try_from(&buffer.as_ref()[..IV_SIZE]).expect("tag size mismatch");
-        self.decrypt_inout_detached(headers, (&mut buffer.as_mut()[IV_SIZE..]).into(), &siv_tag)?;
-
-        let pt_len = buffer.len() - IV_SIZE;
-
-        // TODO(tarcieri): add offset param to `encrypt_inout_detached`
-        buffer.as_mut().copy_within(IV_SIZE.., 0);
-        buffer.truncate(pt_len);
-        Ok(())
     }
 
     /// Decrypt the given ciphertext in-place, authenticating it against the
@@ -308,6 +219,48 @@ where
             self.xor_with_keystream(*siv_tag, ciphertext);
             Err(Error)
         }
+    }
+
+    /// Encrypt the given plaintext, and return the resulting
+    /// ciphertext as a vector of bytes.
+    #[cfg(feature = "alloc")]
+    pub fn encrypt<I, T>(&mut self, headers: I, plaintext: &[u8]) -> Result<Vec<u8>, Error>
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<[u8]>,
+    {
+        let tag_len = size_of::<Tag>();
+        let ct_len = plaintext.len().checked_add(tag_len).ok_or(Error)?;
+        let mut buffer = alloc::vec![0u8; ct_len];
+
+        let (tag_dst, ct_dst) = buffer.split_at_mut(tag_len);
+
+        let buf = InOutBuf::new(plaintext, ct_dst).expect("`pt` and `ct_dst` have the same length");
+        let tag = self.encrypt_inout_detached(headers, buf)?;
+        tag_dst.copy_from_slice(&tag);
+
+        Ok(buffer)
+    }
+
+    /// Decrypt the given ciphertext, and return the resulting plaintext
+    /// as a vector of bytes.
+    #[cfg(feature = "alloc")]
+    pub fn decrypt<I, T>(&mut self, headers: I, ciphertext: &[u8]) -> Result<Vec<u8>, Error>
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<[u8]>,
+    {
+        let tag_len = size_of::<Tag>();
+        let ct_len = ciphertext.len().checked_sub(tag_len).ok_or(Error)?;
+
+        let (tag, ct) = ciphertext.split_at(tag_len);
+
+        let tag = tag.try_into().expect("`tag` has correct length");
+        let mut pt_dst = alloc::vec![0u8; ct_len];
+        let buf = InOutBuf::new(ct, &mut pt_dst).expect("`ct` and `pt_dst` have the same length");
+        self.decrypt_inout_detached(headers, buf, tag)?;
+
+        Ok(pt_dst)
     }
 
     /// XOR the given buffer with the keystream for the given IV

@@ -1,5 +1,5 @@
 use aead::{
-    AeadInOut, KeyInit,
+    AeadCore, KeyInit,
     consts::{U12, U16},
 };
 use aes::Aes128;

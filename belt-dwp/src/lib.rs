@@ -27,54 +27,8 @@
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(()) }
 //! ```
-//!
-//! ## In-place Usage (eliminates `alloc` requirement)
-//!
-//! This crate has an optional `alloc` feature which can be disabled in e.g.
-//! microcontroller environments that don't have a heap.
-//!
-//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
-//! methods accept any type that impls the [`aead::Buffer`] trait which
-//! contains the plaintext for encryption or ciphertext for decryption.
-//!
-//! Enabling the `arrayvec` feature of this crate will provide an impl of
-//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]).
-//!
-//! It can then be passed as the `buffer` parameter to the in-place encrypt
-//! and decrypt methods:
-//!
-#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "arrayvec")),
-    doc = "```ignore"
-)]
-//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! use belt_dwp::{
-//!     aead::{AeadInOut, Generate, Key, KeyInit, arrayvec::ArrayVec},
-//!     BeltDwp, Nonce
-//! };
-//!
-//! let key = Key::<BeltDwp>::generate();
-//! let cipher = BeltDwp::new(&key);
-//! let nonce = Nonce::generate(); // 128-bits; MUST be unique per message
-//!
-//! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Note: buffer needs 16-bytes overhead for auth tag
-//! buffer.try_extend_from_slice(b"plaintext message").unwrap();
-//!
-//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
-//!
-//! // `buffer` now contains the message ciphertext
-//! assert_ne!(buffer.as_ref(), b"plaintext message");
-//!
-//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
-//! assert_eq!(buffer.as_ref(), b"plaintext message");
-//! # Ok(()) }
-//! ```
 
-pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, Tag};
+pub use aead::{self, AeadCore, AeadTagPosition, Error, Key, KeyInit, KeySizeUser, Tag};
 pub use belt_block::BeltBlock;
 
 use aead::array::ArraySize;
@@ -137,11 +91,14 @@ where
     }
 }
 
-impl<C, TagSize> AeadInOut for Dwp<C, TagSize>
+impl<C, TagSize> AeadCore for Dwp<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
+    type NonceSize = C::BlockSize;
+    type TagSize = TagSize;
+
     fn encrypt_inout_detached(
         &self,
         nonce: &Nonce,
@@ -242,13 +199,11 @@ where
     }
 }
 
-impl<C, TagSize> AeadCore for Dwp<C, TagSize>
+impl<C, TagSize> AeadTagPosition for Dwp<C, TagSize>
 where
     C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
     TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
 {
-    type NonceSize = C::BlockSize;
-    type TagSize = TagSize;
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 

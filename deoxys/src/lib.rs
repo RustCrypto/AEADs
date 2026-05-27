@@ -67,59 +67,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-//! ## In-place Usage (eliminates `alloc` requirement)
-//!
-//! This crate has an optional `alloc` feature which can be disabled in e.g.
-//! microcontroller environments that don't have a heap.
-//!
-//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
-//! methods accept any type that impls the [`aead::Buffer`] trait which
-//! contains the plaintext for encryption or ciphertext for decryption.
-//!
-//! Enabling the `arrayvec` feature of this crate will provide an impl of
-//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
-//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
-//! [`aead`] crate as [`aead::bytes::BytesMut`]).
-//!
-//! It can then be passed as the `buffer` parameter to the in-place encrypt
-//! and decrypt methods:
-//!
-#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "arrayvec")),
-    doc = "```ignore"
-)]
-//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
-//!
-//! use deoxys::{
-//!     aead::{AeadCore, AeadInOut, Generate, Key, KeyInit, arrayvec::ArrayVec},
-//!     DeoxysII256, // Can be `DeoxysI128`, `DeoxysI256`, `DeoxysII128` of `DeoxysII256`
-//!     Nonce
-//! };
-//!
-//! let key = Key::<DeoxysII256>::generate();
-//! let cipher = DeoxysII256::new(&key);
-//!
-//! let nonce = Nonce::generate(); // MUST be unique per message
-//!
-//! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for tag
-//! buffer.try_extend_from_slice(b"plaintext message").unwrap();
-//!
-//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(&nonce, b"", &mut buffer)?;
-//!
-//! // `buffer` now contains the message ciphertext
-//! assert_ne!(buffer.as_ref(), b"plaintext message");
-//!
-//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(&nonce, b"", &mut buffer)?;
-//! assert_eq!(buffer.as_ref(), b"plaintext message");
-//! # Ok(())
-//! # }
-//! ```
 
 /// Deoxys-BC implementations.
 mod deoxys_bc;
@@ -127,7 +74,7 @@ mod deoxys_bc;
 /// Operation modes for Deoxys.
 mod modes;
 
-pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, consts};
+pub use aead::{self, AeadCore, AeadTagPosition, Error, Key, KeyInit, KeySizeUser, consts};
 
 use aead::{
     TagPosition,
@@ -279,14 +226,6 @@ where
 {
     type NonceSize = M::NonceSize;
     type TagSize = U16;
-    const TAG_POSITION: TagPosition = TagPosition::Postfix;
-}
-
-impl<M, B> AeadInOut for Deoxys<M, B>
-where
-    M: DeoxysMode<B>,
-    B: DeoxysBcType,
-{
     fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<M::NonceSize>,
@@ -310,6 +249,14 @@ where
     ) -> Result<(), Error> {
         M::decrypt_inout(nonce, associated_data, buffer, tag, &self.subkeys)
     }
+}
+
+impl<M, B> AeadTagPosition for Deoxys<M, B>
+where
+    M: DeoxysMode<B>,
+    B: DeoxysBcType,
+{
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl<M, B> Drop for Deoxys<M, B>

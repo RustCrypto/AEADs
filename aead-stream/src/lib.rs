@@ -6,11 +6,11 @@
 extern crate alloc;
 
 use aead::{
-    AeadCore, AeadInOut, Buffer, Error, Result,
     array::{
+        typenum::{Unsigned, U4, U5},
         Array, ArraySize,
-        typenum::{U4, U5, Unsigned},
     },
+    AeadCore, Error, Result,
 };
 use core::ops::{AddAssign, Sub};
 
@@ -32,7 +32,7 @@ pub type NonceSize<A, S> =
 /// Create a new STREAM from the provided AEAD.
 pub trait NewStream<A>: StreamPrimitive<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<Self::NonceOverhead>,
     NonceSize<A, Self>: ArraySize,
 {
@@ -57,7 +57,7 @@ where
 /// Deliberately immutable and stateless to permit parallel operation.
 pub trait StreamPrimitive<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<Self::NonceOverhead>,
     NonceSize<A, Self>: ArraySize,
 {
@@ -165,7 +165,7 @@ macro_rules! impl_stream_object {
         #[derive(Debug)]
         pub struct $name<A, S>
         where
-            A: AeadInOut,
+            A: AeadCore,
             S: StreamPrimitive<A>,
             A::NonceSize: Sub<<S as StreamPrimitive<A>>::NonceOverhead>,
             NonceSize<A, S>: ArraySize,
@@ -179,7 +179,7 @@ macro_rules! impl_stream_object {
 
         impl<A, S> $name<A, S>
         where
-            A: AeadInOut,
+            A: AeadCore,
             S: StreamPrimitive<A>,
             A::NonceSize: Sub<<S as StreamPrimitive<A>>::NonceOverhead>,
             NonceSize<A, S>: ArraySize,
@@ -343,7 +343,7 @@ pub type DecryptorLE31<A> = Decryptor<A, StreamLE31<A>>;
 #[derive(Debug)]
 pub struct StreamBE32<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U5>,
     <<A as AeadCore>::NonceSize as Sub<U5>>::Output: ArraySize,
 {
@@ -356,7 +356,7 @@ where
 
 impl<A> NewStream<A> for StreamBE32<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U5>,
     <<A as AeadCore>::NonceSize as Sub<U5>>::Output: ArraySize,
 {
@@ -370,7 +370,7 @@ where
 
 impl<A> StreamPrimitive<A> for StreamBE32<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U5>,
     <<A as AeadCore>::NonceSize as Sub<U5>>::Output: ArraySize,
 {
@@ -404,7 +404,7 @@ where
 
 impl<A> StreamBE32<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U5>,
     <<A as AeadCore>::NonceSize as Sub<U5>>::Output: ArraySize,
 {
@@ -433,7 +433,7 @@ where
 #[derive(Debug)]
 pub struct StreamLE31<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U4>,
     <<A as AeadCore>::NonceSize as Sub<U4>>::Output: ArraySize,
 {
@@ -446,7 +446,7 @@ where
 
 impl<A> NewStream<A> for StreamLE31<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U4>,
     <<A as AeadCore>::NonceSize as Sub<U4>>::Output: ArraySize,
 {
@@ -460,7 +460,7 @@ where
 
 impl<A> StreamPrimitive<A> for StreamLE31<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U4>,
     <<A as AeadCore>::NonceSize as Sub<U4>>::Output: ArraySize,
 {
@@ -494,7 +494,7 @@ where
 
 impl<A> StreamLE31<A>
 where
-    A: AeadInOut,
+    A: AeadCore,
     A::NonceSize: Sub<U4>,
     <<A as AeadCore>::NonceSize as Sub<U4>>::Output: ArraySize,
 {

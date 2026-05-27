@@ -32,63 +32,14 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-//! ## In-place Usage (eliminates `alloc` requirement)
-//!
-//! This crate has an optional `alloc` feature which can be disabled in e.g.
-//! microcontroller environments that don't have a heap.
-//!
-//! The [`AeadInOut::encrypt_in_place`] and [`AeadInOut::decrypt_in_place`]
-//! methods accept any type that impls the [`aead::Buffer`] trait which
-//! contains the plaintext for encryption or ciphertext for decryption.
-//!
-//! Enabling the `arrayvec` feature of this crate will provide an impl of
-//! [`aead::Buffer`] for `arrayvec::ArrayVec` (re-exported from the [`aead`] crate as
-//! [`aead::arrayvec::ArrayVec`]), and enabling the `bytes` feature of this crate will
-//! provide an impl of [`aead::Buffer`] for `bytes::BytesMut` (re-exported from the
-//! [`aead`] crate as [`aead::bytes::BytesMut`]).
-//!
-//! It can then be passed as the `buffer` parameter to the in-place encrypt
-//! and decrypt methods:
-//!
-#![cfg_attr(all(feature = "getrandom", feature = "arrayvec"), doc = "```")]
-#![cfg_attr(
-    not(all(feature = "getrandom", feature = "arrayvec")),
-    doc = "```ignore"
-)]
-//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
-//! // NOTE: requires the `arrayvec` and `getrandom` features are enabled
-//!
-//! use ascon_aead128::{
-//!     aead::{AeadCore, AeadInOut, Generate, KeyInit, arrayvec::ArrayVec},
-//!     AsconAead128, AsconAead128Key, AsconAead128Nonce
-//! };
-//!
-//! let key = AsconAead128Key::generate();
-//! let cipher = AsconAead128::new(&key);
-//!
-//! let nonce = AsconAead128Nonce::generate(); // MUST be unique per message
-//! let mut buffer: ArrayVec<u8, 128> = ArrayVec::new(); // Buffer needs 16-bytes overhead for authentication tag
-//! buffer.try_extend_from_slice(b"plaintext message").unwrap();
-//!
-//! // Encrypt `buffer` in-place, replacing the plaintext contents with ciphertext
-//! cipher.encrypt_in_place(&nonce, b"", &mut buffer).expect("encryption failure!");
-//!
-//! // `buffer` now contains the message ciphertext
-//! assert_ne!(buffer.as_ref(), b"plaintext message");
-//!
-//! // Decrypt `buffer` in-place, replacing its ciphertext context with the original plaintext
-//! cipher.decrypt_in_place(&nonce, b"", &mut buffer).expect("decryption failure!");
-//! assert_eq!(buffer.as_ref(), b"plaintext message");
-//! # Ok(())
-//! # }
-//! ```
 
 #[cfg(feature = "zeroize")]
 pub use zeroize;
 
 pub use aead::{self, Error, Key, Nonce, Tag};
-use aead::{AeadCore, AeadInOut, KeyInit, KeySizeUser, TagPosition, consts::U16, inout::InOutBuf};
+use aead::{
+    AeadCore, AeadTagPosition, KeyInit, KeySizeUser, TagPosition, consts::U16, inout::InOutBuf,
+};
 
 mod asconcore;
 
@@ -118,10 +69,7 @@ impl<P: Parameters> KeyInit for Ascon<P> {
 impl<P: Parameters> AeadCore for Ascon<P> {
     type NonceSize = U16;
     type TagSize = U16;
-    const TAG_POSITION: TagPosition = TagPosition::Postfix;
-}
 
-impl<P: Parameters> AeadInOut for Ascon<P> {
     fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<Self>,
@@ -158,6 +106,10 @@ impl<P: Parameters> AeadInOut for Ascon<P> {
     }
 }
 
+impl<P: Parameters> AeadTagPosition for Ascon<P> {
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
+}
+
 /// Ascon-AEAD128
 pub struct AsconAead128(Ascon<Parameters128>);
 /// Key for Ascon-AEAD128
@@ -180,10 +132,7 @@ impl KeyInit for AsconAead128 {
 impl AeadCore for AsconAead128 {
     type NonceSize = U16;
     type TagSize = U16;
-    const TAG_POSITION: TagPosition = TagPosition::Postfix;
-}
 
-impl AeadInOut for AsconAead128 {
     #[inline(always)]
     fn encrypt_inout_detached(
         &self,
@@ -206,4 +155,8 @@ impl AeadInOut for AsconAead128 {
         self.0
             .decrypt_inout_detached(nonce, associated_data, buffer, tag)
     }
+}
+
+impl AeadTagPosition for AsconAead128 {
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }

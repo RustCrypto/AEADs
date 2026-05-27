@@ -1,7 +1,7 @@
 [workspace]
 resolver = "3"
 members = [
-    "aead-stream",
+    #"aead-stream",
     "aes-gcm",
     "aes-gcm-siv",
     "aes-siv",
@@ -16,5 +16,5 @@ members = [
 ]
 
 [patch.crates-io]
-aead-stream = { path = "aead-stream" }
 aes-gcm = { path = "aes-gcm" }
+aead = { git = "https://github.com/RustCrypto/traits", branch = "aead/minimize" }

@@ -2,7 +2,7 @@
 extern crate test;
 
 use aead::{
-    AeadInOut, KeyInit,
+    AeadCore, KeyInit,
     array::Array,
     consts::{U16, U32},
 };

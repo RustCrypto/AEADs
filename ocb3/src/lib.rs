@@ -14,12 +14,12 @@ pub mod consts {
 }
 
 pub use aead::{
-    self, AeadCore, AeadInOut, Error, KeyInit, KeySizeUser,
+    self, AeadCore, Error, KeyInit, KeySizeUser,
     array::{Array, AsArrayRef, AssocArraySize},
 };
 
 use aead::{
-    TagPosition,
+    AeadTagPosition, TagPosition,
     array::ArraySize,
     inout::{InOut, InOutBuf},
 };
@@ -157,17 +157,6 @@ where
     }
 }
 
-impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> AeadCore
-    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
-where
-    NonceSize: sealed::NonceSizes,
-    TagSize: sealed::TagSizes,
-{
-    type NonceSize = NonceSize;
-    type TagSize = TagSize;
-    const TAG_POSITION: TagPosition = TagPosition::Postfix;
-}
-
 impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> From<Cipher>
     for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
@@ -189,13 +178,17 @@ where
     }
 }
 
-impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> AeadInOut
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> AeadCore
     for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
     NonceSize: sealed::NonceSizes,
     TagSize: sealed::TagSizes,
 {
+    type NonceSize = NonceSize;
+    type TagSize = TagSize;
+
+    #[allow(clippy::explicit_counter_loop)]
     fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<NonceSize>,
@@ -271,6 +264,16 @@ where
     }
 }
 
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> AeadTagPosition
+    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
+where
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + BlockCipherDecrypt,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
+{
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
+}
+
 impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize>
     Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
 where
@@ -279,6 +282,7 @@ where
     TagSize: sealed::TagSizes,
 {
     /// Decrypts in place and returns expected tag.
+    #[allow(clippy::explicit_counter_loop)]
     pub(crate) fn decrypt_inout_return_tag(
         &self,
         nonce: &Nonce<NonceSize>,

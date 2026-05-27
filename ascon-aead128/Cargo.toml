@@ -23,9 +23,7 @@ aead = { version = "0.6.0-rc.10", features = ["dev"] }
 [features]
 default = ["alloc", "getrandom"]
 alloc = ["aead/alloc"]
-arrayvec = ["aead/arrayvec"]
-bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom"]
+getrandom = ["aead/getrandom", "rand_core"]
 rand_core = ["aead/rand_core"]
 zeroize = ["dep:zeroize", "ascon/zeroize"]
 

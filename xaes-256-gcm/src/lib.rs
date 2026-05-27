@@ -39,7 +39,8 @@ pub use aes_gcm;
 use core::ops::{Div, Mul};
 
 use aead::{
-    AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, TagPosition, array::Array, inout::InOutBuf,
+    AeadCore, AeadTagPosition, Error, KeyInit, KeySizeUser, TagPosition, array::Array,
+    inout::InOutBuf,
 };
 use aes::Aes256;
 use aes_gcm::Aes256Gcm;
@@ -76,12 +77,6 @@ pub const A_MAX: u64 = 1 << 36;
 /// Maximum length of ciphertext.
 pub const C_MAX: u64 = (1 << 36) + 16;
 
-impl AeadCore for Xaes256Gcm {
-    type NonceSize = NonceSize;
-    type TagSize = TagSize;
-    const TAG_POSITION: TagPosition = TagPosition::Postfix;
-}
-
 impl KeySizeUser for Xaes256Gcm {
     type KeySize = KeySize;
 }
@@ -110,7 +105,10 @@ impl KeyInit for Xaes256Gcm {
     }
 }
 
-impl AeadInOut for Xaes256Gcm {
+impl AeadCore for Xaes256Gcm {
+    type NonceSize = NonceSize;
+    type TagSize = TagSize;
+
     fn encrypt_inout_detached(
         &self,
         nonce: &Nonce,
@@ -141,6 +139,10 @@ impl AeadInOut for Xaes256Gcm {
         let k = self.derive_key(n1);
         Aes256Gcm::new(&k).decrypt_inout_detached(n, associated_data, buffer, tag)
     }
+}
+
+impl AeadTagPosition for Xaes256Gcm {
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
 impl Xaes256Gcm {

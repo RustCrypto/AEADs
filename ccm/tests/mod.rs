@@ -1,6 +1,6 @@
 #![cfg(feature = "alloc")]
 
-use aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
+use aead::{Aead, AeadCore, KeyInit, Payload, array::Array};
 use aes::{Aes128, Aes192, Aes256};
 use ccm::{
     Ccm,

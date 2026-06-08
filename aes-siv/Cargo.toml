@@ -17,7 +17,7 @@ categories = ["cryptography", "no-std"]
 rust-version = "1.85"
 
 [dependencies]
-aead = "0.6.0-rc.10"
+aead = "0.6"
 aes = "0.9"
 cipher = "0.5"
 cmac = "0.8"
@@ -30,7 +30,7 @@ pmac = { version = "0.8", optional = true }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]
-aead = { version = "0.6.0-rc.10", features = ["alloc", "dev"], default-features = false }
+aead = { version = "0.6", features = ["alloc", "dev"], default-features = false }
 blobby = "0.4"
 hex-literal = "1"
 

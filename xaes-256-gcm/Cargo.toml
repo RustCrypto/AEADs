@@ -30,7 +30,7 @@ hex-literal = "1"
 default = ["alloc", "getrandom"]
 alloc = ["aead/alloc", "aead-stream?/alloc", "aes-gcm/alloc"]
 arrayvec = ["aead/arrayvec", "aes-gcm/arrayvec"]
-getrandom = ["aes-gcm/getrandom"]
+getrandom = ["aead/getrandom", "aes-gcm/getrandom", "rand_core"]
 rand_core = ["aead/rand_core", "aes-gcm/rand_core"]
 
 [package.metadata.docs.rs]

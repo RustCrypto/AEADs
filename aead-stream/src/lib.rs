@@ -1,5 +1,10 @@
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
+)]
 #![allow(clippy::upper_case_acronyms)]
 
 #[cfg(feature = "alloc")]
@@ -74,6 +79,9 @@ where
     const COUNTER_MAX: Self::Counter;
 
     /// Encrypt an AEAD message in-place at the given position in the STREAM.
+    ///
+    /// # Errors
+    /// Propagates errors from the underlying AEAD.
     fn encrypt_in_place(
         &self,
         position: Self::Counter,
@@ -83,6 +91,9 @@ where
     ) -> Result<()>;
 
     /// Decrypt an AEAD message in-place at the given position in the STREAM.
+    ///
+    /// # Errors
+    /// Propagates errors from the underlying AEAD.
     fn decrypt_in_place(
         &self,
         position: Self::Counter,
@@ -91,8 +102,10 @@ where
         buffer: &mut dyn Buffer,
     ) -> Result<()>;
 
-    /// Encrypt the given plaintext payload, and return the resulting
-    /// ciphertext as a vector of bytes.
+    /// Encrypt the given plaintext payload, and return the resulting ciphertext as a byte vector.
+    ///
+    /// # Errors
+    /// Propagates errors from the underlying AEAD.
     #[cfg(feature = "alloc")]
     fn encrypt<'msg, 'aad>(
         &self,
@@ -107,8 +120,10 @@ where
         Ok(buffer)
     }
 
-    /// Decrypt the given ciphertext slice, and return the resulting plaintext
-    /// as a vector of bytes.
+    /// Decrypt the given ciphertext slice, and return the resulting plaintext as a byte vector.
+    ///
+    /// # Errors
+    /// Propagates errors from the underlying AEAD.
     #[cfg(feature = "alloc")]
     fn decrypt<'msg, 'aad>(
         &self,
@@ -219,6 +234,9 @@ macro_rules! impl_stream_object {
             #[doc = $op_desc]
             #[doc = "the next AEAD message in this STREAM, returning the"]
             #[doc = "result as a [`Vec`]."]
+            #[doc = "\n"]
+            #[doc = "# Errors\n"]
+            #[doc = "Propagates errors from the underlying AEAD"]
             #[cfg(feature = "alloc")]
             pub fn $next_method<'msg, 'aad>(
                 &mut self,
@@ -241,6 +259,9 @@ macro_rules! impl_stream_object {
             #[doc = "Use the underlying AEAD to"]
             #[doc = $op_desc]
             #[doc = "the next AEAD message in this STREAM in-place."]
+            #[doc = "\n"]
+            #[doc = "# Errors\n"]
+            #[doc = "Propagates errors from the underlying AEAD"]
             pub fn $next_in_place_method(
                 &mut self,
                 associated_data: &[u8],
@@ -267,6 +288,9 @@ macro_rules! impl_stream_object {
             #[doc = "consuming the "]
             #[doc = $obj_desc]
             #[doc = "object in order to prevent further use."]
+            #[doc = "\n"]
+            #[doc = "# Errors\n"]
+            #[doc = "Propagates errors from the underlying AEAD"]
             #[cfg(feature = "alloc")]
             pub fn $last_method<'msg, 'aad>(
                 self,
@@ -281,6 +305,9 @@ macro_rules! impl_stream_object {
             #[doc = "consuming the "]
             #[doc = $obj_desc]
             #[doc = "object in order to prevent further use."]
+            #[doc = "\n"]
+            #[doc = "# Errors\n"]
+            #[doc = "Propagates errors from the underlying AEAD"]
             pub fn $last_in_place_method(
                 self,
                 associated_data: &[u8],
@@ -419,7 +446,7 @@ where
 
         let (counter, flag) = tail.split_at_mut(4);
         counter.copy_from_slice(&position.to_be_bytes());
-        flag[0] = last_block as u8;
+        flag[0] = u8::from(last_block);
 
         result
     }
@@ -511,7 +538,7 @@ where
         let (prefix, tail) = result.split_at_mut(NonceSize::<A, Self>::to_usize());
         prefix.copy_from_slice(&self.nonce);
 
-        let position_with_flag = position | ((last_block as u32) << 31);
+        let position_with_flag = position | (u32::from(last_block) << 31);
         tail.copy_from_slice(&position_with_flag.to_le_bytes());
 
         Ok(result)

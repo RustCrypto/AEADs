@@ -17,3 +17,6 @@ aead = { version = "0.6", default-features = false }
 
 [features]
 alloc = ["aead/alloc"]
+
+[lints]
+workspace = true

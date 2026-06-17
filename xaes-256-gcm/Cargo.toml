@@ -25,6 +25,7 @@ aead-stream = { version = "0.6.0-rc.2", optional = true, default-features = fals
 [dev-dependencies]
 aead = { version = "0.6", features = ["dev"], default-features = false }
 hex-literal = "1"
+shake = { version = "0.1.0", default-features = false }
 
 [features]
 default = ["alloc", "getrandom"]

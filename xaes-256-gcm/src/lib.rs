@@ -67,14 +67,10 @@ pub type Key<B = Aes256> = aes_gcm::Key<B>;
 pub type Tag<Size = TagSize> = aes_gcm::Tag<Size>;
 
 /// Maximum length of plaintext.
-pub const P_MAX: u64 = 1 << 36;
+pub const P_MAX: u64 = aes_gcm::P_MAX;
 
 /// Maximum length of associated data.
-// pub const A_MAX: u64 = 1 << 61;
-pub const A_MAX: u64 = 1 << 36;
-
-/// Maximum length of ciphertext.
-pub const C_MAX: u64 = (1 << 36) + 16;
+pub const A_MAX: u64 = aes_gcm::A_MAX;
 
 impl AeadCore for Xaes256Gcm {
     type NonceSize = NonceSize;
@@ -133,7 +129,10 @@ impl AeadInOut for Xaes256Gcm {
         buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
-        if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
+        // Operating in a detached state, where the tag is handled separately
+        // from the ciphertext, means the ciphertext is always the same length
+        // as the plaintext. So, checking `P_MAX` is acceptable.
+        if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }
 

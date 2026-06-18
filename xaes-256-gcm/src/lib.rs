@@ -129,6 +129,9 @@ impl AeadInOut for Xaes256Gcm {
         buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
+        // Operating in a detached state, where the tag is handled separately
+        // from the ciphertext, means the ciphertext is always the same length
+        // as the plaintext. So, checking `P_MAX` is acceptable.
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
             return Err(Error);
         }

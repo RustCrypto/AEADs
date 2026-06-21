@@ -19,6 +19,7 @@ aes-gcm-siv = { path = "../aes-gcm-siv/" }
 ascon-aead128 = { path = "../ascon-aead128/" }
 chacha20poly1305 = { path = "../chacha20poly1305/" }
 deoxys = { path = "../deoxys/" }
+dndk-gcm = { path = "../dndk-gcm/" }
 eax = { path = "../eax/" }
 
 [target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))'.dependencies]
@@ -47,6 +48,11 @@ harness = false
 [[bench]]
 name = "deoxys"
 path = "src/deoxys.rs"
+harness = false
+
+[[bench]]
+name = "dndk-gcm"
+path = "src/dndk-gcm.rs"
 harness = false
 
 [[bench]]

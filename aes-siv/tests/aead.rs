@@ -1,4 +1,7 @@
+//! Tests for the AEAD interface.
+
 #![cfg(feature = "alloc")]
+#![allow(missing_docs, reason = "tests")]
 
 #[macro_use]
 extern crate hex_literal;

@@ -5,8 +5,6 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -96,7 +94,7 @@ use cipher::{
     array::{Array, ArraySize},
     consts::U16,
 };
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 use ghash::{GHash, universal_hash::UniversalHash};
 
 #[cfg(feature = "zeroize")]
@@ -188,7 +186,7 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 #[derive(Clone)]
 pub struct AesGcm<Aes, NonceSize, TagSize = U16>
 where
-    TagSize: self::TagSize,
+    TagSize: crate::TagSize,
 {
     /// Encryption cipher.
     cipher: Aes,
@@ -206,7 +204,7 @@ where
 impl<Aes, NonceSize, TagSize> KeySizeUser for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: KeySizeUser,
-    TagSize: self::TagSize,
+    TagSize: crate::TagSize,
 {
     type KeySize = Aes::KeySize;
 }
@@ -214,7 +212,7 @@ where
 impl<Aes, NonceSize, TagSize> KeyInit for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit,
-    TagSize: self::TagSize,
+    TagSize: crate::TagSize,
 {
     fn new(key: &Key<Self>) -> Self {
         Aes::new(key).into()
@@ -224,7 +222,7 @@ where
 impl<Aes, NonceSize, TagSize> From<Aes> for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
-    TagSize: self::TagSize,
+    TagSize: crate::TagSize,
 {
     fn from(cipher: Aes) -> Self {
         let mut ghash_key = ghash::Key::default();
@@ -247,7 +245,7 @@ where
 impl<Aes, NonceSize, TagSize> AeadCore for AesGcm<Aes, NonceSize, TagSize>
 where
     NonceSize: ArraySize,
-    TagSize: self::TagSize,
+    TagSize: crate::TagSize,
 {
     type NonceSize = NonceSize;
     type TagSize = TagSize;
@@ -258,7 +256,7 @@ impl<Aes, NonceSize, TagSize> AeadInOut for AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: ArraySize,
-    TagSize: self::TagSize,
+    TagSize: crate::TagSize,
 {
     fn encrypt_inout_detached(
         &self,
@@ -277,7 +275,9 @@ where
         ctr.apply_keystream_partial(buffer.reborrow());
 
         let full_tag = self.compute_tag(mask, associated_data, buffer.get_out());
-        Ok(Tag::try_from(&full_tag[..TagSize::to_usize()]).expect("tag size mismatch"))
+        full_tag[..TagSize::to_usize()]
+            .try_into()
+            .map_err(|_| Error)
     }
 
     fn decrypt_inout_detached(
@@ -311,7 +311,7 @@ impl<Aes, NonceSize, TagSize> AesGcm<Aes, NonceSize, TagSize>
 where
     Aes: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: ArraySize,
-    TagSize: self::TagSize,
+    TagSize: crate::TagSize,
 {
     /// Initialize counter mode.
     ///
@@ -365,5 +365,14 @@ where
         }
 
         tag
+    }
+}
+
+impl<Aes, NonceSize, TagSize> fmt::Debug for AesGcm<Aes, NonceSize, TagSize>
+where
+    TagSize: crate::TagSize,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("AesGcm").finish_non_exhaustive()
     }
 }

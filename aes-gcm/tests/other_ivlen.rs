@@ -4,6 +4,7 @@
 //! <https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/CAVP-TESTING-BLOCK-CIPHER-MODES>
 
 #![cfg(all(feature = "aes", feature = "alloc"))]
+#![allow(clippy::unwrap_used, reason = "tests")]
 
 use aead::{
     Aead, KeyInit,

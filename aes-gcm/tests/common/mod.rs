@@ -11,6 +11,7 @@ pub struct TestVector<K: 'static, N: 'static> {
     pub tag: &'static [u8; 16],
 }
 
+/// Write tests for the given AEAD.
 #[macro_export]
 macro_rules! tests {
     ($aead:ty, $vectors:expr) => {

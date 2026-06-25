@@ -10,6 +10,7 @@ pub struct TestVector<K: 'static> {
     pub ciphertext: &'static [u8],
 }
 
+/// Write tests
 #[macro_export]
 macro_rules! tests {
     ($aead:ty, $vectors:expr) => {

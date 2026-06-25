@@ -5,7 +5,6 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -95,6 +94,7 @@ use cipher::{
     array::Array,
     consts::{U12, U16},
 };
+use core::fmt;
 use polyval::{Polyval, universal_hash::UniversalHash};
 
 /// AES is optional to allow swapping in hardware-specific backends.
@@ -196,6 +196,12 @@ where
             buffer,
             tag,
         )
+    }
+}
+
+impl<Aes> fmt::Debug for AesGcmSiv<Aes> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        f.debug_struct("AesGcmSiv").finish_non_exhaustive()
     }
 }
 

@@ -79,13 +79,12 @@ use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, Key, KeyInit, KeySizeUser, StreamCipherCore,
 };
 use cmac::Cmac;
-use core::ops::Add;
+use core::{fmt, ops::Add};
 use dbl::Dbl;
 use digest::{CtOutput, FixedOutputReset, Mac};
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-
 #[cfg(feature = "pmac")]
 use pmac::Pmac;
 
@@ -240,7 +239,9 @@ where
     }
 
     /// Decrypt the given ciphertext, allocating and returning a `Vec<u8>` for the plaintext.
-    /// Or returning an error in the event the provided authentication tag does not match the given ciphertext.
+    ///
+    /// # Errors
+    /// Returns [`Error`] if the provided authentication tag does not match the given ciphertext.
     #[cfg(feature = "alloc")]
     pub fn decrypt<I, T>(&mut self, headers: I, ciphertext: &[u8]) -> Result<Vec<u8>, Error>
     where
@@ -252,11 +253,11 @@ where
         Ok(buffer)
     }
 
-    /// Decrypt the message in-place, returning an error in the event the
-    /// provided authentication tag does not match the given ciphertext.
+    /// Decrypt the message in-place, truncating the provided buffer to the length of the original
+    /// plaintext message upon success.
     ///
-    /// The buffer will be truncated to the length of the original plaintext
-    /// message upon success.
+    /// # Errors
+    /// Returns [`Error`] if the provided authentication tag does not match the given ciphertext.
     pub fn decrypt_in_place<I, T>(
         &mut self,
         headers: I,
@@ -270,7 +271,7 @@ where
             return Err(Error);
         }
 
-        let siv_tag = Tag::try_from(&buffer.as_ref()[..IV_SIZE]).expect("tag size mismatch");
+        let siv_tag = Tag::try_from(&buffer.as_ref()[..IV_SIZE]).map_err(|_| Error)?;
         self.decrypt_inout_detached(headers, (&mut buffer.as_mut()[IV_SIZE..]).into(), &siv_tag)?;
 
         let pt_len = buffer.len() - IV_SIZE;
@@ -323,6 +324,16 @@ where
     }
 }
 
+impl<C, M> fmt::Debug for Siv<C, M>
+where
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        f.debug_struct("Siv").finish_non_exhaustive()
+    }
+}
+
 impl<C, M> Drop for Siv<C, M>
 where
     C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
@@ -332,7 +343,7 @@ where
         #[cfg(feature = "zeroize")]
         {
             use zeroize::Zeroize;
-            self.encryption_key.zeroize()
+            self.encryption_key.zeroize();
         }
     }
 }
@@ -374,25 +385,26 @@ where
         xor_in_place(&mut state, &code);
     }
 
-    if message.len() >= IV_SIZE {
-        let n = message.len().checked_sub(IV_SIZE).unwrap();
-
-        Mac::update(mac, &message[..n]);
-        xor_in_place(&mut state, &message[n..]);
-    } else {
-        state = state.dbl();
-        xor_in_place(&mut state, message);
-        state[message.len()] ^= 0x80;
-    };
+    match message.len().checked_sub(IV_SIZE) {
+        Some(n) => {
+            Mac::update(mac, &message[..n]);
+            xor_in_place(&mut state, &message[n..]);
+        }
+        None => {
+            state = state.dbl();
+            xor_in_place(&mut state, message);
+            state[message.len()] ^= 0x80;
+        }
+    }
 
     Mac::update(mac, state.as_ref());
     Ok(mac.finalize_reset().into_bytes())
 }
 
-/// XOR the second argument into the first in-place. Slices do not have to be
-/// aligned in memory.
+/// XOR the second argument into the first in-place. Slices do not have to be the same length.
 ///
-/// Panics if the destination slice is smaller than the source.
+/// # Panics
+/// If the destination slice is smaller than the source.
 #[inline]
 fn xor_in_place(dst: &mut [u8], src: &[u8]) {
     for (a, b) in dst[..src.len()].iter_mut().zip(src) {

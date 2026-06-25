@@ -1,6 +1,7 @@
-//! AES-SIV tests for the raw SIV interface
+//! Tests for the low-level SIV interface
 
 #![cfg(feature = "alloc")]
+#![allow(missing_docs, reason = "tests")]
 
 use aes_siv::aead::array::Array;
 

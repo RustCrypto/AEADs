@@ -5,7 +5,6 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms, unused_qualifications)]
 
 //! # Usage
 //!
@@ -101,7 +100,7 @@ use aead::{
 use aes::{Aes128, Aes256};
 use cipher::{BlockCipherEncrypt, BlockSizeUser, array::ArraySize, typenum::IsGreaterOrEqual};
 use cmac::Cmac;
-use core::{marker::PhantomData, ops::Add};
+use core::{fmt, marker::PhantomData, ops::Add};
 use digest::{FixedOutputReset, Mac};
 
 #[cfg(feature = "pmac")]
@@ -245,5 +244,18 @@ where
             buffer,
             tag,
         )
+    }
+}
+
+impl<C, M, NonceSize> fmt::Debug for SivAead<C, M, NonceSize>
+where
+    Self: KeySizeUser,
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + KeyInit + KeySizeUser,
+    M: Mac<OutputSize = U16> + FixedOutputReset + KeyInit,
+    <C as KeySizeUser>::KeySize: Add,
+    NonceSize: ArraySize + IsGreaterOrEqual<U1>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        f.debug_struct("SivAead").finish_non_exhaustive()
     }
 }

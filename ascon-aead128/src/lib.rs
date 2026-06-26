@@ -1,11 +1,10 @@
 #![no_std]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs)]
 
 //! ## Usage
 //!
@@ -84,15 +83,15 @@
 //! # }
 //! ```
 
+mod asconcore;
+
+pub use aead::{self, Error, Key, Nonce, Tag};
 #[cfg(feature = "zeroize")]
 pub use zeroize;
 
-pub use aead::{self, Error, Key, Nonce, Tag};
 use aead::{AeadCore, AeadInOut, KeyInit, KeySizeUser, TagPosition, consts::U16, inout::InOutBuf};
-
-mod asconcore;
-
 use asconcore::{AsconCore, Parameters, Parameters128};
+use core::fmt;
 
 /// Ascon generic over some Parameters
 ///
@@ -205,5 +204,11 @@ impl AeadInOut for AsconAead128 {
     ) -> Result<(), Error> {
         self.0
             .decrypt_inout_detached(nonce, associated_data, buffer, tag)
+    }
+}
+
+impl fmt::Debug for AsconAead128 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("AsconAead128").finish_non_exhaustive()
     }
 }

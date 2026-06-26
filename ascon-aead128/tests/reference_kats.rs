@@ -1,3 +1,5 @@
+//! Ascon-AEAD128 Known Answer Tests (KATs).
+
 use ascon_aead128::AsconAead128;
 
 // Test vectors are taken from the reference Ascon implementation:

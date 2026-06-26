@@ -22,10 +22,11 @@ const fn clear(word: u64, n: usize) -> u64 {
 // Helper functions to convert &[u8] to u64. Once the `processing_*`
 // functions are rewritten with `as_chunks`, they can be dropped.
 
+// Note: function is always called with slices of the correct size
 #[inline]
 fn u64_from_bytes(input: &[u8]) -> u64 {
-    // Soundness: function is always called with slices of the correct size
-    u64::from_le_bytes(input.try_into().unwrap())
+    debug_assert_eq!(input.len(), 8);
+    u64::from_le_bytes(input.try_into().expect("input should be 8-bytes long"))
 }
 
 #[inline]

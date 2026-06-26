@@ -5,7 +5,6 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms)]
 
 //! ## Supported Algorithms
 //!
@@ -18,8 +17,8 @@
 //!   [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf)
 //!   paper for background and rationale on when these constructions could be used.
 //!   When in doubt, prefer [`ChaCha20Poly1305`].
-//! - [`XChaCha8Poly1305`] / [`XChaCha12Poly1305`] - same as above,
-//!   but with an extended 192-bit (24-byte) nonce.
+//! - [`XChaCha8Poly1305`] / [`XChaCha12Poly1305`] - same as above, but with an extended
+//!   192-bit (24-byte) nonce.
 //!
 //! # Usage
 //!
@@ -149,7 +148,7 @@ mod cipher;
 
 pub use aead::{self, AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, consts};
 
-use self::cipher::Cipher;
+use crate::cipher::Cipher;
 use ::cipher::{KeyIvInit, StreamCipher, StreamCipherSeek};
 use aead::{
     TagPosition,
@@ -157,9 +156,8 @@ use aead::{
     consts::{U12, U16, U24, U32},
     inout::InOutBuf,
 };
-use core::marker::PhantomData;
-
 use chacha20::{ChaCha20, XChaCha20};
+use core::{fmt, marker::PhantomData};
 
 #[cfg(feature = "reduced-round")]
 use chacha20::{ChaCha8, ChaCha12, XChaCha8, XChaCha12};
@@ -305,6 +303,15 @@ where
             use zeroize::Zeroize;
             self.key.as_mut_slice().zeroize();
         }
+    }
+}
+
+impl<C, N> fmt::Debug for ChaChaPoly1305<C, N>
+where
+    N: ArraySize,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ChaChaPoly1305").finish_non_exhaustive()
     }
 }
 

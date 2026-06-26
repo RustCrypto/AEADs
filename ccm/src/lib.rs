@@ -1,11 +1,10 @@
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -102,7 +101,7 @@ use aead::{
 use cipher::{
     Block, BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipher, StreamCipherSeek,
 };
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 use ctr::{Ctr32BE, Ctr64BE, CtrCore};
 use subtle::ConstantTimeEq;
 
@@ -174,7 +173,7 @@ where
     ) -> Result<Tag<C::BlockSize>, Error> {
         let is_ad = !adata.is_empty();
         let l = N::get_l();
-        let flags = 64 * (is_ad as u8) + 8 * M::get_m_tick() + (l - 1);
+        let flags = 64 * u8::from(is_ad) + 8 * M::get_m_tick() + (l - 1);
 
         if buffer.len() > N::get_max_len() {
             return Err(Error);
@@ -186,8 +185,10 @@ where
         b0[1..n].copy_from_slice(nonce);
 
         let cb = b0.len() - n;
+
         // the max len check makes certain that we discard only
         // zero bytes from `b`
+        #[allow(clippy::cast_possible_truncation, reason = "TODO")]
         if cb > 4 {
             let b = (buffer.len() as u64).to_be_bytes();
             b0[n..].copy_from_slice(&b[b.len() - cb..]);
@@ -292,7 +293,7 @@ where
             ctr.apply_keystream_inout(buffer);
         }
 
-        Ok(Tag::try_from(&full_tag[..M::to_usize()]).expect("tag size mismatch"))
+        full_tag[..M::to_usize()].try_into().map_err(|_| Error)
     }
 
     fn decrypt_inout_detached(
@@ -332,6 +333,17 @@ where
             buffer.get_out().fill(0);
             Err(Error)
         }
+    }
+}
+
+impl<C, M, N> fmt::Debug for Ccm<C, M, N>
+where
+    C: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
+    M: ArraySize + TagSize,
+    N: ArraySize + NonceSize,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Ccm").finish_non_exhaustive()
     }
 }
 
@@ -378,6 +390,7 @@ where
     }
 }
 
+#[allow(clippy::cast_possible_truncation, reason = "TODO")]
 fn fill_aad_header(adata_len: usize) -> (usize, Array<u8, U16>) {
     debug_assert_ne!(adata_len, 0);
 
@@ -385,7 +398,7 @@ fn fill_aad_header(adata_len: usize) -> (usize, Array<u8, U16>) {
     let n = if adata_len < 0xFF00 {
         b[..2].copy_from_slice(&(adata_len as u16).to_be_bytes());
         2
-    } else if adata_len <= u32::MAX as usize {
+    } else if u32::try_from(adata_len).is_ok() {
         b[0] = 0xFF;
         b[1] = 0xFE;
         b[2..6].copy_from_slice(&(adata_len as u32).to_be_bytes());

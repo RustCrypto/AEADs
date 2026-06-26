@@ -1,3 +1,5 @@
+//! CCM integration tests.
+
 #![cfg(feature = "alloc")]
 
 use aead::{Aead, AeadInOut, KeyInit, Payload, array::Array};
@@ -13,7 +15,7 @@ fn test_data_len_check() {
     let key = hex!("D7828D13B2B0BDC325A76236DF93CC6B");
     let nonce = hex!("2F1DBD38CE3EDA7C23F04DD650");
 
-    type Cipher = Ccm<aes::Aes128, U10, U13>;
+    type Cipher = Ccm<Aes128, U10, U13>;
     let key = Array(key);
     let nonce = Array(nonce);
     let c = Cipher::new(&key);
@@ -37,7 +39,7 @@ fn sp800_38c_examples() {
             nonce: $nonce:expr, adata: $adata:expr, pt: $pt:expr, ct: $ct:expr,
         ) => {
             let key = Array($key);
-            let c = Ccm::<aes::Aes128, $m, $n>::new(&key);
+            let c = Ccm::<Aes128, $m, $n>::new(&key);
             let nonce = Array($nonce);
             let res = c.encrypt(&nonce, Payload { aad: &$adata, msg: &$pt })
                 .unwrap();
@@ -80,7 +82,9 @@ fn sp800_38c_examples() {
         "),
     );
 
-    let adata = (0..524288 / 8).map(|i| i as u8).collect::<Vec<u8>>();
+    #[allow(clippy::cast_possible_truncation, reason = "TODO")]
+    let adata = (0u32..524288 / 8).map(|i| i as u8).collect::<Vec<u8>>();
+
     check!(
         key, U14, U13,
         nonce: hex!("10111213 14151617 18191a1b 1c"),

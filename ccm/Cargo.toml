@@ -31,3 +31,9 @@ arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
 getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

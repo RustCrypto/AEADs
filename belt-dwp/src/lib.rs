@@ -1,11 +1,10 @@
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![warn(missing_docs)]
 
 //! # Usage
 //!
@@ -84,6 +83,7 @@ use belt_block::cipher::common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt, StreamCipher};
 use belt_ctr::cipher::InnerIvInit;
 use belt_ctr::{GenericBeltCtr, GenericBeltCtrCore};
+use core::fmt;
 use core::marker::PhantomData;
 use universal_hash::UniversalHash;
 use universal_hash::common::{BlockSizeUser, InnerInit};
@@ -185,8 +185,7 @@ where
         let mut tag = ghash.finalize_reset();
         self.cipher.encrypt_block(&mut tag);
 
-        let tag = &tag[..TagSize::USIZE];
-        Ok(tag.try_into().expect("Tag is always 8 bytes"))
+        tag[..TagSize::USIZE].try_into().map_err(|_| Error)
     }
 
     fn decrypt_inout_detached(
@@ -250,6 +249,16 @@ where
     type NonceSize = C::BlockSize;
     type TagSize = TagSize;
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
+}
+
+impl<C, TagSize> fmt::Debug for Dwp<C, TagSize>
+where
+    C: BlockCipherEncrypt + BlockSizeUser<BlockSize = U16>,
+    TagSize: ArraySize + NonZero + IsLessOrEqual<U16, Output = True>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Dwp").finish_non_exhaustive()
+    }
 }
 
 /// Get the sizes block for the GHASH

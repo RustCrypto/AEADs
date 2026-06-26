@@ -32,5 +32,8 @@ rand_core = ["aead/rand_core"]
 reduced-round = []
 zeroize = ["dep:zeroize", "belt-ctr/zeroize"]
 
+[lints]
+workspace = true
+
 [package.metadata.docs.rs]
 all-features = true

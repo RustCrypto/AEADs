@@ -56,7 +56,7 @@ impl UhfBackend for GHash {
 
 impl UniversalHash for GHash {
     fn update_with_backend(&mut self, f: impl UhfClosure<BlockSize = Self::BlockSize>) {
-        f.call(self)
+        f.call(self);
     }
 
     /// Get GHASH output

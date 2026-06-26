@@ -1,3 +1,5 @@
+//! Test vectors for Belt-DWP
+
 use aead::AeadInOut;
 use belt_dwp::{BeltDwp, KeyInit};
 use hex_literal::hex;

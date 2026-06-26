@@ -4,7 +4,7 @@ use aead::{
     consts::{U8, U15, U16},
     inout::InOutBuf,
 };
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 use subtle::ConstantTimeEq;
 
 const TWEAK_AD: u8 = 0x20;
@@ -349,7 +349,7 @@ where
 
             // XOR in block numbers
             for (t, i) in tweak[8..].iter_mut().zip(&index_array) {
-                *t ^= i
+                *t ^= i;
             }
 
             let mut block = Block::default();
@@ -361,7 +361,7 @@ where
 
             // XOR out block numbers
             for (t, i) in tweak[8..].iter_mut().zip(&index_array) {
-                *t ^= i
+                *t ^= i;
             }
         }
 
@@ -376,14 +376,14 @@ where
         let blocks_len = blocks.len();
         for (index, mut data) in blocks.into_iter().enumerate() {
             encrypt_decrypt_block::<B, _>(index, tweak, subkeys, nonce, |block| {
-                data.xor_in2out(block)
+                data.xor_in2out(block);
             });
         }
         let mut data = tail;
         let index = blocks_len;
 
         encrypt_decrypt_block::<B, _>(index, tweak, subkeys, nonce, |block| {
-            data.xor_in2out((block[..data.len()]).into())
+            data.xor_in2out((block[..data.len()]).into());
         });
     }
 }
@@ -459,5 +459,23 @@ where
         } else {
             Err(aead::Error)
         }
+    }
+}
+
+impl<B> fmt::Debug for DeoxysI<B>
+where
+    B: DeoxysBcType,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("DeoxysI").finish_non_exhaustive()
+    }
+}
+
+impl<B> fmt::Debug for DeoxysII<B>
+where
+    B: DeoxysBcType,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("DeoxysII").finish_non_exhaustive()
     }
 }

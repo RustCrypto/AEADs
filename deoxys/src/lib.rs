@@ -4,7 +4,6 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![warn(missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -135,7 +134,7 @@ use aead::{
     consts::U16,
     inout::{InOut, InOutBuf},
 };
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 
 /// Deoxys-I with 128-bit keys
 pub type DeoxysI128 = Deoxys<modes::DeoxysI<deoxys_bc::DeoxysBc256>, deoxys_bc::DeoxysBc256>;
@@ -158,9 +157,7 @@ pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 pub type Tag = Array<u8, U16>;
 
 type Block = Array<u8, U16>;
-
 type Tweak = Array<u8, U16>;
-
 type DeoxysKey = Array<u8, U16>;
 
 /// Deoxys encryption modes.
@@ -172,8 +169,9 @@ where
     /// The size of the required nonce
     type NonceSize: ArraySize;
 
-    /// Encrypts the data in place with the specified parameters
-    /// Returns the tag
+    /// Encrypts the data in place with the specified parameters.
+    ///
+    /// Returns the tag.
     fn encrypt_inout(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
@@ -181,15 +179,17 @@ where
         subkeys: &Array<DeoxysKey, B::SubkeysSize>,
     ) -> Tag;
 
-    /// Decrypts the data in place with the specified parameters
-    /// Returns an error if the tag verification fails
+    /// Decrypts the data in place with the specified parameters.
+    ///
+    /// # Errors
+    /// Returns an error if the tag verification fails.
     fn decrypt_inout(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
         buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
         subkeys: &Array<DeoxysKey, B::SubkeysSize>,
-    ) -> Result<(), aead::Error>;
+    ) -> Result<(), Error>;
 }
 
 /// Deoxys-BC trait.
@@ -325,6 +325,16 @@ where
                 s.zeroize();
             }
         }
+    }
+}
+
+impl<M, B> fmt::Debug for Deoxys<M, B>
+where
+    M: DeoxysMode<B>,
+    B: DeoxysBcType,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Deoxys").finish_non_exhaustive()
     }
 }
 

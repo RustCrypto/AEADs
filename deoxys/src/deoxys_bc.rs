@@ -36,9 +36,11 @@ const RCON: [[u8; 16]; 17] = [
 ];
 
 /// Implementation of the Deoxys-BC256 block cipher
+#[derive(Clone, Copy, Debug)]
 pub struct DeoxysBc256;
 
 /// Implementation of the Deoxys-BC384 block cipher
+#[derive(Clone, Copy, Debug)]
 pub struct DeoxysBc384;
 
 pub trait DeoxysBcInternal {
@@ -54,7 +56,7 @@ pub trait DeoxysBcInternal {
 
         // First key
         for (i, (s, t)) in tweak.iter().zip(subkeys[0].iter()).enumerate() {
-            subtweakeys[0][i] = s ^ t
+            subtweakeys[0][i] = s ^ t;
         }
 
         // Other keys
@@ -165,7 +167,7 @@ fn lfsr2(tk: &mut [u8; 16]) {
     data = ((data << 1) & 0xFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE)
         | (((data >> 7) ^ (data >> 5)) & 0x01010101010101010101010101010101);
 
-    tk.copy_from_slice(&data.to_ne_bytes())
+    tk.copy_from_slice(&data.to_ne_bytes());
 }
 
 fn lfsr3(tk: &mut [u8; 16]) {
@@ -173,5 +175,5 @@ fn lfsr3(tk: &mut [u8; 16]) {
     data = ((data >> 1) & 0x7F7F7F7F7F7F7F7F7F7F7F7F7F7F7F7F)
         | (((data << 7) ^ (data << 1)) & 0x80808080808080808080808080808080);
 
-    tk.copy_from_slice(&data.to_ne_bytes())
+    tk.copy_from_slice(&data.to_ne_bytes());
 }

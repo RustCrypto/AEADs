@@ -1,3 +1,5 @@
+#![allow(clippy::cast_possible_truncation, reason = "TODO")]
+
 use aead::{array::Array, consts::U16};
 use core::ops::{Add, Mul};
 
@@ -76,6 +78,7 @@ impl From<&Block> for Element {
 }
 
 #[inline(always)]
+#[allow(clippy::unwrap_used, reason = "use as_chunks when MSRV 1.88")]
 fn from_block(block: &Block) -> [u64; 2] {
     let (a, b) = block.split_at(8);
     [

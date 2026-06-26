@@ -1,3 +1,5 @@
+//! Belt-DWP benchmarks.
+
 #![feature(test)]
 extern crate test;
 

@@ -5,8 +5,7 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
+#![allow(clippy::explicit_counter_loop)]
 
 /// Constants used, reexported for convenience.
 pub mod consts {
@@ -28,7 +27,7 @@ use cipher::{
     consts::{U2, U12, U16},
     typenum::Prod,
 };
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 use dbl::Dbl;
 use subtle::ConstantTimeEq;
 
@@ -204,7 +203,7 @@ where
     ) -> aead::Result<aead::Tag<Self>> {
         let max_len = 1 << (L_TABLE_SIZE + 4);
         if (buffer.len() >= max_len) || (associated_data.len() >= max_len) {
-            return Err(aead::Error);
+            return Err(Error);
         }
 
         // First, try to process many blocks at once.
@@ -287,7 +286,7 @@ where
     ) -> aead::Result<aead::Tag<Self>> {
         let max_len = 1 << (L_TABLE_SIZE + 4);
         if (buffer.len() > max_len) || (associated_data.len() > max_len) {
-            return Err(aead::Error);
+            return Err(Error);
         }
 
         // First, try to process many blocks at once.
@@ -477,6 +476,18 @@ where
     }
 }
 
+impl<Cipher, NonceSize, TagSize, const L_TABLE_SIZE: usize> fmt::Debug
+    for Ocb3<Cipher, NonceSize, TagSize, L_TABLE_SIZE>
+where
+    Cipher: KeySizeUser,
+    NonceSize: sealed::NonceSizes,
+    TagSize: sealed::TagSizes,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Ocb3").finish_non_exhaustive()
+    }
+}
+
 /// Computes key-dependent variables defined in
 /// https://www.rfc-editor.org/rfc/rfc7253.html#section-4.1
 fn key_dependent_variables<Cipher, const L_TABLE_SIZE: usize>(
@@ -494,13 +505,14 @@ where
     #[allow(clippy::needless_range_loop)]
     for i in 0..L_TABLE_SIZE {
         ll_i = ll_i.dbl();
-        ll[i] = ll_i
+        ll[i] = ll_i;
     }
     (ll_star, ll_dollar, ll)
 }
 
 /// Computes nonce-dependent variables as defined
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
+#[allow(clippy::cast_possible_truncation, reason = "TODO")]
 fn nonce_dependent_variables<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: sealed::NonceSizes,
@@ -540,6 +552,7 @@ fn nonce_dependent_variables<
 
 /// Computes the initial offset as defined
 /// in https://www.rfc-editor.org/rfc/rfc7253.html#section-4.2
+#[allow(clippy::unwrap_used)]
 fn initial_offset<
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt,
     NonceSize: sealed::NonceSizes,

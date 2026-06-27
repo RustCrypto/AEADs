@@ -5,8 +5,6 @@
     html_logo_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/meta/master/logo.svg"
 )]
-#![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
 
 //! # Usage
 //!
@@ -36,14 +34,16 @@ pub use aead;
 pub use aes;
 pub use aes_gcm;
 
-use core::ops::{Div, Mul};
-
 use aead::{
     AeadCore, AeadInOut, Error, KeyInit, KeySizeUser, TagPosition, array::Array, inout::InOutBuf,
 };
 use aes::Aes256;
 use aes_gcm::Aes256Gcm;
 use cipher::{BlockCipherEncrypt, BlockSizeUser, consts::U2};
+use core::{
+    fmt,
+    ops::{Div, Mul},
+};
 
 /// XAES-256-GCM
 #[derive(Clone)]
@@ -170,5 +170,11 @@ impl Xaes256Gcm {
         self.aes.encrypt_block(km);
         self.aes.encrypt_block(kn);
         key
+    }
+}
+
+impl fmt::Debug for Xaes256Gcm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        f.debug_struct("Xaes256Gcm").finish_non_exhaustive()
     }
 }

@@ -33,6 +33,8 @@ arrayvec = ["aead/arrayvec", "aes-gcm/arrayvec"]
 getrandom = ["aes-gcm/getrandom"]
 rand_core = ["aead/rand_core", "aes-gcm/rand_core"]
 
+[lints]
+workspace = true
+
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--cfg", "docsrs"]

@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.11.0 (UNRELEASED)
+## 0.11.0 (2026-06-28)
 ### Added
 - `bytes` feature passthrough ([#631])
+- Support for 32-bit and 64-bit tags under `hazmat` feature ([#777])
 
 ### Changed
 - Bump `aead` from `0.5` to `0.6` ([#583])
@@ -19,9 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getrandom` feature renamed as `os_rng` ([#662])
 
 ### Fixed
-- Plaintext and associated data length checks ([#762])
+- `P_MAX` and `A_MAX` constants; plaintext and AAD length checks ([#762])
 
-## Removed
+### Removed
 - `std` & `stream` features ([#662])
 - `C_MAX` constant ([#762])
 
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#631]: https://github.com/RustCrypto/AEADs/pull/631
 [#662]: https://github.com/RustCrypto/AEADs/pull/662
 [#762]: https://github.com/RustCrypto/AEADs/pull/762
+[#777]: https://github.com/RustCrypto/AEADs/pull/777
 
 ## 0.10.3 (2023-09-21)
 ### Security

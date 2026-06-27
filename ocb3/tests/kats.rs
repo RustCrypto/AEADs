@@ -1,4 +1,7 @@
+//! OCB3 Known Answer Tests (KATs).
+
 #![allow(non_snake_case)]
+#![allow(clippy::unwrap_used, reason = "tests")]
 
 use aead::{
     AeadInOut, KeyInit,
@@ -103,8 +106,8 @@ type Aes256Ocb3Tag96 = Ocb3<Aes256, U12, U12>;
 type Aes128Ocb3Tag64 = Ocb3<Aes128, U12, U8>;
 type Aes192Ocb3Tag64 = Ocb3<Aes192, U12, U8>;
 type Aes256Ocb3Tag64 = Ocb3<Aes256, U12, U8>;
-type Aes128Ocb3 = Ocb3<aes::Aes128, U12>;
-type Aes256Ocb3 = Ocb3<aes::Aes256, U12>;
+type Aes128Ocb3 = Ocb3<Aes128, U12>;
+type Aes256Ocb3 = Ocb3<Aes256, U12>;
 
 /// Test vectors from Page 18 of https://www.rfc-editor.org/rfc/rfc7253.html#appendix-A
 #[test]

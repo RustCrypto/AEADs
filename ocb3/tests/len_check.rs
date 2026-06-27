@@ -1,3 +1,5 @@
+//! Length check tests.
+
 use aead::{
     AeadInOut, KeyInit,
     consts::{U12, U16},

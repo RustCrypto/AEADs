@@ -64,7 +64,7 @@ use cipher::{
     typenum::Unsigned,
 };
 use cmac::Mac;
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 
 pub use Eax as EaxOnline;
 
@@ -72,10 +72,12 @@ pub use Eax as EaxOnline;
 pub trait CipherOp {}
 
 /// Marker struct for EAX stream used in encryption mode.
+#[derive(Clone, Copy, Debug)]
 pub struct Encrypt;
 impl CipherOp for Encrypt {}
 
 /// Marker struct for EAX stream used in decryption mode.
+#[derive(Clone, Copy, Debug)]
 pub struct Decrypt;
 impl CipherOp for Decrypt {}
 
@@ -202,7 +204,7 @@ where
     /// Applies encryption to the plaintext.
     #[inline]
     pub fn encrypt(&mut self, msg: &mut [u8]) {
-        self.imp.encrypt(msg)
+        self.imp.encrypt(msg);
     }
 
     /// Finishes the encryption stream, returning the derived tag.
@@ -226,7 +228,9 @@ where
     /// To correctly verify the authenticity, use the [`finish`] associated
     /// function.
     ///
-    /// # ☣️ BEWARE! ☣️
+    /// <div class="warning">
+    /// <b>Security Warning</b>
+    ///
     /// This is a low-level operation that simultaneously decrypts the data and
     /// calculates an intermediate tag used to verify the authenticity of the
     /// data (used when the online decryption is finished).
@@ -241,20 +245,36 @@ where
     /// final decryption will fail because the attacker can't calculate tag
     /// authenticating the message, obtained decryptions may leak information
     /// about the decryption scheme (e.g. leaking parts of the secret key).
+    /// </div>
     ///
     /// [`finish`]: #method.finish
     #[inline]
     pub fn decrypt_unauthenticated_hazmat(&mut self, msg: &mut [u8]) {
-        self.imp.decrypt(msg)
+        self.imp.decrypt(msg);
     }
 
     /// Finishes the decryption stream, verifying whether the associated and
     /// decrypted data stream has not been tampered with.
     ///
     /// This *must* be called after the stream decryption is finished.
+    ///
+    /// # Errors
+    /// Returns [`Error`] in the event the computed tag does not match `expected`,
+    /// indicating the decrypted data is inauthentic.
     #[must_use = "decrypted data stream must be verified for authenticity"]
     pub fn finish(self, expected: &Tag<M>) -> Result<(), Error> {
         self.imp.verify_ct(expected)
+    }
+}
+
+impl<Cipher, Op, M> fmt::Debug for Eax<Cipher, Op, M>
+where
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    Op: CipherOp,
+    M: TagSize,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        f.debug_struct("Eax").finish_non_exhaustive()
     }
 }
 

@@ -128,6 +128,8 @@
 //! # }
 //! ```
 
+mod traits;
+
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 pub use cipher;
 
@@ -136,13 +138,9 @@ use cipher::{
     BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array, consts::U16,
 };
 use cmac::{Cmac, Mac, digest::Output};
-use core::marker::PhantomData;
-
-mod traits;
-
+use core::{fmt, marker::PhantomData};
 use traits::TagSize;
 
-// TODO Max values?
 /// Maximum length of associated data
 pub const A_MAX: u64 = 1 << 36;
 
@@ -286,6 +284,16 @@ where
         } else {
             Err(Error)
         }
+    }
+}
+
+impl<Cipher, M> fmt::Debug for Eax<Cipher, M>
+where
+    Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
+    M: TagSize,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        f.debug_struct("Eax").finish_non_exhaustive()
     }
 }
 

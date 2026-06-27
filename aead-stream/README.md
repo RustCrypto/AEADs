@@ -2,10 +2,10 @@
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
+[![Build Status][build-image]][build-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
 [![Project Chat][chat-image]][chat-link]
-[![Build Status][build-image]][build-link]
 
 Generic pure-Rust implementation of the STREAM online authenticated encryption construction
 as described in the paper [Online Authenticated-Encryption and its Nonce-Reuse Misuse-Resistance][1].
@@ -55,12 +55,12 @@ dual licensed as above, without any additional terms or conditions.
 [crate-link]: https://crates.io/crates/aead-stream
 [docs-image]: https://docs.rs/aead-stream/badge.svg
 [docs-link]: https://docs.rs/aead-stream/
+[build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/aead-stream.yml/badge.svg
+[build-link]: https://github.com/RustCrypto/AEADs/actions/workflows/aead-stream.yml
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/aead-stream/badge.svg?branch=master&event=push
-[build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)
 

@@ -21,7 +21,7 @@ cipher = "0.5"
 ctr = "0.10"
 dbl = "0.5"
 subtle = { version = "2", default-features = false }
-aead-stream = { version = "0.6.0-rc.3", optional = true, default-features = false }
+aead-stream = { version = "0.6", optional = true, default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]

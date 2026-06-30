@@ -1,0 +1,37 @@
+[package]
+name = "belt-che"
+version = "0.1.0-pre"
+description = "Pure Rust implementation of the Belt-CHE authenticated encryption algorithm (STB 34.101.31-2020)"
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/belt-che"
+repository = "https://github.com/RustCrypto/AEADs/tree/master/belt-che"
+keywords = ["aead", "belt-che"]
+categories = ["cryptography", "no-std"]
+rust-version = "1.85"
+
+[dependencies]
+aead = { version = "0.6.0-rc.2", default-features = false }
+belt-block = { version = "0.2.0-rc.1" }
+belt-ctr = { version = "0.2.0-rc.1" }
+opaque-debug = { version = "0.3" }
+subtle = { version = "2", default-features = false }
+universal-hash = { version = "0.6.0-rc.2" }
+zeroize = { version = "1.8", default-features = false, optional = true }
+
+[dev-dependencies]
+hex-literal = "1"
+
+[features]
+default = ["alloc", "os_rng"]
+alloc = ["aead/alloc"]
+arrayvec = ["aead/arrayvec"]
+bytes = ["aead/bytes"]
+os_rng = ["aead/os_rng", "rand_core"]
+rand_core = ["aead/rand_core"]
+reduced-round = []
+zeroize = ["dep:zeroize", "belt-ctr/zeroize"]
+
+[package.metadata.docs.rs]
+all-features = true

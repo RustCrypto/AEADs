@@ -4,31 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.12.0 (UNRELEASED)
+## 0.12.0 (2026-08-04)
 ### Added
-- `arrayvec` support ([#503])
-- re-export `aes` ([#603])
+- `rand_core` feature ([#467])
+- `arrayvec` feature ([#503])
+- Re-export `aes` crate ([#603])
 - `bytes` feature passthrough ([#631])
+- `zeroize` feature - previously on-by-default ([#644])
 
 ### Changed
-- Bump `aead` from `0.5` to `0.6` ([#583])
-- Bump `aes` from `0.8` to `0.9` ([#583])
-- Bump `cipher` from `0.4` to `0.5` ([#583])
-- Bump `ctr` from `0.9` to `0.10` ([#583])
-- Bump `ghash` from `0.5` to `0.6` ([#583])
-- Bump `polyval` from `0.6` to `0.7` ([#583])
-- Edition changed to 2024 and MSRV bumped to 1.85 ([#662])
-- Relax MSRV policy and allow MSRV bumps in patch releases
-- `getrandom` feature renamed as `os_rng` ([#662])
+- `zeroize` feature now must be explicitly enabled ([#644])
+- Upgrade to 2024 edition and bump MSRV to 1.85 ([#662])
+- Migrate to `AeadInOut` ([#665])
+- Bump `cipher` to v0.5 ([#793])
+- Bump `aes` to v0.9 ([#821])
+- Bump `polyval` to v0.7 ([#821])
+- Bump `aead` to v0.6 ([#831])
 
-## Removed
-- `std` and `stream` features ([#662])
-
+[#467]: https://github.com/RustCrypto/AEADs/pull/467
 [#503]: https://github.com/RustCrypto/AEADs/pull/503
-[#583]: https://github.com/RustCrypto/AEADs/pull/583
 [#603]: https://github.com/RustCrypto/AEADs/pull/603
 [#631]: https://github.com/RustCrypto/AEADs/pull/631
+[#644]: https://github.com/RustCrypto/AEADs/pull/644
 [#662]: https://github.com/RustCrypto/AEADs/pull/662
+[#665]: https://github.com/RustCrypto/AEADs/pull/665
+[#793]: https://github.com/RustCrypto/AEADs/pull/793
+[#821]: https://github.com/RustCrypto/AEADs/pull/821
+[#831]: https://github.com/RustCrypto/AEADs/pull/831
 
 ## 0.11.1 (2022-07-31)
 ### Fixed

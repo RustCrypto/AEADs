@@ -10,27 +10,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for 32-bit and 64-bit tags under `hazmat` feature ([#777])
 
 ### Changed
-- Bump `aead` from `0.5` to `0.6` ([#583])
-- Bump `aes` from `0.8` to `0.9` ([#583])
-- Bump `cipher` from `0.4` to `0.5` ([#583])
-- Bump `ctr` from `0.9` to `0.10` ([#583])
-- Bump `ghash` from `0.5` to `0.6` ([#583])
 - Edition changed to 2024 and MSRV bumped to 1.85 ([#662])
 - Relax MSRV policy and allow MSRV bumps in patch releases
-- `getrandom` feature renamed as `os_rng` ([#662])
+- Migrate to `AeadInOut` ([#665])
+- Bump `cipher` to v0.5 ([#793])
+- Bump `aes` to v0.9 ([#821])
+- Bump `polyval` to v0.7 ([#821])
+- Bump `aead` to v0.6 ([#831])
 
 ### Fixed
 - `P_MAX` and `A_MAX` constants; plaintext and AAD length checks ([#762])
 
 ### Removed
-- `std` & `stream` features ([#662])
+- `std` and `stream` features ([#662])
 - `C_MAX` constant ([#762])
 
-[#583]: https://github.com/RustCrypto/AEADs/pull/583
 [#631]: https://github.com/RustCrypto/AEADs/pull/631
 [#662]: https://github.com/RustCrypto/AEADs/pull/662
+[#665]: https://github.com/RustCrypto/AEADs/pull/665
 [#762]: https://github.com/RustCrypto/AEADs/pull/762
 [#777]: https://github.com/RustCrypto/AEADs/pull/777
+[#793]: https://github.com/RustCrypto/AEADs/pull/793
+[#821]: https://github.com/RustCrypto/AEADs/pull/821
+[#831]: https://github.com/RustCrypto/AEADs/pull/831
 
 ## 0.10.3 (2023-09-21)
 ### Security

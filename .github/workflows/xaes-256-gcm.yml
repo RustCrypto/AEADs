@@ -71,5 +71,5 @@ jobs:
       - run: cargo test --target ${{ matrix.target }} --lib
       #- run: cargo test --target ${{ matrix.target }} --lib --features zeroize
       - run: cargo test --target ${{ matrix.target }} --all-features --lib
-      - run: cargo test --target ${{ matrix.target }} --all-features --release
+      - run: cargo test --target ${{ matrix.target }} --all-features --release -- --include-ignored
       - run: cargo test --target ${{ matrix.target }} --all-features --doc

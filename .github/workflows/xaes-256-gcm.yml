@@ -69,7 +69,7 @@ jobs:
       - run: ${{ matrix.deps }}
       - run: cargo test --target ${{ matrix.target }} --lib --no-default-features
       - run: cargo test --target ${{ matrix.target }} --lib
-      #- run: cargo test --target ${{ matrix.target }} --lib --features zeroize
+      - run: cargo test --target ${{ matrix.target }} --lib --features zeroize
       - run: cargo test --target ${{ matrix.target }} --all-features --lib
       - run: cargo test --target ${{ matrix.target }} --all-features --release
       - run: cargo test --target ${{ matrix.target }} --all-features --doc

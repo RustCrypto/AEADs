@@ -32,3 +32,16 @@ const TEST_VECTORS: &[TestVector<[u8; 32], [u8; 24]>] = &[
 ];
 
 tests!(Xaes256Gcm, TEST_VECTORS);
+
+/// Compile-time assertion that the `zeroize` feature enables the
+/// `ZeroizeOnDrop` implementation for `Xaes256Gcm`.
+#[cfg(feature = "zeroize")]
+#[test]
+fn zeroize_on_drop() {
+    use zeroize::ZeroizeOnDrop;
+
+    fn assert_zeroize_on_drop<T: ZeroizeOnDrop>(_: T) {}
+
+    let key = hex!("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F");
+    assert_zeroize_on_drop(Xaes256Gcm::new(&key.into()));
+}

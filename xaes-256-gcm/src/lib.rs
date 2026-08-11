@@ -118,8 +118,17 @@ impl AeadInOut for Xaes256Gcm {
         }
 
         let (n1, n) = nonce.split_ref::<<NonceSize as Div<U2>>::Output>();
-        let k = self.derive_key(n1);
-        Aes256Gcm::new(&k).encrypt_inout_detached(n, associated_data, buffer)
+        let mut k = Key::<Aes256Gcm>::default();
+        self.derive_key(n1, &mut k);
+        let cipher = Aes256Gcm::new(&k);
+
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            k.as_mut_slice().zeroize();
+        }
+
+        cipher.encrypt_inout_detached(n, associated_data, buffer)
     }
 
     fn decrypt_inout_detached(
@@ -137,14 +146,23 @@ impl AeadInOut for Xaes256Gcm {
         }
 
         let (n1, n) = nonce.split_ref::<<NonceSize as Div<U2>>::Output>();
-        let k = self.derive_key(n1);
-        Aes256Gcm::new(&k).decrypt_inout_detached(n, associated_data, buffer, tag)
+        let mut k = Key::<Aes256Gcm>::default();
+        self.derive_key(n1, &mut k);
+        let cipher = Aes256Gcm::new(&k);
+
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            k.as_mut_slice().zeroize();
+        }
+
+        cipher.decrypt_inout_detached(n, associated_data, buffer, tag)
     }
 }
 
 impl Xaes256Gcm {
     // Implements steps 3 - 5 of the spec.
-    fn derive_key(&self, n1: &Nonce<<NonceSize as Div<U2>>::Output>) -> Key<Aes256Gcm> {
+    fn derive_key(&self, n1: &Nonce<<NonceSize as Div<U2>>::Output>, key: &mut Key<Aes256Gcm>) {
         // M1 = 0x00 || 0x01 || X || 0x00 || N[:12]
         let mut m1 = Block::default();
         m1[..4].copy_from_slice(&[0, 1, b'X', 0]);
@@ -158,7 +176,6 @@ impl Xaes256Gcm {
         // Kₘ = AES-256ₖ(M1 ⊕ K1)
         // Kₙ = AES-256ₖ(M2 ⊕ K1)
         // Kₓ = Kₘ || Kₙ = AES-256ₖ(M1 ⊕ K1) || AES-256ₖ(M2 ⊕ K1)
-        let mut key: Key<Aes256Gcm> = Array::default();
         let (km, kn) = key.split_ref_mut::<<KeySize as Div<U2>>::Output>();
         for i in 0..km.len() {
             km[i] = m1[i] ^ self.k1[i];
@@ -169,7 +186,6 @@ impl Xaes256Gcm {
 
         self.aes.encrypt_block(km);
         self.aes.encrypt_block(kn);
-        key
     }
 }
 
@@ -178,3 +194,16 @@ impl fmt::Debug for Xaes256Gcm {
         f.debug_struct("Xaes256Gcm").finish_non_exhaustive()
     }
 }
+
+impl Drop for Xaes256Gcm {
+    fn drop(&mut self) {
+        #[cfg(feature = "zeroize")]
+        {
+            use zeroize::Zeroize;
+            self.k1.as_mut_slice().zeroize();
+        }
+    }
+}
+
+#[cfg(feature = "zeroize")]
+impl zeroize::ZeroizeOnDrop for Xaes256Gcm where Aes256: zeroize::ZeroizeOnDrop {}

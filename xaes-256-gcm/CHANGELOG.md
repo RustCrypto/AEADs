@@ -6,3 +6,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.1.0 (TBD)
 - Initial release
+- Add the optional `zeroize` feature by implementing `ZeroizeOnDrop` for
+  `Xaes256Gcm` to clear internal key material

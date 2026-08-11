@@ -2,15 +2,14 @@
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
+[![Build Status][build-image]][build-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
 [![Project Chat][chat-image]][chat-link]
-[![Build Status][build-image]][build-link]
 
-Pure Rust implementation of the [Deoxys][1]
-[Authenticated Encryption with Associated Data (AEAD)][2] cipher,
-including the [Deoxys-II][3] variant which was selected by the
-[CAESAR competition][4] as the best choice for in-depth security.
+Pure Rust implementation of the [Deoxys][1] cipher which provides
+[Authenticated Encryption with Associated Data (AEAD)][2], including the [Deoxys-II][3] variant
+which was selected by the [CAESAR competition][4] as the best choice for in-depth security.
 
 [Documentation][docs-link]
 
@@ -44,12 +43,12 @@ dual licensed as above, without any additional terms or conditions.
 [crate-link]: https://crates.io/crates/deoxys
 [docs-image]: https://docs.rs/deoxys/badge.svg
 [docs-link]: https://docs.rs/deoxys/
+[build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/deoxys.yml/badge.svg
+[build-link]: https://github.com/RustCrypto/AEADs/actions/workflows/deoxys.yml
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/deoxys/badge.svg?branch=master&event=push
-[build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)
 

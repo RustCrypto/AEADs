@@ -2,10 +2,10 @@
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
+[![Build Status][build-image]][build-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
 [![Project Chat][chat-image]][chat-link]
-[![Build Status][build-image]][build-link]
 
 Pure Rust implementation of **ChaCha20Poly1305** ([RFC 8439][1]): an
 [Authenticated Encryption with Associated Data (AEAD)][2] cipher amenable to
@@ -65,13 +65,13 @@ dual licensed as above, without any additional terms or conditions.
 [crate-link]: https://crates.io/crates/chacha20poly1305
 [docs-image]: https://docs.rs/chacha20poly1305/badge.svg
 [docs-link]: https://docs.rs/chacha20poly1305/
+[build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/chacha20poly1305.yml/badge.svg
+[build-link]: https://github.com/RustCrypto/AEADs/actions/workflows/chacha20poly1305.yml
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
 [downloads-image]: https://img.shields.io/crates/d/chacha20poly1305.svg
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/chacha20poly1305/badge.svg?branch=master&event=push
-[build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)
 

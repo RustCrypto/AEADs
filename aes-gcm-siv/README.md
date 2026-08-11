@@ -2,10 +2,10 @@
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
+[![Build Status][build-image]][build-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
 [![Project Chat][chat-image]][chat-link]
-[![Build Status][build-image]][build-link]
 
 [AES-GCM-SIV][1] ([RFC 8452][2]) is a state-of-the-art high-performance
 [Authenticated Encryption with Associated Data (AEAD)][3] cipher which also
@@ -67,12 +67,12 @@ dual licensed as above, without any additional terms or conditions.
 [crate-link]: https://crates.io/crates/aes-gcm-siv
 [docs-image]: https://docs.rs/aes-gcm-siv/badge.svg
 [docs-link]: https://docs.rs/aes-gcm-siv/
+[build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/aes-gcm-siv.yml/badge.svg
+[build-link]: https://github.com/RustCrypto/AEADs/actions/workflows/aes-gcm-siv.yml
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/aes-gcm-siv/badge.svg?branch=master&event=push
-[build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)
 

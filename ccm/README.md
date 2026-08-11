@@ -2,10 +2,10 @@
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
+[![Build Status][build-image]][build-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
 [![Project Chat][chat-image]][chat-link]
-[![Build Status][build-image]][build-link]
 
 Pure Rust implementation of the Counter with CBC-MAC ([CCM]) mode ([RFC 3610]): an
 Authenticated Encryption with Associated Data ([AEAD]) algorithm generic over
@@ -45,6 +45,8 @@ dual licensed as above, without any additional terms or conditions.
 [crate-link]: https://crates.io/crates/ccm
 [docs-image]: https://docs.rs/ccm/badge.svg
 [docs-link]: https://docs.rs/ccm
+[build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/ccm.yml/badge.svg
+[build-link]: https://github.com/RustCrypto/AEADs/actions/workflows/ccm.yml
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg

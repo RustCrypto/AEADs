@@ -2,10 +2,10 @@
 
 [![crate][crate-image]][crate-link]
 [![Docs][docs-image]][docs-link]
+[![Build Status][build-image]][build-link]
 ![Apache2/MIT licensed][license-image]
 ![Rust Version][rustc-image]
 [![Project Chat][chat-image]][chat-link]
-[![Build Status][build-image]][build-link]
 
 Pure Rust implementation of the lightweight
 [Authenticated Encryption with Associated Data (AEAD)][1] algorithm
@@ -38,12 +38,12 @@ dual licensed as above, without any additional terms or conditions.
 [crate-link]: https://crates.io/crates/ascon-aead128
 [docs-image]: https://docs.rs/ascon-aead128/badge.svg
 [docs-link]: https://docs.rs/ascon-aead128
+[build-image]: https://github.com/RustCrypto/AEADs/actions/workflows/ascon-aead128.yml/badge.svg
+[build-link]: https://github.com/RustCrypto/AEADs/actions/workflows/ascon-aead128.yml
 [license-image]: https://img.shields.io/badge/license-Apache2.0/MIT-blue.svg
 [rustc-image]: https://img.shields.io/badge/rustc-1.85+-blue.svg
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg
 [chat-link]: https://rustcrypto.zulipchat.com/#narrow/stream/260038-AEADs
-[build-image]: https://github.com/RustCrypto/AEADs/workflows/ascon-aead128/badge.svg?branch=master&event=push
-[build-link]: https://github.com/RustCrypto/AEADs/actions
 
 [//]: # (general links)
 

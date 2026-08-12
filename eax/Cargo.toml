@@ -1,13 +1,10 @@
 [package]
 name = "eax"
-version = "0.6.0-rc.3"
+version = "0.6.0"
 description = """
-Pure Rust implementation of the EAX
-Authenticated Encryption with Associated Data (AEAD) Cipher
-with optional architecture-specific hardware acceleration
-
-This scheme is only based on a block cipher. It uses counter mode (CTR) for
-encryption and CBC mode for generating a OMAC/CMAC/CBCMAC (all names for the same thing).
+Pure Rust implementation of the EAX Authenticated Encryption with Associated Data (AEAD) Cipher with
+optional architecture-specific hardware acceleration. Implemented generically around block ciphers,
+it combines counter mode (CTR) encryption with CMAC authentication.
 """
 authors = ["RustCrypto Developers"]
 edition = "2024"

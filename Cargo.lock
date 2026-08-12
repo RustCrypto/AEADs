@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "deoxys"
-version = "0.2.0-rc.3"
+version = "0.2.0"
 dependencies = [
  "aead",
  "aes",

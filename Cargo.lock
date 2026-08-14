@@ -375,11 +375,9 @@ dependencies = [
  "aead-stream",
  "aes",
  "cipher",
- "ctr",
  "dbl",
  "hex-literal",
  "subtle",
- "zeroize",
 ]
 
 [[package]]

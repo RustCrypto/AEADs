@@ -130,6 +130,7 @@ dependencies = [
  "belt-block",
  "belt-ctr",
  "hex-literal",
+ "polyval",
  "subtle",
  "universal-hash",
  "zeroize",

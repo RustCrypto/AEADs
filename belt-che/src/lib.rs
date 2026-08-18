@@ -74,13 +74,12 @@ pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, Tag}
 pub use belt_block::BeltBlock;
 
 use aead::array::ArraySize;
+use aead::common::{BlockSizeUser, InnerInit, InnerUser};
 use aead::consts::{True, U8, U16};
 use aead::{TagPosition, inout::InOutBuf};
-use belt_block::cipher::crypto_common::InnerUser;
 use belt_block::cipher::{Block, BlockCipherEncrypt};
 use core::marker::PhantomData;
 use universal_hash::UniversalHash;
-use universal_hash::crypto_common::{BlockSizeUser, InnerInit};
 use universal_hash::typenum::{IsLessOrEqual, NonZero};
 
 /// Nonce type for [`Che`]

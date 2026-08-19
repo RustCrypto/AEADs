@@ -18,11 +18,13 @@ rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6", default-features = false }
-aes = { version = "0.9", optional = true }
 cipher = "0.5"
 ctr = "0.10"
+ctutils = "0.4"
 polyval = { version = "0.7", default-features = false }
-subtle = { version = "2", default-features = false }
+
+# optional dependencies
+aes = { version = "0.9", optional = true }
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]

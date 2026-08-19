@@ -5,7 +5,7 @@ use aead::{
     inout::InOutBuf,
 };
 use core::{fmt, marker::PhantomData};
-use subtle::ConstantTimeEq;
+use ctutils::CtEq;
 
 const TWEAK_AD: u8 = 0x20;
 const TWEAK_AD_LAST: u8 = 0x60;

@@ -20,7 +20,9 @@ rust-version = "1.85"
 [dependencies]
 aead = { version = "0.6", default-features = false }
 aes = { version = "0.9", features = ["hazmat"], default-features = false }
-subtle = { version = "2", default-features = false }
+ctutils = "0.4"
+
+# optional dependnencies
 zeroize = { version = "1", optional = true, default-features = false }
 
 [dev-dependencies]

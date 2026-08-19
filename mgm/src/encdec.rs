@@ -1,17 +1,17 @@
 use crate::{
-    DecArgs, EncArgs, MgmBlockSize,
     gf::GfElement,
     sealed::{Counter, Sealed},
+    DecArgs, EncArgs, MgmBlockSize,
 };
 use aead::{
-    Error,
     generic_array::{
+        typenum::{Unsigned, U16, U8},
         GenericArray,
-        typenum::{U8, U16, Unsigned},
     },
+    Error,
 };
 use cipher::{Block, BlockEncrypt, ParBlocks};
-use subtle::ConstantTimeEq;
+use ctutils::CtEq;
 
 pub(crate) fn encrypt<C, E64, E128>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
 where
@@ -195,7 +195,7 @@ where
     let mut tag = GenericArray::clone_from_slice(&tag.into_bytes());
     cipher.encrypt_block(&mut tag);
 
-    if expected_tag.ct_eq(&tag).unwrap_u8() == 0 {
+    if !expected_tag.ct_eq(&tag).to_bool() {
         return Err(Error);
     }
 

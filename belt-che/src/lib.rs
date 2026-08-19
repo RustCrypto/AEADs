@@ -79,23 +79,22 @@ use aead::consts::{True, U8, U16};
 use aead::{TagPosition, inout::InOutBuf};
 use belt_block::cipher::{Block, BlockCipherEncrypt};
 use core::marker::PhantomData;
+use polyval::hazmat::FieldElement;
 use universal_hash::UniversalHash;
 use universal_hash::typenum::{IsLessOrEqual, NonZero};
 
 /// Nonce type for [`Che`]
 pub type Nonce = aead::Nonce<BeltChe>;
 
-mod gf;
 mod ghash;
 
-use crate::gf::gf128_soft64::Element;
 use ghash::GHash;
 
 /// Constant `T` from the STB 34.101.31-2020
-const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
+const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1_u128.reverse_bits();
 
 /// `C` = `0x02 || 0^120`, represents polynomial x
-const C: u128 = 0x02;
+const C: u128 = 0x02_u128.reverse_bits();
 
 /// `belt-Che` authenticated encryption with associated data (AEAD) cipher,
 /// defined in STB 34.101.31-2020 (scheme 2).
@@ -164,7 +163,7 @@ where
         ghash.update_padded(associated_data);
 
         // 4. For 𝑖 = 1, 2, . . . , 𝑛 do:
-        let c_element = Element::from(C);
+        let c_element = FieldElement::from(C).mulx();
         let (chunks, mut tail) = buffer.into_chunks::<U16>();
 
         for mut chunk in chunks {
@@ -197,7 +196,7 @@ where
         ghash.update_padded(&sizes_block);
 
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾)
-        let mut tag = ghash.finalize_reset();
+        let mut tag = ghash.finalize();
         self.cipher.encrypt_block(&mut tag);
 
         // 7. 𝑇 ← Lo(𝑡, 64)
@@ -239,7 +238,7 @@ where
         ghash.update_padded(&sizes_block);
 
         // 6. 𝑡 ← belt-block(𝑡 * 𝑟, 𝐾)
-        let mut tag_exact = ghash.finalize_reset();
+        let mut tag_exact = ghash.finalize();
         self.cipher.encrypt_block(&mut tag_exact);
 
         use subtle::ConstantTimeEq;
@@ -247,7 +246,7 @@ where
         // 7. If 𝑇 ≠ Lo(𝑡, 64), return ⊥
         if tag_exact[..TagSize::USIZE].ct_eq(tag).into() {
             // 8. For 𝑖 = 1, 2, . . . , 𝑛 do:
-            let c_element = Element::from(C);
+            let c_element = FieldElement::from(C).mulx();
             let (chunks, mut tail) = buffer.into_chunks::<U16>();
 
             for mut chunk in chunks {
@@ -287,10 +286,9 @@ where
 
 /// Updates CHE counter: s ← s * c ⊕ 0x01
 #[inline(always)]
-fn update_che_counter(s: &mut Block<GHash>, c: Element) {
-    let mut s_elem = Element::from(&*s);
-    s_elem = s_elem * c;
-    *s = s_elem.into();
+fn update_che_counter(s: &mut Block<GHash>, c: FieldElement) {
+    let s_elem = FieldElement::from(ghash::convert(s)) * c;
+    *s = u128::from(s_elem).reverse_bits().to_le_bytes().into();
     s[0] ^= 0x01;
 }
 

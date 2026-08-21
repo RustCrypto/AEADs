@@ -43,9 +43,9 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
+ "ctutils",
  "ghash",
  "hex-literal",
- "subtle",
  "zeroize",
 ]
 
@@ -57,8 +57,8 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
+ "ctutils",
  "polyval",
- "subtle",
  "zeroize",
 ]
 
@@ -99,7 +99,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "ascon",
- "subtle",
+ "ctutils",
  "zeroize",
 ]
 
@@ -129,8 +129,8 @@ dependencies = [
  "aead",
  "belt-block",
  "belt-ctr",
+ "ctutils",
  "hex-literal",
- "subtle",
  "universal-hash",
  "zeroize",
 ]
@@ -165,8 +165,8 @@ dependencies = [
  "aes",
  "cipher",
  "ctr",
+ "ctutils",
  "hex-literal",
- "subtle",
 ]
 
 [[package]]
@@ -286,8 +286,8 @@ version = "0.2.0"
 dependencies = [
  "aead",
  "aes",
+ "ctutils",
  "hex-literal",
- "subtle",
  "zeroize",
 ]
 
@@ -311,7 +311,7 @@ dependencies = [
  "cipher",
  "cmac",
  "ctr",
- "subtle",
+ "ctutils",
 ]
 
 [[package]]
@@ -375,9 +375,9 @@ dependencies = [
  "aead-stream",
  "aes",
  "cipher",
+ "ctutils",
  "dbl",
  "hex-literal",
- "subtle",
 ]
 
 [[package]]
@@ -442,12 +442,6 @@ name = "rand_core"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
-
-[[package]]
-name = "subtle"
-version = "2.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "syn"

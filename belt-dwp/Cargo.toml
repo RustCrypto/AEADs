@@ -15,8 +15,10 @@ rust-version = "1.85"
 aead = { version = "0.6", default-features = false }
 belt-block = "0.2"
 belt-ctr = "0.2"
+ctutils = "0.4"
 universal-hash = "0.6"
-subtle = { version = "2", default-features = false }
+
+# optional dependencies
 zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]

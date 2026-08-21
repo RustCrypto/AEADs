@@ -37,7 +37,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "aead",
  "aes",
@@ -51,7 +51,7 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.12.0"
+version = "0.12.1"
 dependencies = [
  "aead",
  "aes",
@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "ascon-aead128"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aead",
  "ascon",
@@ -124,7 +124,7 @@ dependencies = [
 
 [[package]]
 name = "belt-dwp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aead",
  "belt-block",
@@ -159,7 +159,7 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "ccm"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "aead",
  "aes",
@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "deoxys"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aead",
  "aes",
@@ -304,7 +304,7 @@ dependencies = [
 
 [[package]]
 name = "eax"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "aead",
  "aes",

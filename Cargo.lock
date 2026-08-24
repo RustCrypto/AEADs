@@ -132,7 +132,6 @@ dependencies = [
  "ctutils",
  "hex-literal",
  "polyval",
- "ctutils",
  "universal-hash",
  "zeroize",
 ]

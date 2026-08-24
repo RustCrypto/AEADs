@@ -1,6 +1,6 @@
 [package]
 name = "belt-dwp"
-version = "0.1.0"
+version = "0.1.1"
 description = "Pure Rust implementation of the Belt-DWP authenticated encryption algorithm (STB 34.101.31-2020)"
 edition = "2024"
 license = "Apache-2.0 OR MIT"
@@ -15,8 +15,10 @@ rust-version = "1.85"
 aead = { version = "0.6", default-features = false }
 belt-block = "0.2"
 belt-ctr = "0.2"
+ctutils = "0.4"
 universal-hash = "0.6"
-subtle = { version = "2", default-features = false }
+
+# optional dependencies
 zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]

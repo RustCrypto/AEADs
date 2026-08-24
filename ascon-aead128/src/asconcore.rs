@@ -5,7 +5,7 @@ use aead::{
     inout::InOutBuf,
 };
 use ascon::State;
-use subtle::ConstantTimeEq;
+use ctutils::CtEq;
 
 /// Produce mask for padding.
 #[inline(always)]
@@ -266,7 +266,7 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
         self.process_decrypt_inout(ciphertext.reborrow());
 
         let tag = self.process_final();
-        if bool::from(tag.ct_eq(expected_tag)) {
+        if tag.ct_eq(&expected_tag.0).to_bool() {
             Ok(())
         } else {
             ciphertext.get_out().fill(0);

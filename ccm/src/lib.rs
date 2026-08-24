@@ -103,7 +103,7 @@ use cipher::{
 };
 use core::{fmt, marker::PhantomData};
 use ctr::{Ctr32BE, Ctr64BE, CtrCore};
-use subtle::ConstantTimeEq;
+use ctutils::CtEq;
 
 mod private;
 

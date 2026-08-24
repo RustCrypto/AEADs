@@ -272,7 +272,7 @@ where
         let expected_tag = Array::<u8, M>::from_fn(|i| n[i] ^ h[i] ^ c[i]);
 
         // Constant-time MAC comparison
-        use subtle::ConstantTimeEq;
+        use ctutils::CtEq;
         if expected_tag.ct_eq(tag).into() {
             // Decrypt
             Ctr128BE::<Cipher>::inner_iv_init(Cipher::new(&self.key), &n)

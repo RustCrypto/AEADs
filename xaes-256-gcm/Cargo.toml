@@ -1,6 +1,6 @@
 [package]
 name = "xaes-256-gcm"
-version = "0.1.0-rc.3"
+version = "0.1.0"
 description = """
 Pure Rust implementation of the XAES-256-GCM extended-nonce Authenticated
 Encryption with Associated Data (AEAD).

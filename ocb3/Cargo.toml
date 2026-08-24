@@ -1,6 +1,6 @@
 [package]
 name = "ocb3"
-version = "0.2.0-rc.3"
+version = "0.2.0"
 description = """
 Pure Rust implementation of the Offset Codebook Mode v3 (OCB3) Authenticated Encryption with
 Associated Data (AEAD) Cipher as described in RFC7253
@@ -21,9 +21,6 @@ cipher = "0.5"
 dbl = "0.5"
 ctutils = "0.4"
 
-# optional dependencies
-aead-stream = { version = "0.6", optional = true, default-features = false }
-
 [dev-dependencies]
 aead = { version = "0.6", features = ["dev"], default-features = false }
 aes = { version = "0.9", default-features = false }
@@ -31,7 +28,7 @@ hex-literal = "1"
 
 [features]
 default = ["alloc", "getrandom"]
-alloc = ["aead/alloc", "aead-stream?/alloc"]
+alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
 getrandom = ["aead/getrandom"]

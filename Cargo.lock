@@ -369,10 +369,9 @@ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
 name = "ocb3"
-version = "0.2.0-rc.3"
+version = "0.2.0"
 dependencies = [
  "aead",
- "aead-stream",
  "aes",
  "cipher",
  "ctutils",

@@ -241,7 +241,7 @@ where
         let mut tag_exact = ghash.finalize();
         self.cipher.encrypt_block(&mut tag_exact);
 
-        use subtle::ConstantTimeEq;
+        use ctutils::CtEq;
 
         // 7. If 𝑇 ≠ Lo(𝑡, 64), return ⊥
         if tag_exact[..TagSize::USIZE].ct_eq(tag).into() {

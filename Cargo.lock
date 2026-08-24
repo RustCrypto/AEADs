@@ -119,9 +119,9 @@ dependencies = [
  "aead",
  "belt-block",
  "belt-ctr",
+ "ctutils",
  "hex-literal",
  "polyval",
- "subtle",
  "universal-hash",
  "zeroize",
 ]

@@ -399,7 +399,7 @@ where
     /// decrypted data stream has not been tampered with.
     fn verify_ct(self, expected: &Tag<M>) -> Result<(), Error> {
         // Check MAC using secure comparison
-        use subtle::ConstantTimeEq;
+        use ctutils::CtEq;
 
         let resulting_tag = &self.tag()[..expected.len()];
         if resulting_tag.ct_eq(expected).into() {

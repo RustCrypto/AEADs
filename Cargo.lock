@@ -37,28 +37,28 @@ dependencies = [
 
 [[package]]
 name = "aes-gcm"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "aead",
  "aes",
  "cipher",
  "ctr",
+ "ctutils",
  "ghash",
  "hex-literal",
- "subtle",
  "zeroize",
 ]
 
 [[package]]
 name = "aes-gcm-siv"
-version = "0.12.0"
+version = "0.12.1"
 dependencies = [
  "aead",
  "aes",
  "cipher",
  "ctr",
+ "ctutils",
  "polyval",
- "subtle",
  "zeroize",
 ]
 
@@ -95,11 +95,11 @@ dependencies = [
 
 [[package]]
 name = "ascon-aead128"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aead",
  "ascon",
- "subtle",
+ "ctutils",
  "zeroize",
 ]
 
@@ -124,14 +124,15 @@ dependencies = [
 
 [[package]]
 name = "belt-dwp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aead",
  "belt-block",
  "belt-ctr",
+ "ctutils",
  "hex-literal",
  "polyval",
- "subtle",
+ "ctutils",
  "universal-hash",
  "zeroize",
 ]
@@ -160,14 +161,14 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "ccm"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "aead",
  "aes",
  "cipher",
  "ctr",
+ "ctutils",
  "hex-literal",
- "subtle",
 ]
 
 [[package]]
@@ -283,12 +284,12 @@ dependencies = [
 
 [[package]]
 name = "deoxys"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aead",
  "aes",
+ "ctutils",
  "hex-literal",
- "subtle",
  "zeroize",
 ]
 
@@ -305,14 +306,14 @@ dependencies = [
 
 [[package]]
 name = "eax"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "aead",
  "aes",
  "cipher",
  "cmac",
  "ctr",
- "subtle",
+ "ctutils",
 ]
 
 [[package]]
@@ -376,9 +377,9 @@ dependencies = [
  "aead-stream",
  "aes",
  "cipher",
+ "ctutils",
  "dbl",
  "hex-literal",
- "subtle",
 ]
 
 [[package]]
@@ -443,12 +444,6 @@ name = "rand_core"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
-
-[[package]]
-name = "subtle"
-version = "2.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "syn"

@@ -28,8 +28,8 @@ use cipher::{
     typenum::Prod,
 };
 use core::{fmt, marker::PhantomData};
+use ctutils::CtEq;
 use dbl::Dbl;
-use subtle::ConstantTimeEq;
 
 /// OCB3 nonce
 pub type Nonce<NonceSize> = Array<u8, NonceSize>;

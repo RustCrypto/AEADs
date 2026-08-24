@@ -317,7 +317,7 @@ where
 
         let expected_tag = self.finish_tag(associated_data.len(), buffer.len());
 
-        use subtle::ConstantTimeEq;
+        use ctutils::CtEq;
         if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {

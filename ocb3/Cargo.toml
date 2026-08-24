@@ -19,7 +19,9 @@ rust-version = "1.85"
 aead = { version = "0.6", default-features = false }
 cipher = "0.5"
 dbl = "0.5"
-subtle = { version = "2", default-features = false }
+ctutils = "0.4"
+
+# optional dependencies
 aead-stream = { version = "0.6", optional = true, default-features = false }
 
 [dev-dependencies]

@@ -1,8 +1,7 @@
 use aead::array::Array;
-use aead::consts::{U4, U16};
+use aead::consts::U16;
 use aead::{KeyInit, KeySizeUser};
 use belt_block::cipher::{BlockSizeUser, ParBlocksSizeUser};
-use polyval::{Polyval, hazmat::FieldElement};
 use universal_hash::{ParBlocks, UhfBackend, UhfClosure, UniversalHash};
 
 /// GHASH keys (16-bytes)
@@ -14,16 +13,20 @@ pub type Block = Array<u8, U16>;
 /// GHASH tags (16-bytes)
 pub type Tag = Array<u8, U16>;
 
-/// Convert a block between the STB and POLYVAL
+/// Convert a block between STB 34.101.31's and NIST SP 800-38D's representations.
+///
+/// Both standards use the same field, but STB numbers the bits of every byte in the opposite
+/// order, so the conversion is a bit reversal within each byte.
 #[inline(always)]
-fn convert(block: &Block) -> u128 {
-    u128::from_le_bytes((*block).into()).reverse_bits()
+fn convert(block: &Block) -> Block {
+    let x = u128::from_le_bytes((*block).into());
+    x.reverse_bits().swap_bytes().to_le_bytes().into()
 }
 
 #[derive(Clone)]
 pub struct GHash {
-    polyval: Polyval,
-    /// Initial `t` value in POLYVAL's representation, folded into the first processed block.
+    ghash: ghash::GHash,
+    /// Initial `T` value in GHASH's representation, folded into the first processed block.
     init: u128,
 }
 
@@ -43,44 +46,81 @@ impl KeyInit for GHash {
 
 impl GHash {
     pub(crate) fn new_with_init_block(h: &Key, s: u128) -> Self {
-        let h = FieldElement::from(convert(h)).mulx();
+        let init = convert(&s.to_le_bytes().into());
 
         Self {
-            polyval: Polyval::new(&h.into()),
-            init: s,
+            ghash: ghash::GHash::new(&convert(h)),
+            init: u128::from_le_bytes(init.into()),
         }
     }
 }
 
-impl ParBlocksSizeUser for GHash {
-    type ParBlocksSize = U4;
+/// Backend which converts blocks into GHASH's representation on the way in, folding the initial
+/// `t` value into the first block it processes.
+struct BeltBackend<'a, B: UhfBackend<BlockSize = U16>> {
+    backend: &'a mut B,
+    init: &'a mut u128,
 }
 
-impl UhfBackend for GHash {
+impl<B: UhfBackend<BlockSize = U16>> BeltBackend<'_, B> {
+    /// Convert a block, folding in the initial `t` value.
+    #[inline(always)]
+    fn convert(&mut self, block: &Block) -> Block {
+        let x = u128::from_le_bytes(convert(block).into()) ^ core::mem::take(self.init);
+        x.to_le_bytes().into()
+    }
+}
+
+impl<B: UhfBackend<BlockSize = U16>> BlockSizeUser for BeltBackend<'_, B> {
+    type BlockSize = U16;
+}
+
+impl<B: UhfBackend<BlockSize = U16>> ParBlocksSizeUser for BeltBackend<'_, B> {
+    type ParBlocksSize = B::ParBlocksSize;
+}
+
+impl<B: UhfBackend<BlockSize = U16>> UhfBackend for BeltBackend<'_, B> {
     fn proc_block(&mut self, x: &Block) {
-        let x = convert(x) ^ core::mem::take(&mut self.init);
-        self.polyval.proc_block(&x.to_le_bytes().into());
+        let x = self.convert(x);
+        self.backend.proc_block(&x);
     }
 
     fn proc_par_blocks(&mut self, blocks: &ParBlocks<Self>) {
-        let init = core::mem::take(&mut self.init);
-        let blocks = ParBlocks::<Self>::from_fn(|i| {
-            let x = convert(&blocks[i]) ^ if i == 0 { init } else { 0 };
-            x.to_le_bytes().into()
-        });
-        self.polyval.proc_par_blocks(&blocks);
+        let blocks = ParBlocks::<Self>::from_fn(|i| self.convert(&blocks[i]));
+        self.backend.proc_par_blocks(&blocks);
     }
 }
 
 impl UniversalHash for GHash {
     fn update_with_backend(&mut self, f: impl UhfClosure<BlockSize = Self::BlockSize>) {
-        f.call(self);
+        struct BeltClosure<'a, C: UhfClosure> {
+            f: C,
+            init: &'a mut u128,
+        }
+
+        impl<C: UhfClosure> BlockSizeUser for BeltClosure<'_, C> {
+            type BlockSize = C::BlockSize;
+        }
+
+        impl<C: UhfClosure<BlockSize = U16>> UhfClosure for BeltClosure<'_, C> {
+            fn call<B: UhfBackend<BlockSize = U16>>(self, backend: &mut B) {
+                self.f.call(&mut BeltBackend {
+                    backend,
+                    init: self.init,
+                });
+            }
+        }
+
+        self.ghash.update_with_backend(BeltClosure {
+            f,
+            init: &mut self.init,
+        });
     }
 
     /// Get GHASH output
     #[inline]
     fn finalize(self) -> Tag {
-        convert(&self.polyval.finalize()).to_le_bytes().into()
+        convert(&self.ghash.finalize())
     }
 }
 

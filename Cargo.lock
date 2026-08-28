@@ -130,8 +130,8 @@ dependencies = [
  "belt-block",
  "belt-ctr",
  "ctutils",
+ "ghash",
  "hex-literal",
- "polyval",
  "universal-hash",
  "zeroize",
 ]

@@ -17,7 +17,7 @@ belt-block = "0.2"
 belt-ctr = "0.2"
 ctutils = "0.4"
 universal-hash = "0.6"
-polyval = { version = "0.7", default-features = false, features = ["hazmat"] }
+ghash = "0.6"
 
 # optional dependencies
 zeroize = { version = "1.8", default-features = false, optional = true }
@@ -33,7 +33,7 @@ bytes = ["aead/bytes"]
 getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
 reduced-round = []
-zeroize = ["dep:zeroize", "belt-ctr/zeroize", "polyval/zeroize"]
+zeroize = ["dep:zeroize", "belt-ctr/zeroize", "ghash/zeroize"]
 
 [lints]
 workspace = true

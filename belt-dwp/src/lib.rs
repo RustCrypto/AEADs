@@ -96,8 +96,8 @@ mod ghash;
 
 use ghash::GHash;
 
-/// Constant `T` from the STB 34.101.31-2020, in POLYVAL's representation
-const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1_u128.reverse_bits();
+/// Constant `T` from the STB 34.101.31-2020
+const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
 /// `belt-dwp` authenticated encryption with associated data (AEAD) cipher,
 /// defined in STB 34.101.31-2020.

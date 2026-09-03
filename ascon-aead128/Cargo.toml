@@ -13,7 +13,7 @@ rust-version = "1.85"
 
 [dependencies]
 aead = { version = "0.6", default-features = false }
-ascon = "0.5.0-rc.0"
+ascon = "0.5"
 ctutils = "0.4"
 
 # optional dependencies
@@ -29,7 +29,7 @@ arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
 getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
-zeroize = ["dep:zeroize", "ascon/zeroize"]
+zeroize = ["dep:zeroize"]
 
 [lints]
 workspace = true

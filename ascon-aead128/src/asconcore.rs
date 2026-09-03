@@ -4,7 +4,7 @@ use aead::{
     consts::U16,
     inout::InOutBuf,
 };
-use ascon::State;
+use ascon::{State, permute8, permute12};
 use ctutils::CtEq;
 
 /// Produce mask for padding.
@@ -103,17 +103,24 @@ pub(crate) struct AsconCore<'a, P: Parameters> {
     key: &'a P::InternalKey,
 }
 
+#[cfg(feature = "zeroize")]
+impl<P: Parameters> Drop for AsconCore<'_, P> {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.state);
+    }
+}
+
 impl<'a, P: Parameters> AsconCore<'a, P> {
     pub(crate) fn new(internal_key: &'a P::InternalKey, nonce: &Array<u8, U16>) -> Self {
-        let mut state = State::new(
+        let mut state: State = [
             P::IV,
             internal_key.get_k1(),
             internal_key.get_k2(),
             u64_from_bytes(&nonce[..8]),
             u64_from_bytes(&nonce[8..]),
-        );
+        ];
 
-        state.permute_12();
+        permute12(&mut state);
         state[3] ^= internal_key.get_k1();
         state[4] ^= internal_key.get_k2();
 
@@ -125,7 +132,7 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
 
     /// Permutation with 12 rounds and application of the key at the end
     fn permute_12_and_apply_key(&mut self) {
-        self.state.permute_12();
+        permute12(&mut self.state);
         self.state[3] ^= self.key.get_k1();
         self.state[4] ^= self.key.get_k2();
     }
@@ -133,7 +140,7 @@ impl<'a, P: Parameters> AsconCore<'a, P> {
     /// Permutation with 6 or 8 rounds based on the parameters
     #[inline(always)]
     fn permute_state(&mut self) {
-        self.state.permute_8();
+        permute8(&mut self.state);
     }
 
     fn process_associated_data(&mut self, associated_data: &[u8]) {

@@ -167,7 +167,7 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 /// Doing so runs the risk of unintended cryptographic properties!
 ///
 /// The `NonceSize` generic parameter can be used to instantiate AES-GCM with other
-/// nonce sizes, however it's recommended to use it with `typenum::U12`,
+/// non-zero nonce sizes, however it's recommended to use it with `typenum::U12`,
 /// the default of 96-bits.
 ///
 /// The `TagSize` generic parameter can be used to instantiate AES-GCM with other
@@ -175,6 +175,17 @@ type Ctr32BE<Aes> = ctr::CtrCore<Aes, ctr::flavors::Ctr32BE>;
 /// the default of 128-bits.
 ///
 /// If in doubt, use the built-in [`Aes128Gcm`] and [`Aes256Gcm`] type aliases.
+///
+/// Compilation will fail if the nonce size is zero:
+///
+/// ```rust,compile_fail
+/// # use aes_gcm::{AesGcm, aead::{AeadInOut, KeyInit, consts::U0}, aes::Aes128};
+/// # let key = [42; 16].into();
+/// let cipher = AesGcm::<Aes128, U0>::new(&key);
+/// let nonce = [].into();
+/// let mut buffer = [];
+/// cipher.encrypt_inout_detached(&nonce, b"", (&mut buffer[..]).into());
+/// ```
 ///
 /// # ⚠️ WARNING: Hazmat!
 ///
@@ -323,6 +334,8 @@ where
     /// > If len(IV) ≠ 96, then let s = 128 ⎡len(IV)/128⎤-len(IV), and
     /// >     J0=GHASH(IV||0s+64||[len(IV)]64).
     fn init_ctr(&self, nonce: &Nonce<NonceSize>) -> (Ctr32BE<&Aes>, Block) {
+        const { assert!(NonceSize::USIZE != 0, "nonce size must be non-zero") };
+
         let j0 = if NonceSize::to_usize() == 12 {
             let mut block = ghash::Block::default();
             block[..12].copy_from_slice(nonce);

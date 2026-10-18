@@ -8,22 +8,58 @@ where
     C: AeadInOut + KeyInit,
 {
     let key = Key::<C>::default();
-    let nonce = Nonce::<C>::default();
     let cipher = C::new(&key);
-    let mut ciphertext = b"plaintext that must not be exposed".to_vec();
-    let mut tag = cipher
-        .encrypt_inout_detached(&nonce, &[], (&mut ciphertext[..]).into())
-        .expect("encryption failed");
-    tag[0] ^= 1;
+    for len in [0, 1, 15, 16, 17, 31, 32, 33, 64, 65] {
+        let mut nonce = Nonce::<C>::default();
+        nonce[0] = len;
+        let mut ciphertext = [0x42; 65];
+        let ciphertext = &mut ciphertext[..usize::from(len)];
+        let tag = cipher
+            .encrypt_inout_detached(&nonce, b"associated data", ciphertext.into())
+            .expect("encryption failed");
 
-    let mut output = vec![0xa5; ciphertext.len()];
-    let buffer = InOutBuf::new(&ciphertext, &mut output).expect("input and output lengths differ");
+        for tamper in 0..4 {
+            if tamper == 3 && ciphertext.is_empty() {
+                continue;
+            }
+            let mut bad_tag = tag.clone();
+            let mut bad_nonce = nonce.clone();
+            let mut input = ciphertext.to_vec();
+            let aad: &[u8] = match tamper {
+                0 => {
+                    bad_tag[0] ^= 1;
+                    b"associated data"
+                }
+                1 => b"different data",
+                2 => {
+                    bad_nonce[0] ^= 1;
+                    b"associated data"
+                }
+                _ => {
+                    input[0] ^= 1;
+                    b"associated data"
+                }
+            };
 
-    cipher
-        .decrypt_inout_detached(&nonce, &[], buffer, &tag)
-        .expect_err("tampered tag was accepted");
+            let mut output = vec![0xa5; input.len()];
+            let buffer = InOutBuf::new(&input, &mut output).expect("equal buffer lengths");
+            cipher
+                .decrypt_inout_detached(&bad_nonce, aad, buffer, &bad_tag)
+                .expect_err("tampered message was accepted");
+            assert!(
+                output.iter().all(|&byte| byte == 0),
+                "len={len}, tamper={tamper}"
+            );
 
-    assert_eq!(output, vec![0; ciphertext.len()]);
+            cipher
+                .decrypt_inout_detached(&bad_nonce, aad, input.as_mut_slice().into(), &bad_tag)
+                .expect_err("tampered message was accepted");
+            assert!(
+                input.iter().all(|&byte| byte == 0),
+                "len={len}, tamper={tamper}"
+            );
+        }
+    }
 }
 
 #[test]

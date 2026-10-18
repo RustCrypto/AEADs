@@ -258,13 +258,15 @@ where
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &aead::Tag<Self>,
     ) -> aead::Result<()> {
-        let expected_tag = self.decrypt_inout_return_tag(nonce, associated_data, buffer)?;
+        let expected_tag = self.decrypt_inout_return_tag(nonce, associated_data, &mut buffer)?;
         if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
+            // Do not leave unauthenticated plaintext in the caller's buffer.
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }
@@ -282,7 +284,7 @@ where
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        buffer: &mut InOutBuf<'_, '_, u8>,
     ) -> aead::Result<aead::Tag<Self>> {
         let max_len = 1 << (L_TABLE_SIZE + 4);
         if (buffer.len() > max_len) || (associated_data.len() > max_len) {
@@ -290,7 +292,8 @@ where
         }
 
         // First, try to process many blocks at once.
-        let (tail, index, mut offset_i, mut checksum_i) = self.wide_decrypt(nonce, buffer);
+        let (tail, index, mut offset_i, mut checksum_i) =
+            self.wide_decrypt(nonce, buffer.reborrow());
 
         let mut i = index;
 

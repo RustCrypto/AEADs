@@ -180,7 +180,7 @@ where
     fn decrypt_inout(
         nonce: &Array<u8, Self::NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
         subkeys: &Array<DeoxysKey, B::SubkeysSize>,
     ) -> Result<(), aead::Error> {
@@ -208,7 +208,7 @@ where
 
         tweak[0] = (tweak[0] & 0xf) | TWEAK_M;
 
-        let (data_blocks, mut tail) = buffer.into_chunks();
+        let (data_blocks, mut tail) = buffer.reborrow().into_chunks();
         let mut data_blocks_len = data_blocks.len();
 
         for (index, mut data) in data_blocks.into_iter().enumerate() {
@@ -271,6 +271,8 @@ where
         if tag.ct_eq(&computed_tag).into() {
             Ok(())
         } else {
+            // Do not leave unauthenticated plaintext in the caller's buffer.
+            buffer.get_out().fill(0);
             Err(aead::Error)
         }
     }
@@ -457,6 +459,8 @@ where
         if tag.ct_eq(&computed_tag).into() {
             Ok(())
         } else {
+            // Do not leave unauthenticated plaintext in the caller's buffer.
+            buffer.get_out().fill(0);
             Err(aead::Error)
         }
     }

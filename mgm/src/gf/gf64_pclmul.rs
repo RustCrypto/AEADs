@@ -2,14 +2,14 @@
 //! on `x86` and `x86_64` target architectures.
 
 use super::GfElement;
-use aead::{consts::U8, generic_array::GenericArray};
+use aead::{array::Array, consts::U8};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-type Block = GenericArray<u8, U8>;
+type Block = Array<u8, U8>;
 
 pub struct Element(u64);
 

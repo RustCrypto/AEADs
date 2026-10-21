@@ -4,14 +4,14 @@
 //! More information can be found in the Intel whitepaper:
 //! https://software.intel.com/sites/default/files/managed/72/cc/clmul-wp-rev-2.02-2014-04-20.pdf
 use super::GfElement;
-use aead::{consts::U16, generic_array::GenericArray};
+use aead::{array::Array, consts::U16};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-type Block = GenericArray<u8, U16>;
+type Block = Array<u8, U16>;
 
 const BS_MASK1: i64 = 0x0001_0203_0405_0607;
 const BS_MASK2: i64 = 0x0809_0A0B_0C0D_0E0F;
@@ -40,8 +40,8 @@ impl GfElement for Element {
         unsafe {
             let bs_mask = _mm_set_epi64x(BS_MASK1, BS_MASK2);
 
-            let a = _mm_loadu_si128(a.as_ptr() as *const _);
-            let b = _mm_loadu_si128(b.as_ptr() as *const _);
+            let a = _mm_loadu_si128(a.as_ptr().cast());
+            let b = _mm_loadu_si128(b.as_ptr().cast());
             let a = _mm_shuffle_epi8(a, bs_mask);
             let b = _mm_shuffle_epi8(b, bs_mask);
 

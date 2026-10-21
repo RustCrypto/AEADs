@@ -1,5 +1,3 @@
-[workspace]
-
 [package]
 name = "mgm"
 version = "0.5.0-pre.1"
@@ -16,27 +14,31 @@ keywords = ["encryption", "aead"]
 rust-version = "1.85"
 
 [dependencies]
-aead = { version = "0.5", default-features = false }
-cipher = "0.3"
+aead = { version = "0.6", default-features = false }
+cipher = "0.5"
 cfg-if = "1"
 ctutils = "0.4"
 
 [target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))'.dependencies]
-cpufeatures = "0.2"
+cpufeatures = "0.3.1"
 
 [dev-dependencies]
-aead = { version = "0.5", features = ["dev"], default-features = false }
-kuznyechik = "0.7"
-magma = "0.7"
+aead = { version = "0.6", features = ["dev"], default-features = false }
+kuznyechik = "0.9"
+magma = "0.10"
 hex-literal = "1"
 
 [features]
 default = ["alloc", "getrandom"]
-std = ["aead/std", "alloc"]
 alloc = ["aead/alloc"]
 arrayvec = ["aead/arrayvec"]
 bytes = ["aead/bytes"]
-getrandom = ["aead/getrandom", "rand_core"]
+getrandom = ["aead/getrandom"]
 rand_core = ["aead/rand_core"]
-stream = ["aead/stream"]
 force-soft = [] # Disable support for hardware intrinsics
+
+[package.metadata.docs.rs]
+all-features = true
+
+[lints]
+workspace = true

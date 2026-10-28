@@ -1,306 +1,148 @@
 use crate::{
+    DecArgs, EncArgs, MgmBlockSize,
     gf::GfElement,
     sealed::{Counter, Sealed},
-    DecArgs, EncArgs, MgmBlockSize,
 };
 use aead::{
-    generic_array::{
-        typenum::{Unsigned, U16, U8},
-        GenericArray,
-    },
     Error,
+    array::{Array, typenum::Unsigned},
+    consts::{U8, U16},
+    inout::InOutBuf,
 };
-use cipher::{Block, BlockEncrypt, ParBlocks};
+use cipher::{Block, BlockCipherEncrypt};
 use ctutils::CtEq;
+
+/// Number of blocks passed to the cipher at once, so it can use its parallel backend.
+const PAR_BLOCKS: usize = 8;
 
 pub(crate) fn encrypt<C, E64, E128>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
 where
-    C: BlockEncrypt,
+    C: BlockCipherEncrypt,
     C::BlockSize: MgmBlockSize,
     E64: GfElement<N = U8>,
     E128: GfElement<N = U16>,
 {
+    let (cipher, nonce, adata, mut buffer) = args;
+    apply_keystream(cipher, nonce, buffer.reborrow());
     // ideally we would use type-level branching here
     match C::BlockSize::USIZE {
-        8 => encrypt_inner::<C, E64>(args),
-        16 => encrypt_inner::<C, E128>(args),
+        8 => calc_tag::<C, E64>(cipher, nonce, adata, buffer.get_out()),
+        16 => calc_tag::<C, E128>(cipher, nonce, adata, buffer.get_out()),
         _ => unreachable!(),
     }
 }
 
 pub(crate) fn decrypt<C, E64, E128>(args: DecArgs<'_, C>) -> Result<(), Error>
 where
-    C: BlockEncrypt,
+    C: BlockCipherEncrypt,
     C::BlockSize: MgmBlockSize,
     E64: GfElement<N = U8>,
     E128: GfElement<N = U16>,
 {
+    let (cipher, nonce, adata, buffer, expected_tag) = args;
     // ideally we would use type-level branching here
-    match C::BlockSize::USIZE {
-        8 => decrypt_inner::<C, E64>(args),
-        16 => decrypt_inner::<C, E128>(args),
+    let tag = match C::BlockSize::USIZE {
+        8 => calc_tag::<C, E64>(cipher, nonce, adata, buffer.get_in()),
+        16 => calc_tag::<C, E128>(cipher, nonce, adata, buffer.get_in()),
         _ => unreachable!(),
-    }
-}
-
-// E::N must be equal to C::BlockSize
-fn encrypt_inner<C, E>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
-where
-    C: BlockEncrypt,
-    C::BlockSize: MgmBlockSize,
-    E: GfElement,
-{
-    let (cipher, nonce, mut adata, mut buffer) = args;
-
-    let fin_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
-
-    let mut tag_ctr = nonce.clone();
-    tag_ctr[0] |= 0b1000_0000;
-    cipher.encrypt_block(&mut tag_ctr);
-    let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
-
-    let mut tag = E::new();
-
-    let pb = C::ParBlocks::USIZE;
-    let bs = C::BlockSize::USIZE;
-
-    // process adata
-    if pb > 1 {
-        let mut iter = adata.chunks_exact(pb * bs);
-        for chunk in &mut iter {
-            update_par_tag(cipher, &mut tag, &mut tag_ctr, chunk);
-        }
-        adata = iter.remainder();
-    };
-
-    let mut iter = adata.chunks_exact(bs);
-    for block in (&mut iter).map(Block::<C>::from_slice) {
-        update_tag(cipher, &mut tag, &mut tag_ctr, block);
-    }
-    let rem = iter.remainder();
-    if !rem.is_empty() {
-        let mut block: Block<C> = Default::default();
-        block[..rem.len()].copy_from_slice(rem);
-        update_tag(cipher, &mut tag, &mut tag_ctr, &block);
-    }
-
-    let mut enc_ctr = nonce.clone();
-    enc_ctr[0] &= 0b0111_1111;
-    cipher.encrypt_block(&mut enc_ctr);
-    let mut enc_ctr = C::BlockSize::block2ctr(&enc_ctr);
-
-    // process plaintext
-    if pb > 1 {
-        let mut iter = buffer.chunks_exact_mut(pb * bs);
-        for chunk in &mut iter {
-            apply_par_ks_blocks(cipher, &mut enc_ctr, chunk);
-            update_par_tag(cipher, &mut tag, &mut tag_ctr, chunk);
-        }
-        buffer = iter.into_remainder();
-    }
-
-    let mut iter = buffer.chunks_exact_mut(bs);
-    for block in (&mut iter).map(Block::<C>::from_mut_slice) {
-        apply_ks_block(cipher, &mut enc_ctr, block);
-        update_tag(cipher, &mut tag, &mut tag_ctr, block);
-    }
-    let rem = iter.into_remainder();
-    if !rem.is_empty() {
-        apply_ks_block(cipher, &mut enc_ctr, rem);
-
-        let mut block = Block::<C>::default();
-        let n = rem.len();
-        block[..n].copy_from_slice(rem);
-        update_tag(cipher, &mut tag, &mut tag_ctr, &block);
-    }
-
-    update_tag(cipher, &mut tag, &mut tag_ctr, &fin_block);
-
-    let mut tag = GenericArray::clone_from_slice(&tag.into_bytes());
-    cipher.encrypt_block(&mut tag);
-
-    Ok(tag)
-}
-
-// E::N must be equal to C::BlockSize
-fn decrypt_inner<C, E>(args: DecArgs<'_, C>) -> Result<(), Error>
-where
-    C: BlockEncrypt,
-    C::BlockSize: MgmBlockSize,
-    E: GfElement,
-{
-    let (cipher, nonce, mut adata, mut buffer, expected_tag) = args;
-
-    let fin_block = C::BlockSize::lengths2block(adata.len(), buffer.len())?;
-
-    let mut tag_ctr = nonce.clone();
-    tag_ctr[0] |= 0b1000_0000;
-    cipher.encrypt_block(&mut tag_ctr);
-
-    let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
-    let mut tag = E::new();
-
-    let pb = C::ParBlocks::USIZE;
-    let bs = C::BlockSize::USIZE;
-
-    // calculate tag
-    // process adata
-    if pb > 1 {
-        let mut iter = adata.chunks_exact(pb * bs);
-        for chunk in &mut iter {
-            update_par_tag(cipher, &mut tag, &mut tag_ctr, chunk);
-        }
-        adata = iter.remainder();
-    };
-
-    let mut iter = adata.chunks_exact(bs);
-    for block in (&mut iter).map(Block::<C>::from_slice) {
-        update_tag(cipher, &mut tag, &mut tag_ctr, block);
-    }
-    let rem = iter.remainder();
-    if !rem.is_empty() {
-        let mut block: Block<C> = Default::default();
-        block[..rem.len()].copy_from_slice(rem);
-        update_tag(cipher, &mut tag, &mut tag_ctr, &block);
-    }
-
-    // process ciphertext
-    let buf = if pb > 1 {
-        let mut iter = buffer.chunks_exact(pb * bs);
-        for chunk in &mut iter {
-            update_par_tag(cipher, &mut tag, &mut tag_ctr, chunk);
-        }
-        iter.remainder()
-    } else {
-        #[allow(clippy::needless_borrow)]
-        &buffer
-    };
-
-    let mut iter = buf.chunks_exact(bs);
-    for block in (&mut iter).map(Block::<C>::from_slice) {
-        update_tag(cipher, &mut tag, &mut tag_ctr, block);
-    }
-    let rem = iter.remainder();
-    if !rem.is_empty() {
-        let n = rem.len();
-
-        let mut block = Block::<C>::default();
-        block[..n].copy_from_slice(rem);
-
-        update_tag(cipher, &mut tag, &mut tag_ctr, &block);
-    }
-
-    update_tag(cipher, &mut tag, &mut tag_ctr, &fin_block);
-
-    let mut tag = GenericArray::clone_from_slice(&tag.into_bytes());
-    cipher.encrypt_block(&mut tag);
+    }?;
 
     if !expected_tag.ct_eq(&tag).to_bool() {
         return Err(Error);
     }
 
-    // decrypt ciphertext
-    let mut dec_ctr = nonce.clone();
-    dec_ctr[0] &= 0b0111_1111;
-    cipher.encrypt_block(&mut dec_ctr);
-    let mut dec_ctr = C::BlockSize::block2ctr(&dec_ctr);
-
-    if pb > 1 {
-        let mut iter = buffer.chunks_exact_mut(pb * bs);
-        for chunk in &mut iter {
-            apply_par_ks_blocks(cipher, &mut dec_ctr, chunk);
-        }
-        buffer = iter.into_remainder();
-    }
-
-    let mut iter = buffer.chunks_exact_mut(bs);
-    for block in (&mut iter).map(Block::<C>::from_mut_slice) {
-        apply_ks_block(cipher, &mut dec_ctr, block);
-    }
-    let rem = iter.into_remainder();
-    if !rem.is_empty() {
-        apply_ks_block(cipher, &mut dec_ctr, rem);
-    }
-
+    apply_keystream(cipher, nonce, buffer);
     Ok(())
 }
 
-#[inline(always)]
-fn apply_ks_block<C>(cipher: &C, ctr: &mut Counter<C>, buf: &mut [u8])
+// E::N must be equal to C::BlockSize
+fn calc_tag<C, E>(
+    cipher: &C,
+    nonce: &Block<C>,
+    adata: &[u8],
+    data: &[u8],
+) -> Result<Block<C>, Error>
 where
-    C: BlockEncrypt,
+    C: BlockCipherEncrypt,
     C::BlockSize: MgmBlockSize,
+    E: GfElement,
 {
-    let mut block = C::BlockSize::ctr2block(ctr);
-    cipher.encrypt_block(&mut block);
-    for i in 0..core::cmp::min(block.len(), buf.len()) {
-        buf[i] ^= block[i];
-    }
-    C::BlockSize::incr_r(ctr);
-}
+    let fin_block = C::BlockSize::lengths2block(adata.len(), data.len())?;
 
-#[inline(always)]
-fn apply_par_ks_blocks<C>(cipher: &C, ctr: &mut Counter<C>, par_blocks: &mut [u8])
-where
-    C: BlockEncrypt,
-    C::BlockSize: MgmBlockSize,
-{
-    let pb = C::ParBlocks::USIZE;
+    let mut tag_ctr = nonce.clone();
+    tag_ctr[0] |= 0b1000_0000;
+    cipher.encrypt_block(&mut tag_ctr);
+    let mut tag_ctr = C::BlockSize::block2ctr(&tag_ctr);
+
+    let mut tag = E::new();
     let bs = C::BlockSize::USIZE;
-    assert_eq!(par_blocks.len(), pb * bs);
 
-    let mut par_ks = ParBlocks::<C>::default();
-    for ks in par_ks.iter_mut() {
-        *ks = C::BlockSize::ctr2block(ctr);
-        C::BlockSize::incr_r(ctr);
-    }
-    cipher.encrypt_par_blocks(&mut par_ks);
+    // adata and data are padded with zeros to the block size separately
+    for chunk in adata
+        .chunks(PAR_BLOCKS * bs)
+        .chain(data.chunks(PAR_BLOCKS * bs))
+    {
+        let mut par_h: [Block<C>; PAR_BLOCKS] = Default::default();
+        let par_h = &mut par_h[..chunk.len().div_ceil(bs)];
+        for h in par_h.iter_mut() {
+            *h = C::BlockSize::ctr2block(&tag_ctr);
+            C::BlockSize::incr_l(&mut tag_ctr);
+        }
+        cipher.encrypt_blocks(par_h);
 
-    let iter = par_blocks.chunks_exact_mut(bs);
-    for (ks, block) in par_ks.iter().zip(iter) {
-        for i in 0..bs {
-            block[i] ^= ks[i];
+        for (h, block) in par_h.iter().zip(chunk.chunks(bs)) {
+            let mut padded = Block::<C>::default();
+            padded[..block.len()].copy_from_slice(block);
+            mul_sum(&mut tag, h, &padded);
         }
     }
-}
 
-#[inline(always)]
-fn update_tag<C, E>(cipher: &C, tag: &mut E, tag_ctr: &mut Counter<C>, block: &Block<C>)
-where
-    C: BlockEncrypt,
-    C::BlockSize: MgmBlockSize,
-    E: GfElement,
-{
-    let mut h = C::BlockSize::ctr2block(tag_ctr);
+    let mut h = C::BlockSize::ctr2block(&tag_ctr);
     cipher.encrypt_block(&mut h);
-    // panics if E::N != C::BlockSize
-    tag.mul_sum(
-        GenericArray::from_slice(&h),
-        GenericArray::from_slice(block),
-    );
-    C::BlockSize::incr_l(tag_ctr);
+    mul_sum(&mut tag, &h, &fin_block);
+
+    let mut tag = Block::<C>::try_from(&tag.into_bytes()[..]).map_err(|_| Error)?;
+    cipher.encrypt_block(&mut tag);
+    Ok(tag)
 }
 
+// panics if E::N != C::BlockSize
 #[inline(always)]
-fn update_par_tag<C, E>(cipher: &C, tag: &mut E, tag_ctr: &mut Counter<C>, par_blocks: &[u8])
-where
-    C: BlockEncrypt,
-    C::BlockSize: MgmBlockSize,
-    E: GfElement,
-{
-    let pb = C::ParBlocks::USIZE;
-    let bs = C::BlockSize::USIZE;
-    assert_eq!(par_blocks.len(), pb * bs);
+fn mul_sum<E: GfElement>(tag: &mut E, h: &[u8], block: &[u8]) {
+    let h: &Array<u8, E::N> = h.try_into().expect("E::N == C::BlockSize");
+    let block: &Array<u8, E::N> = block.try_into().expect("E::N == C::BlockSize");
+    tag.mul_sum(h, block);
+}
 
-    let mut par_h = ParBlocks::<C>::default();
-    for h in par_h.iter_mut() {
-        *h = C::BlockSize::ctr2block(tag_ctr);
-        C::BlockSize::incr_l(tag_ctr);
-    }
-    cipher.encrypt_par_blocks(&mut par_h);
-    // panics if E::N != C::BlockSize
-    let iter = par_blocks.chunks_exact(bs).map(GenericArray::from_slice);
-    for (h, block) in par_h.iter().zip(iter) {
-        tag.mul_sum(GenericArray::from_slice(h), block);
+fn apply_keystream<C>(cipher: &C, nonce: &Block<C>, mut buffer: InOutBuf<'_, '_, u8>)
+where
+    C: BlockCipherEncrypt,
+    C::BlockSize: MgmBlockSize,
+{
+    let mut ctr = nonce.clone();
+    ctr[0] &= 0b0111_1111;
+    cipher.encrypt_block(&mut ctr);
+    let mut ctr: Counter<C> = C::BlockSize::block2ctr(&ctr);
+
+    let bs = C::BlockSize::USIZE;
+    while !buffer.is_empty() {
+        let n = buffer.len().min(PAR_BLOCKS * bs);
+        let (mut chunk, tail) = buffer.split_at(n);
+
+        let mut par_ks: [Block<C>; PAR_BLOCKS] = Default::default();
+        let par_ks = &mut par_ks[..n.div_ceil(bs)];
+        for ks in par_ks.iter_mut() {
+            *ks = C::BlockSize::ctr2block(&ctr);
+            C::BlockSize::incr_r(&mut ctr);
+        }
+        cipher.encrypt_blocks(par_ks);
+
+        let mut ks_bytes = [0u8; PAR_BLOCKS * 16];
+        for (dst, ks) in ks_bytes.chunks_mut(bs).zip(par_ks.iter()) {
+            dst.copy_from_slice(ks);
+        }
+        chunk.xor_in2out(&ks_bytes[..n]);
+
+        buffer = tail;
     }
 }

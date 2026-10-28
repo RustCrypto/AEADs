@@ -1,116 +1,71 @@
 use aead::{
     Error,
-    generic_array::{
-        ArrayLength, GenericArray,
-        typenum::{U8, U16},
-    },
+    array::{Array, ArraySize},
+    consts::{U8, U16},
 };
-use cipher::BlockCipher;
+use cipher::BlockSizeUser;
 
-pub type Counter<C> = [<<C as BlockCipher>::BlockSize as Sealed>::Counter; 2];
+pub type Counter<C> = [<<C as BlockSizeUser>::BlockSize as Sealed>::Counter; 2];
 
-pub trait Sealed: ArrayLength<u8> {
+pub trait Sealed: ArraySize {
     type Counter;
 
-    fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2];
-    fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self>;
+    fn block2ctr(block: &Array<u8, Self>) -> [Self::Counter; 2];
+    fn ctr2block(ctr: &[Self::Counter; 2]) -> Array<u8, Self>;
     fn incr_l(ctr: &mut [Self::Counter; 2]);
     fn incr_r(ctr: &mut [Self::Counter; 2]);
-    fn lengths2block(adata_len: usize, data_len: usize) -> Result<GenericArray<u8, Self>, Error>;
+    fn lengths2block(adata_len: usize, data_len: usize) -> Result<Array<u8, Self>, Error>;
 }
 
-impl Sealed for U16 {
-    type Counter = u64;
+macro_rules! impl_sealed {
+    ($size:ty, $counter:ty, $half:literal) => {
+        impl Sealed for $size {
+            type Counter = $counter;
 
-    #[inline(always)]
-    fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2] {
-        let (a, b) = block.split_at(8);
-        [
-            u64::from_be_bytes(a.try_into().unwrap()),
-            u64::from_be_bytes(b.try_into().unwrap()),
-        ]
-    }
+            #[inline(always)]
+            fn block2ctr(block: &Array<u8, Self>) -> [Self::Counter; 2] {
+                let (a, b) = block.split_at($half);
+                [
+                    <$counter>::from_be_bytes(a.try_into().unwrap()),
+                    <$counter>::from_be_bytes(b.try_into().unwrap()),
+                ]
+            }
 
-    #[inline(always)]
-    fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self> {
-        let a = ctr[0].to_be_bytes();
-        let b = ctr[1].to_be_bytes();
-        let mut block = GenericArray::<u8, Self>::default();
-        block[..8].copy_from_slice(&a);
-        block[8..].copy_from_slice(&b);
-        block
-    }
+            #[inline(always)]
+            fn ctr2block(ctr: &[Self::Counter; 2]) -> Array<u8, Self> {
+                let mut block = Array::<u8, Self>::default();
+                block[..$half].copy_from_slice(&ctr[0].to_be_bytes());
+                block[$half..].copy_from_slice(&ctr[1].to_be_bytes());
+                block
+            }
 
-    #[inline(always)]
-    fn incr_l(ctr: &mut [Self::Counter; 2]) {
-        ctr[0] = ctr[0].wrapping_add(1);
-    }
+            #[inline(always)]
+            fn incr_l(ctr: &mut [Self::Counter; 2]) {
+                ctr[0] = ctr[0].wrapping_add(1);
+            }
 
-    #[inline(always)]
-    fn incr_r(ctr: &mut [Self::Counter; 2]) {
-        ctr[1] = ctr[1].wrapping_add(1);
-    }
+            #[inline(always)]
+            fn incr_r(ctr: &mut [Self::Counter; 2]) {
+                ctr[1] = ctr[1].wrapping_add(1);
+            }
 
-    #[inline(always)]
-    fn lengths2block(adata_len: usize, data_len: usize) -> Result<GenericArray<u8, Self>, Error> {
-        let adata_len = adata_len
-            .checked_mul(8)
-            .ok_or(Error)?
-            .try_into()
-            .map_err(|_| Error)?;
-        let data_len = data_len
-            .checked_mul(8)
-            .ok_or(Error)?
-            .try_into()
-            .map_err(|_| Error)?;
-        Ok(Self::ctr2block(&[adata_len, data_len]))
-    }
+            #[inline(always)]
+            fn lengths2block(adata_len: usize, data_len: usize) -> Result<Array<u8, Self>, Error> {
+                let adata_len = adata_len
+                    .checked_mul(8)
+                    .ok_or(Error)?
+                    .try_into()
+                    .map_err(|_| Error)?;
+                let data_len = data_len
+                    .checked_mul(8)
+                    .ok_or(Error)?
+                    .try_into()
+                    .map_err(|_| Error)?;
+                Ok(Self::ctr2block(&[adata_len, data_len]))
+            }
+        }
+    };
 }
 
-impl Sealed for U8 {
-    type Counter = u32;
-
-    #[inline(always)]
-    fn block2ctr(block: &GenericArray<u8, Self>) -> [Self::Counter; 2] {
-        let (a, b) = block.split_at(4);
-        [
-            u32::from_be_bytes(a.try_into().unwrap()),
-            u32::from_be_bytes(b.try_into().unwrap()),
-        ]
-    }
-
-    #[inline(always)]
-    fn ctr2block(ctr: &[Self::Counter; 2]) -> GenericArray<u8, Self> {
-        let a = ctr[0].to_be_bytes();
-        let b = ctr[1].to_be_bytes();
-        let mut block = GenericArray::<u8, Self>::default();
-        block[..4].copy_from_slice(&a);
-        block[4..].copy_from_slice(&b);
-        block
-    }
-
-    #[inline(always)]
-    fn incr_l(ctr: &mut [Self::Counter; 2]) {
-        ctr[0] = ctr[0].wrapping_add(1);
-    }
-
-    #[inline(always)]
-    fn incr_r(ctr: &mut [Self::Counter; 2]) {
-        ctr[1] = ctr[1].wrapping_add(1);
-    }
-
-    #[inline(always)]
-    fn lengths2block(adata_len: usize, data_len: usize) -> Result<GenericArray<u8, Self>, Error> {
-        let adata_len = adata_len
-            .checked_mul(8)
-            .ok_or(Error)?
-            .try_into()
-            .map_err(|_| Error)?;
-        let data_len = data_len
-            .checked_mul(8)
-            .ok_or(Error)?
-            .try_into()
-            .map_err(|_| Error)?;
-        Ok(Self::ctr2block(&[adata_len, data_len]))
-    }
-}
+impl_sealed!(U16, u64, 8);
+impl_sealed!(U8, u32, 4);

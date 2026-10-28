@@ -233,9 +233,9 @@ checksum = "15b85f9c39137c3a891689859392b1bd49812121d0d61c9caf00d46ed5ce06ae"
 
 [[package]]
 name = "cpufeatures"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
+checksum = "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
 dependencies = [
  "libc",
 ]
@@ -360,10 +360,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "kuznyechik"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "003764d77f5f2e2a57a4d17dc6547e0595f14a3c289283c9eeaf7170d3a4ff83"
+dependencies = [
+ "cfg-if",
+ "cipher",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+
+[[package]]
+name = "magma"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84fcdd6a71a6af65297be074d9d26cda7a2e98b86294ee0de0732b00c2063a61"
+dependencies = [
+ "cipher",
+]
+
+[[package]]
+name = "mgm"
+version = "0.5.0-pre.1"
+dependencies = [
+ "aead",
+ "cfg-if",
+ "cipher",
+ "cpufeatures",
+ "ctutils",
+ "hex-literal",
+ "kuznyechik",
+ "magma",
+]
 
 [[package]]
 name = "ocb3"

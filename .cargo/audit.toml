@@ -1,5 +1,6 @@
 [advisories]
 ignore = [
     "RUSTSEC-2023-0037", # xsalsa20poly1305 unmaintained
+    "RUSTSEC-2026-0385", # Patched versions of ctutils require Rust 1.87
 ]
 informational_warnings = ["unmaintained", "unsound"]

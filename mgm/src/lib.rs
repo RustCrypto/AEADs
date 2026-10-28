@@ -7,22 +7,22 @@
 #![warn(missing_docs, rust_2018_idioms)]
 
 //! # Usage Example
-#![cfg_attr(all(feature = "getrandom", feature = "std"), doc = "```")]
-#![cfg_attr(not(all(feature = "getrandom", feature = "std")), doc = "```ignore")]
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+#![cfg_attr(feature = "alloc", doc = "```")]
+#![cfg_attr(not(feature = "alloc"), doc = "```ignore")]
+//! # fn main() -> Result<(), Box<dyn core::error::Error>> {
 //! use kuznyechik::Kuznyechik;
 //! use mgm::Mgm;
-//! use mgm::aead::{Aead, KeyInit, OsRng, generic_array::GenericArray};
+//! use mgm::aead::{Aead, KeyInit, array::Array};
 //!
-//! let key = Mgm::<Kuznyechik>::generate_key(&mut OsRng);
+//! let key = Array::from([42u8; 32]);
 //! let cipher = Mgm::<Kuznyechik>::new(&key);
 //!
 //! // 127-bit nonce value, since API has to accept 128 bits, first nonce bit
 //! // MUST be equal to zero, otherwise encryption and decryption will fail
-//! let nonce = GenericArray::from_slice(b"unique nonce val");
+//! let nonce = Array(*b"unique nonce val");
 //!
-//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref())?;
-//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())?;
+//! let ciphertext = cipher.encrypt(&nonce, b"plaintext message".as_ref())?;
+//! let plaintext = cipher.decrypt(&nonce, ciphertext.as_ref())?;
 //!
 //! assert_eq!(&plaintext, b"plaintext message");
 //! # Ok(())
@@ -30,11 +30,11 @@
 //! ```
 
 use aead::{
-    AeadCore, AeadInPlace, Error, Key, KeyInit, KeySizeUser, consts::U0,
-    generic_array::GenericArray,
+    AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser, TagPosition, array::Array,
+    inout::InOutBuf,
 };
 use cfg_if::cfg_if;
-use cipher::{BlockCipher, BlockEncrypt, NewBlockCipher};
+use cipher::{BlockCipherEncrypt, BlockSizeUser};
 
 pub use aead;
 
@@ -48,20 +48,26 @@ use sealed::Sealed;
 cpufeatures::new!(mul_intrinsics, "sse2", "ssse3", "pclmulqdq");
 
 /// MGM nonces
-pub type Nonce<NonceSize> = GenericArray<u8, NonceSize>;
+pub type Nonce<NonceSize> = Array<u8, NonceSize>;
 
 /// MGM tags
-pub type Tag<TagSize> = GenericArray<u8, TagSize>;
+pub type Tag<TagSize> = Array<u8, TagSize>;
 
-type Block<C> = GenericArray<u8, <C as BlockCipher>::BlockSize>;
+type Block<C> = Array<u8, <C as BlockSizeUser>::BlockSize>;
 // cipher, nonce, aad, buffer
-type EncArgs<'a, C> = (&'a C, &'a Block<C>, &'a [u8], &'a mut [u8]);
+type EncArgs<'a, C> = (&'a C, &'a Block<C>, &'a [u8], InOutBuf<'a, 'a, u8>);
 // cipher, nonce, aad, buf, expected_tag
-type DecArgs<'a, C> = (&'a C, &'a Block<C>, &'a [u8], &'a mut [u8], &'a Block<C>);
+type DecArgs<'a, C> = (
+    &'a C,
+    &'a Block<C>,
+    &'a [u8],
+    InOutBuf<'a, 'a, u8>,
+    &'a Block<C>,
+);
 
 /// Trait implemented for block cipher sizes usable with MGM.
 // ideally we would use type level set, i.e. `U8 | U16`
-pub trait MgmBlockSize: sealed::Sealed {}
+pub trait MgmBlockSize: Sealed {}
 
 impl<T: Sealed> MgmBlockSize for T {}
 
@@ -69,7 +75,7 @@ impl<T: Sealed> MgmBlockSize for T {}
 #[derive(Clone, Debug)]
 pub struct Mgm<C>
 where
-    C: BlockEncrypt,
+    C: BlockCipherEncrypt,
     C::BlockSize: MgmBlockSize,
 {
     cipher: C,
@@ -77,7 +83,7 @@ where
 
 impl<C> From<C> for Mgm<C>
 where
-    C: BlockEncrypt,
+    C: BlockCipherEncrypt,
     C::BlockSize: MgmBlockSize,
 {
     fn from(cipher: C) -> Self {
@@ -87,7 +93,7 @@ where
 
 impl<C> KeySizeUser for Mgm<C>
 where
-    C: BlockEncrypt + NewBlockCipher,
+    C: BlockCipherEncrypt + KeyInit,
     C::BlockSize: MgmBlockSize,
 {
     type KeySize = C::KeySize;
@@ -95,7 +101,7 @@ where
 
 impl<C> KeyInit for Mgm<C>
 where
-    C: BlockEncrypt + NewBlockCipher,
+    C: BlockCipherEncrypt + KeyInit,
     C::BlockSize: MgmBlockSize,
 {
     fn new(key: &Key<Self>) -> Self {
@@ -105,24 +111,24 @@ where
 
 impl<C> AeadCore for Mgm<C>
 where
-    C: BlockEncrypt,
+    C: BlockCipherEncrypt,
     C::BlockSize: MgmBlockSize,
 {
     type NonceSize = C::BlockSize;
     type TagSize = C::BlockSize;
-    type CiphertextOverhead = U0;
+    const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl<C> AeadInPlace for Mgm<C>
+impl<C> AeadInOut for Mgm<C>
 where
-    C: BlockEncrypt,
+    C: BlockCipherEncrypt,
     C::BlockSize: MgmBlockSize,
 {
-    fn encrypt_in_place_detached(
+    fn encrypt_inout_detached(
         &self,
         nonce: &Nonce<Self::NonceSize>,
         adata: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
     ) -> Result<Tag<Self::TagSize>, Error> {
         // first nonce bit must be equal to zero
         if nonce[0] >> 7 != 0 {
@@ -131,11 +137,11 @@ where
         mgm_encrypt((&self.cipher, nonce, adata, buffer))
     }
 
-    fn decrypt_in_place_detached(
+    fn decrypt_inout_detached(
         &self,
         nonce: &Nonce<Self::NonceSize>,
         adata: &[u8],
-        buffer: &mut [u8],
+        buffer: InOutBuf<'_, '_, u8>,
         expected_tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
         // first nonce bit must be equal to zero
@@ -151,15 +157,17 @@ cfg_if! {
         any(target_arch = "x86_64", target_arch = "x86"),
         not(feature = "force-soft")
     ))] {
+        #[allow(unsafe_code, reason = "CPU intrinsics")]
         #[target_feature(enable = "pclmulqdq")]
         #[target_feature(enable = "ssse3")]
         #[target_feature(enable = "sse2")]
         unsafe fn wrapper<R: Sized>(f: impl FnOnce() -> R) -> R {
             f()
         }
+        #[allow(unsafe_code, reason = "CPU intrinsics")]
         fn mgm_encrypt<C>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
         where
-            C: BlockEncrypt,
+            C: BlockCipherEncrypt,
             C::BlockSize: MgmBlockSize,
         {
             if mul_intrinsics::get() {
@@ -179,9 +187,10 @@ cfg_if! {
             }
         }
 
+        #[allow(unsafe_code, reason = "CPU intrinsics")]
         fn mgm_decrypt<C>(args: DecArgs<'_, C>) -> Result<(), Error>
         where
-            C: BlockEncrypt,
+            C: BlockCipherEncrypt,
             C::BlockSize: MgmBlockSize,
         {
             if mul_intrinsics::get() {
@@ -203,7 +212,7 @@ cfg_if! {
     } else {
         fn mgm_encrypt<C>(args: EncArgs<'_, C>) -> Result<Block<C>, Error>
         where
-            C: BlockEncrypt,
+            C: BlockCipherEncrypt,
             C::BlockSize: MgmBlockSize,
         {
             encdec::encrypt::<C, gf::gf64_soft64::Element, gf::gf128_soft64::Element>(args)
@@ -211,7 +220,7 @@ cfg_if! {
 
         fn mgm_decrypt<C>(args: DecArgs<'_, C>) -> Result<(), Error>
         where
-            C: BlockEncrypt,
+            C: BlockCipherEncrypt,
             C::BlockSize: MgmBlockSize,
         {
             encdec::decrypt::<C, gf::gf64_soft64::Element, gf::gf128_soft64::Element>(args)

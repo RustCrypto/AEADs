@@ -1,9 +1,9 @@
 use super::{GfElement, utils::bmul64};
-use aead::{consts::U8, generic_array::GenericArray};
+use aead::{array::Array, consts::U8};
 
 pub struct Element(u64);
 
-type Block = GenericArray<u8, U8>;
+type Block = Array<u8, U8>;
 
 impl GfElement for Element {
     type N = U8;

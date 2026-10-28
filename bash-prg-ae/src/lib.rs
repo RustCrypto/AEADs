@@ -9,7 +9,7 @@
 
 pub use aead::{self, AeadCore, AeadInOut, Error, Key, KeyInit, KeySizeUser};
 
-use aead::{TagPosition, array::ArraySize, consts::U16, inout::InOutBuf};
+use aead::{TagPosition, array::ArraySize, inout::InOutBuf};
 use bash_f::{STATE_WORDS, bash_f};
 use core::{fmt, marker::PhantomData};
 use ctutils::CtEq;
@@ -30,7 +30,7 @@ const OUT: u8 = 0b000100;
 ///
 /// The key 𝐾 and the tag 𝑇 are both ℓ bits long. The announcement 𝐴 (nonce)
 /// is `NonceSize` octets long, a multiple of 4 not greater than 60.
-pub struct BashPrgAe<Size: ArraySize, const D: usize, NonceSize: ArraySize = U16> {
+pub struct BashPrgAe<Size: ArraySize, const D: usize, NonceSize: ArraySize> {
     key: Key<Self>,
     _pd: PhantomData<(Size, NonceSize)>,
 }
@@ -38,12 +38,6 @@ pub struct BashPrgAe<Size: ArraySize, const D: usize, NonceSize: ArraySize = U16
 impl<Size: ArraySize, const D: usize, NonceSize: ArraySize> BashPrgAe<Size, D, NonceSize> {
     /// Security level ℓ in bits.
     const LEVEL: usize = 8 * Size::USIZE;
-
-    /// 8.13.1: 𝐴 ∈ {0,1}^32* and |𝐴| ≤ 480.
-    const CHECK_NONCE: () = assert!(
-        NonceSize::USIZE % 4 == 0 && NonceSize::USIZE <= 60,
-        "nonce length must be a multiple of 4 octets not greater than 60"
-    );
 }
 
 impl<Size: ArraySize, const D: usize, NonceSize: ArraySize> KeySizeUser
@@ -57,7 +51,14 @@ impl<Size: ArraySize, const D: usize, NonceSize: ArraySize> KeyInit
 {
     #[inline]
     fn new(key: &Key<Self>) -> Self {
-        let () = Self::CHECK_NONCE;
+        // 8.13.1: 𝐴 ∈ {0,1}^32* and |𝐴| ≤ 480.
+        const {
+            assert!(
+                NonceSize::USIZE % 4 == 0 && NonceSize::USIZE <= 60,
+                "nonce length must be a multiple of 4 octets not greater than 60"
+            );
+        }
+
         Self {
             key: key.clone(),
             _pd: PhantomData,
@@ -120,7 +121,6 @@ impl<Size: ArraySize, const D: usize, NonceSize: ArraySize> AeadInOut
         if !associated_data.is_empty() {
             a.absorb(associated_data);
         }
-        let mut saved = a.clone();
 
         // 2.2. 𝑋 ← α.decrypt(𝑌)
         let buf = buffer.into_out_with_copied_in();
@@ -136,8 +136,8 @@ impl<Size: ArraySize, const D: usize, NonceSize: ArraySize> AeadInOut
             Ok(())
         } else {
             // 8.13.2: 𝑋 is a variable until the tag is checked and must be
-            // cleared if the tag is wrong. Restore 𝑌 in its place.
-            saved.encrypt(buf);
+            // cleared if the tag is wrong.
+            buf.fill(0);
             Err(Error)
         }
     }
@@ -175,7 +175,6 @@ impl<Size: ArraySize, const D: usize, NonceSize: ArraySize> zeroize::ZeroizeOnDr
 /// Programmable automaton α (STB 34.101.77-2020, 8.1–8.9) in key mode.
 ///
 /// Lengths are in octets, while the standard counts them in bits.
-#[derive(Clone)]
 struct Automaton {
     /// State 𝑆: buffer 𝑆[..𝑟) followed by memory 𝑆[𝑟..).
     s: [u8; STATE_BYTES],
@@ -309,14 +308,5 @@ impl Automaton {
         for (chunk, w) in self.s.chunks_exact_mut(8).zip(&words) {
             chunk.copy_from_slice(&w.to_le_bytes());
         }
-        #[cfg(feature = "zeroize")]
-        zeroize::Zeroize::zeroize(&mut words);
-    }
-}
-
-impl Drop for Automaton {
-    fn drop(&mut self) {
-        #[cfg(feature = "zeroize")]
-        zeroize::Zeroize::zeroize(&mut self.s);
     }
 }

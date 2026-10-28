@@ -20,6 +20,7 @@ ctutils = "0.4"
 zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]
+aead = { version = "0.6", features = ["dev"], default-features = false }
 hex-literal = "1"
 
 [features]

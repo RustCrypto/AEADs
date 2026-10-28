@@ -6,12 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.5.0 (UNRELEASED)
 ### Changed
-- Bump `aead` to v0.6, `cipher` to v0.5 and `cpufeatures` to v0.3
-- Edition changed to 2024 and MSRV bumped to 1.85
-- Move into the workspace
+- Bump `aead` to v0.6, `cipher` to v0.5, and `cpufeatures` to v0.3 ([#891])
+- Edition changed to 2024 and MSRV bumped to 1.85 ([#891])
 
 ### Removed
-- `std` and `stream` features
+- `std` and `stream` features ([#891])
+
+[#891]: https://github.com/RustCrypto/AEADs/pull/891
 
 ## 0.4.6 (2021-09-01)
 ### Added

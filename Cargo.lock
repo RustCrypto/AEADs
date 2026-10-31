@@ -101,6 +101,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "bash-f"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfed5cd32720841afa8cd58c89a317e9efb0c8083e1b349dae4098f022620353"
+
+[[package]]
+name = "bash-prg-ae"
+version = "0.1.0"
+dependencies = [
+ "aead",
+ "bash-f",
+ "ctutils",
+ "hex-literal",
+ "zeroize",
+]
+
+[[package]]
 name = "belt-block"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

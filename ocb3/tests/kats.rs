@@ -109,6 +109,85 @@ type Aes256Ocb3Tag64 = Ocb3<Aes256, U12, U8>;
 type Aes128Ocb3 = Ocb3<Aes128, U12>;
 type Aes256Ocb3 = Ocb3<Aes256, U12>;
 
+fn assert_failed_decrypt_clears<C>()
+where
+    C: AeadInOut + KeyInit,
+{
+    let key = aead::Key::<C>::default();
+    let cipher = C::new(&key);
+    for len in [0, 1, 15, 16, 17, 31, 32, 33, 64, 65] {
+        let mut nonce = aead::Nonce::<C>::default();
+        nonce[0] = len;
+        let mut ciphertext = [0x42; 65];
+        let ciphertext = &mut ciphertext[..usize::from(len)];
+        let tag = cipher
+            .encrypt_inout_detached(&nonce, b"associated data", ciphertext.into())
+            .unwrap();
+
+        for tamper in 0..4 {
+            if tamper == 3 && ciphertext.is_empty() {
+                continue;
+            }
+            let mut bad_tag = tag.clone();
+            let mut bad_nonce = nonce.clone();
+            let mut input = ciphertext.to_vec();
+            let aad: &[u8] = match tamper {
+                0 => {
+                    bad_tag[0] ^= 1;
+                    b"associated data"
+                }
+                1 => b"different data",
+                2 => {
+                    bad_nonce[0] ^= 1;
+                    b"associated data"
+                }
+                _ => {
+                    input[0] ^= 1;
+                    b"associated data"
+                }
+            };
+
+            let mut output = vec![0xa5; input.len()];
+            let buffer = aead::inout::InOutBuf::new(&input, &mut output).unwrap();
+            cipher
+                .decrypt_inout_detached(&bad_nonce, aad, buffer, &bad_tag)
+                .unwrap_err();
+            assert!(
+                output.iter().all(|&byte| byte == 0),
+                "len={len}, tamper={tamper}"
+            );
+
+            cipher
+                .decrypt_inout_detached(&bad_nonce, aad, input.as_mut_slice().into(), &bad_tag)
+                .unwrap_err();
+            assert!(
+                input.iter().all(|&byte| byte == 0),
+                "len={len}, tamper={tamper}"
+            );
+        }
+    }
+}
+
+#[test]
+fn aes128_ocb3_failed_decrypt_clears_output() {
+    assert_failed_decrypt_clears::<Aes128Ocb3>();
+}
+
+#[test]
+fn aes256_ocb3_failed_decrypt_clears_output() {
+    assert_failed_decrypt_clears::<Aes256Ocb3>();
+}
+
+#[test]
+fn aes128_ocb3_tag96_failed_decrypt_clears_output() {
+    assert_failed_decrypt_clears::<Aes128Ocb3Tag96>();
+}
+
+#[test]
+fn aes128_ocb3_tag64_failed_decrypt_clears_output() {
+    assert_failed_decrypt_clears::<Aes128Ocb3Tag64>();
+}
+
 /// Test vectors from Page 18 of https://www.rfc-editor.org/rfc/rfc7253.html#appendix-A
 #[test]
 fn rfc7253_more_sample_results() {

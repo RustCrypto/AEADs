@@ -125,6 +125,29 @@
 //! assert_eq!(buffer.as_ref(), b"plaintext message");
 //! # }
 //! ```
+//!
+//! ## Custom Nonce Length
+//!
+//! EAX accepts nonces of any length. The nonce is 16 bytes long by default;
+//! the third generic argument of `Eax` sets another length:
+//!
+//! ```
+//! # #[cfg(feature = "alloc")]
+//! # {
+//! use aes::Aes128;
+//! use eax::Eax;
+//! use eax::aead::{Aead, KeyInit, array::Array};
+//! use eax::aead::consts::{U12, U16};
+//!
+//! let key = Array::from_slice(b"very secret key.");
+//! let cipher = Eax::<Aes128, U16, U12>::new(key);
+//!
+//! let nonce = Array::from_slice(b"unique nonce"); // 96-bits; unique per message
+//! let ciphertext = cipher.encrypt(nonce, b"plaintext message".as_ref()).unwrap();
+//! let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).unwrap();
+//! assert_eq!(&plaintext, b"plaintext message");
+//! # }
+//! ```
 
 mod traits;
 
@@ -133,7 +156,9 @@ pub use cipher;
 
 use aead::{TagPosition, inout::InOutBuf};
 use cipher::{
-    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore, array::Array, consts::U16,
+    BlockCipherEncrypt, BlockSizeUser, InnerIvInit, StreamCipherCore,
+    array::{Array, ArraySize},
+    consts::U16,
 };
 use cmac::{Cmac, Mac, digest::Output};
 use core::{fmt, marker::PhantomData};
@@ -167,52 +192,60 @@ type Ctr128BE<C> = ctr::CtrCore<C, ctr::flavors::Ctr128BE>;
 /// ## Type parameters
 /// - `Cipher`: block cipher.
 /// - `M`: size of MAC tag, valid values: up to `U16`.
+/// - `NonceSize`: size of nonce, any length (default `U16`).
 #[derive(Clone)]
-pub struct Eax<Cipher, M = U16>
+pub struct Eax<Cipher, M = U16, NonceSize = U16>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     /// Encryption key
     key: Key<Cipher>,
     _tag_size: PhantomData<M>,
+    _nonce_size: PhantomData<NonceSize>,
 }
 
-impl<Cipher, M> KeySizeUser for Eax<Cipher, M>
+impl<Cipher, M, NonceSize> KeySizeUser for Eax<Cipher, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     type KeySize = Cipher::KeySize;
 }
 
-impl<Cipher, M> KeyInit for Eax<Cipher, M>
+impl<Cipher, M, NonceSize> KeyInit for Eax<Cipher, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     fn new(key: &Key<Cipher>) -> Self {
         Self {
             key: key.clone(),
             _tag_size: PhantomData,
+            _nonce_size: PhantomData,
         }
     }
 }
 
-impl<Cipher, M> AeadCore for Eax<Cipher, M>
+impl<Cipher, M, NonceSize> AeadCore for Eax<Cipher, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
-    type NonceSize = Cipher::BlockSize;
+    type NonceSize = NonceSize;
     type TagSize = M;
     const TAG_POSITION: TagPosition = TagPosition::Postfix;
 }
 
-impl<Cipher, M> AeadInOut for Eax<Cipher, M>
+impl<Cipher, M, NonceSize> AeadInOut for Eax<Cipher, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     fn encrypt_inout_detached(
         &self,
@@ -285,20 +318,22 @@ where
     }
 }
 
-impl<Cipher, M> fmt::Debug for Eax<Cipher, M>
+impl<Cipher, M, NonceSize> fmt::Debug for Eax<Cipher, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         f.debug_struct("Eax").finish_non_exhaustive()
     }
 }
 
-impl<Cipher, M> Eax<Cipher, M>
+impl<Cipher, M, NonceSize> Eax<Cipher, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     /// CMAC/OMAC1
     ///

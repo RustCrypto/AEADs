@@ -60,7 +60,8 @@
 use crate::{Cmac, Error, Nonce, Tag, TagSize};
 use aead::consts::U16;
 use cipher::{
-    BlockCipherEncrypt, BlockSizeUser, Key, KeyInit, KeyIvInit, StreamCipher, array::Array,
+    BlockCipherEncrypt, BlockSizeUser, Key, KeyInit, KeyIvInit, StreamCipher,
+    array::{Array, ArraySize},
     typenum::Unsigned,
 };
 use cmac::Mac;
@@ -150,31 +151,35 @@ impl CipherOp for Decrypt {}
 /// [`Eax`]: ../struct.Eax.html
 /// [`Decrypt`]: struct.Decrypt.html
 /// [`finish`]: #method.finish
-pub struct Eax<Cipher, Op, M = U16>
+pub struct Eax<Cipher, Op, M = U16, NonceSize = U16>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     Op: CipherOp,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     imp: EaxImpl<Cipher, M>,
     /// Denotes whether this stream is used for encryption or decryption.
     marker: PhantomData<Op>,
+    _nonce_size: PhantomData<NonceSize>,
 }
 
-impl<Cipher, Op, M> Eax<Cipher, Op, M>
+impl<Cipher, Op, M, NonceSize> Eax<Cipher, Op, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     Op: CipherOp,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
-    pub fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
+    pub fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<NonceSize>) -> Self {
         let imp = EaxImpl::<Cipher, M>::with_key_and_nonce(key, nonce);
 
         Self {
             imp,
             marker: PhantomData,
+            _nonce_size: PhantomData,
         }
     }
 
@@ -196,10 +201,11 @@ where
     }
 }
 
-impl<Cipher, M> Eax<Cipher, Encrypt, M>
+impl<Cipher, M, NonceSize> Eax<Cipher, Encrypt, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     /// Applies encryption to the plaintext.
     #[inline]
@@ -217,10 +223,11 @@ where
     }
 }
 
-impl<Cipher, M> Eax<Cipher, Decrypt, M>
+impl<Cipher, M, NonceSize> Eax<Cipher, Decrypt, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     /// Applies decryption to the ciphertext **without** verifying the
     /// authenticity of decrypted message.
@@ -267,11 +274,12 @@ where
     }
 }
 
-impl<Cipher, Op, M> fmt::Debug for Eax<Cipher, Op, M>
+impl<Cipher, Op, M, NonceSize> fmt::Debug for Eax<Cipher, Op, M, NonceSize>
 where
     Cipher: BlockSizeUser<BlockSize = U16> + BlockCipherEncrypt + Clone + KeyInit,
     Op: CipherOp,
     M: TagSize,
+    NonceSize: ArraySize,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         f.debug_struct("Eax").finish_non_exhaustive()
@@ -302,7 +310,7 @@ where
 {
     /// Creates a stateful EAX instance that is capable of processing both
     /// the associated data and the plaintext in an "on-line" fashion.
-    fn with_key_and_nonce(key: &Key<Cipher>, nonce: &Nonce<Cipher::BlockSize>) -> Self {
+    fn with_key_and_nonce(key: &Key<Cipher>, nonce: &[u8]) -> Self {
         let prepend_cmac = |key, init_val, data| {
             let mut cmac = <Cmac<Cipher> as KeyInit>::new(key);
             cmac.update(&[0; 15]);

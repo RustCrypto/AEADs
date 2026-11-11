@@ -31,10 +31,12 @@ where
     C: StreamCipher + StreamCipherSeek,
 {
     /// Instantiate the underlying cipher with a particular nonce
-    pub(crate) fn new(mut cipher: C) -> Self {
+    pub(crate) fn new(mut cipher: C) -> Result<Self, Error> {
         // Derive Poly1305 key from the first 32-bytes of the ChaCha20 keystream
         let mut mac_key = poly1305::Key::default();
-        cipher.apply_keystream(&mut mac_key);
+        cipher
+            .try_apply_keystream(&mut mac_key)
+            .map_err(|_| Error)?;
 
         let mac = Poly1305::new(&mac_key);
         #[cfg(feature = "zeroize")]
@@ -44,9 +46,9 @@ where
         }
 
         // Set ChaCha20 counter to 1
-        cipher.seek(BLOCK_SIZE as u64);
+        cipher.try_seek(BLOCK_SIZE as u64).map_err(|_| Error)?;
 
-        Self { cipher, mac }
+        Ok(Self { cipher, mac })
     }
 
     /// Encrypt the given message in-place, returning the authentication tag
@@ -63,7 +65,9 @@ where
 
         // TODO(tarcieri): interleave encryption with Poly1305
         // See: <https://github.com/RustCrypto/AEADs/issues/74>
-        self.cipher.apply_keystream_inout(buffer.reborrow());
+        self.cipher
+            .try_apply_keystream_inout(buffer.reborrow())
+            .map_err(|_| Error)?;
         self.mac.update_padded(buffer.get_out());
 
         self.authenticate_lengths(associated_data, buffer.get_out())?;
@@ -90,8 +94,9 @@ where
         if self.mac.verify(tag).is_ok() {
             // TODO(tarcieri): interleave decryption with Poly1305
             // See: <https://github.com/RustCrypto/AEADs/issues/74>
-            self.cipher.apply_keystream_inout(buffer);
-            Ok(())
+            self.cipher
+                .try_apply_keystream_inout(buffer)
+                .map_err(|_| Error)
         } else {
             Err(Error)
         }

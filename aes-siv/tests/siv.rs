@@ -44,10 +44,41 @@ macro_rules! tests {
 
             let mut cipher = <$siv>::new(&Array(*vector.key));
             assert!(cipher.decrypt(vector.aad, &ciphertext).is_err());
-
-            // TODO(tarcieri): test ciphertext is unmodified in in-place API
         }
     };
+}
+
+#[test]
+fn too_many_headers_clears_output() {
+    use aes_siv::{
+        KeyInit,
+        aead::inout::InOutBuf,
+        siv::{Aes128Siv, MAX_HEADERS},
+    };
+
+    let mut cipher = Aes128Siv::new(&Default::default());
+    let mut ciphertext = [0x42; 17];
+    let tag = cipher
+        .encrypt_inout_detached([b"aad"], ciphertext.as_mut_slice().into())
+        .unwrap();
+
+    let headers = [b"aad"; MAX_HEADERS + 1];
+    let mut in_place = ciphertext;
+    assert!(
+        cipher
+            .decrypt_inout_detached(headers, in_place.as_mut_slice().into(), &tag)
+            .is_err()
+    );
+    assert_eq!(in_place, [0; 17]);
+
+    let mut output = [0xa5; 17];
+    let buffer = InOutBuf::new(&ciphertext, &mut output).unwrap();
+    assert!(
+        cipher
+            .decrypt_inout_detached(headers, buffer, &tag)
+            .is_err()
+    );
+    assert_eq!(output, [0; 17]);
 }
 
 macro_rules! wycheproof_tests {

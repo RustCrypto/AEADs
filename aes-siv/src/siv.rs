@@ -80,8 +80,9 @@ use cipher::{
 };
 use cmac::Cmac;
 use core::{fmt, ops::Add};
+use ctutils::CtEq;
 use dbl::Dbl;
-use digest::{CtOutput, FixedOutputReset, Mac};
+use digest::{FixedOutputReset, Mac};
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -299,14 +300,14 @@ where
         T: AsRef<[u8]>,
     {
         self.xor_with_keystream(*siv_tag, ciphertext.reborrow());
-        let computed_siv_tag = s2v(&mut self.mac, headers, ciphertext.get_out())?;
+        let authenticated = s2v(&mut self.mac, headers, ciphertext.get_out())
+            .is_ok_and(|tag| tag.ct_eq(siv_tag).into());
 
-        // Note: `CtOutput` provides constant-time equality
-        if CtOutput::<M>::new(computed_siv_tag) == CtOutput::new(*siv_tag) {
+        if authenticated {
             Ok(())
         } else {
-            // Re-encrypt the decrypted plaintext to avoid revealing it
-            self.xor_with_keystream(*siv_tag, ciphertext);
+            // Also erase plaintext if S2V rejects too many headers.
+            ciphertext.get_out().fill(0);
             Err(Error)
         }
     }

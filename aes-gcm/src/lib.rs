@@ -284,7 +284,7 @@ where
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<TagSize>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > P_MAX || associated_data.len() as u64 > A_MAX {
@@ -302,6 +302,7 @@ where
             ctr.apply_keystream_partial(buffer);
             Ok(())
         } else {
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

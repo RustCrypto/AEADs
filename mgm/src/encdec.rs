@@ -39,7 +39,7 @@ where
     E64: GfElement<N = U8>,
     E128: GfElement<N = U16>,
 {
-    let (cipher, nonce, adata, buffer, expected_tag) = args;
+    let (cipher, nonce, adata, mut buffer, expected_tag) = args;
     // ideally we would use type-level branching here
     let tag = match C::BlockSize::USIZE {
         8 => calc_tag::<C, E64>(cipher, nonce, adata, buffer.get_in()),
@@ -48,6 +48,7 @@ where
     }?;
 
     if !expected_tag.ct_eq(&tag).to_bool() {
+        buffer.get_out().fill(0);
         return Err(Error);
     }
 

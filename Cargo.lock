@@ -6,8 +6,7 @@ version = 4
 [[package]]
 name = "aead"
 version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1973cfbc1a2daf9cf550e74e1f088c28e7f7d8c1e1418fb6c9dc5184b7e84c99"
+source = "git+https://github.com/RustCrypto/traits#6c1eab1e083dca513e2feda52a622ee9a3541262"
 dependencies = [
  "arrayvec",
  "blobby",
@@ -71,6 +70,7 @@ dependencies = [
  "cipher",
  "cmac",
  "ctr",
+ "ctutils",
  "dbl",
  "digest",
  "hex-literal",

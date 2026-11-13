@@ -258,13 +258,15 @@ where
         &self,
         nonce: &Nonce<NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &aead::Tag<Self>,
     ) -> aead::Result<()> {
-        let expected_tag = self.decrypt_inout_return_tag(nonce, associated_data, buffer)?;
+        let expected_tag =
+            self.decrypt_inout_return_tag(nonce, associated_data, buffer.reborrow())?;
         if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

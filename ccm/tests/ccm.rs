@@ -27,6 +27,18 @@ fn test_data_len_check() {
     let mut buf2 = [1; u16::MAX as usize + 1];
     let res = c.encrypt_inout_detached(&nonce, &[], buf2.as_mut_slice().into());
     assert!(res.is_err());
+
+    // Reject oversized ciphertext before touching either in-place or separate output.
+    let tag = Default::default();
+    let res = c.decrypt_inout_detached(&nonce, &[], buf2.as_mut_slice().into(), &tag);
+    assert!(res.is_err());
+    assert!(buf2.iter().all(|&byte| byte == 0));
+
+    let mut output = vec![0xa5; buf2.len()];
+    let buffer = aead::inout::InOutBuf::new(&buf2, &mut output).unwrap();
+    let res = c.decrypt_inout_detached(&nonce, &[], buffer, &tag);
+    assert!(res.is_err());
+    assert!(output.iter().all(|&byte| byte == 0));
 }
 
 /// Example test vectors from NIST SP 800-38C

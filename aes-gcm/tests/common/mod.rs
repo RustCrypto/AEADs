@@ -97,7 +97,7 @@ macro_rules! tests {
                     .is_err()
             );
 
-            assert_eq!(vector.ciphertext, buffer);
+            assert!(buffer.iter().all(|&byte| byte == 0));
         }
     };
 }

@@ -455,4 +455,23 @@ mod tests {
 
         assert_eq!(&plaintext[..], buffer.as_ref());
     }
+
+    #[test]
+    fn authentication_failure() {
+        use aead::dev::{TestVector, fail_test};
+
+        let vector = TestVector {
+            key: &[0; 16],
+            nonce: &[0; 8],
+            aad: b"aad",
+            plaintext: &[],
+            ciphertext: &[0x42; 33],
+        };
+        fail_test::<DeoxysI128>(&vector).unwrap();
+        fail_test::<DeoxysII128>(&TestVector {
+            nonce: &[0; 15],
+            ..vector
+        })
+        .unwrap();
+    }
 }

@@ -321,9 +321,8 @@ where
         if expected_tag.ct_eq(tag).into() {
             Ok(())
         } else {
-            // On MAC verify failure, re-encrypt the plaintext buffer to
-            // prevent accidental exposure.
-            init_ctr(&self.enc_cipher, tag).apply_keystream_partial(buffer);
+            // Erase unauthenticated plaintext on MAC verification failure.
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

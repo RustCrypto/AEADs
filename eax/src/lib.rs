@@ -252,7 +252,7 @@ where
         &self,
         nonce: &Nonce<Self::NonceSize>,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<M>,
     ) -> Result<(), Error> {
         if buffer.len() as u64 > C_MAX || associated_data.len() as u64 > A_MAX {
@@ -280,6 +280,7 @@ where
 
             Ok(())
         } else {
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

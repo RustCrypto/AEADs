@@ -79,7 +79,7 @@ where
     pub(crate) fn decrypt_inout_detached(
         mut self,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag,
     ) -> Result<(), Error> {
         if buffer.len() / BLOCK_SIZE >= MAX_BLOCKS {
@@ -98,6 +98,7 @@ where
                 .try_apply_keystream_inout(buffer)
                 .map_err(|_| Error)
         } else {
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

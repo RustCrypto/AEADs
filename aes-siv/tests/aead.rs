@@ -88,22 +88,14 @@ macro_rules! tests {
         #[test]
         fn decrypt_modified() {
             let vector = &$vectors[0];
-            let key = Array(*vector.key);
-            let nonce = Array(*vector.nonce);
-            let mut ciphertext = Vec::from(vector.ciphertext);
-
-            // Tweak the first byte
-            ciphertext[0] ^= 0xaa;
-
-            let payload = Payload {
-                msg: &ciphertext,
-                aad: vector.aad,
-            };
-
-            let cipher = <$aead>::new(&key);
-            assert!(cipher.decrypt(&nonce, payload).is_err());
-
-            // TODO(tarcieri): test ciphertext is unmodified in in-place API
+            aead::dev::fail_test::<$aead>(&aead::dev::TestVector {
+                key: vector.key,
+                nonce: vector.nonce,
+                aad: b"invalid aad",
+                plaintext: vector.plaintext,
+                ciphertext: vector.ciphertext,
+            })
+            .unwrap();
         }
     };
 }

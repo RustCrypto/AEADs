@@ -48,3 +48,15 @@ fn test_belt_dwp() {
         assert_eq!(x, vec.x);
     }
 }
+
+#[test]
+fn authentication_failure() {
+    aead::dev::fail_test::<BeltDwp>(&aead::dev::TestVector {
+        key: &[0; 32],
+        nonce: &[0; 16],
+        aad: b"aad",
+        plaintext: &[],
+        ciphertext: &[0x42; 25],
+    })
+    .unwrap();
+}

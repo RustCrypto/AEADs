@@ -303,6 +303,11 @@ where
         mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self::TagSize>,
     ) -> Result<(), Error> {
+        // Reject invalid lengths before writing unauthenticated plaintext.
+        if buffer.len() > N::get_max_len() {
+            return Err(Error);
+        }
+
         let ext_nonce = Self::extend_nonce(nonce);
         // number of bytes left for counter (max 8)
         let cb = C::BlockSize::USIZE - N::USIZE - 1;

@@ -21,6 +21,7 @@ aes = "0.9"
 cipher = "0.5"
 cmac = "0.8"
 ctr = "0.10"
+ctutils = "0.4"
 dbl = "0.5"
 digest = { version = "0.11", features = ["mac"] }
 

@@ -191,7 +191,7 @@ where
         &self,
         nonce: &Nonce,
         associated_data: &[u8],
-        buffer: InOutBuf<'_, '_, u8>,
+        mut buffer: InOutBuf<'_, '_, u8>,
         tag: &Tag<Self>,
     ) -> aead::Result<()> {
         let sizes_block = get_sizes_block(associated_data.len(), buffer.len());
@@ -235,6 +235,7 @@ where
             enc_cipher.apply_keystream_inout(buffer);
             Ok(())
         } else {
+            buffer.get_out().fill(0);
             Err(Error)
         }
     }

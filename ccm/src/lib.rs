@@ -305,6 +305,7 @@ where
     ) -> Result<(), Error> {
         // Reject invalid lengths before writing unauthenticated plaintext.
         if buffer.len() > N::get_max_len() {
+            buffer.get_out().fill(0);
             return Err(Error);
         }
 

@@ -6,6 +6,7 @@ members = [
     "aes-gcm-siv",
     "aes-siv",
     "ascon-aead128",
+    "bash-prg-ae",
     "belt-dwp",
     "ccm",
     "chacha20poly1305",

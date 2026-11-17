@@ -8,7 +8,7 @@
 [![Project Chat][chat-image]][chat-link]
 
 Pure Rust implementation of the `belt-dwp` [AEAD] algorithm
-specified in the republic of Belarus standard [STB 34.101.31-2020].
+specified in the republic of Belarus standard [STB 34.101.31-2020] (Scheme 1).
 
 ## Security Notes
 

@@ -100,7 +100,7 @@ use ghash::GHash;
 const T: u128 = 0xE45D_4A58_8E00_6D36_3BF5_080A_C8BA_94B1;
 
 /// `belt-dwp` authenticated encryption with associated data (AEAD) cipher,
-/// defined in STB 34.101.31-2020.
+/// defined in STB 34.101.31-2020 (Scheme 1).
 pub type BeltDwp = Dwp<BeltBlock, U8>;
 
 /// `belt-dwp` authenticated encryption with associated data (AEAD) cipher
